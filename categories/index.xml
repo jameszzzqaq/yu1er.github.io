@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Categories on yuler&#39;s blog</title>
+    <link>https://yuler.asia/categories/</link>
+    <description>Recent content in Categories on yuler&#39;s blog</description>
+    <image>
+      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Fri, 13 Aug 2021 14:21:59 +0000</lastBuildDate><atom:link href="https://yuler.asia/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Misc</title>
+      <link>https://yuler.asia/categories/misc/</link>
+      <pubDate>Fri, 13 Aug 2021 14:21:59 +0000</pubDate>
+      
+      <guid>https://yuler.asia/categories/misc/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Paper</title>
+      <link>https://yuler.asia/categories/paper/</link>
+      <pubDate>Thu, 05 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://yuler.asia/categories/paper/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Leetcode</title>
+      <link>https://yuler.asia/categories/leetcode/</link>
+      <pubDate>Thu, 22 Jul 2021 00:53:46 +0000</pubDate>
+      
+      <guid>https://yuler.asia/categories/leetcode/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Golang</title>
+      <link>https://yuler.asia/categories/golang/</link>
+      <pubDate>Sat, 17 Jul 2021 12:14:57 +0000</pubDate>
+      
+      <guid>https://yuler.asia/categories/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Thinking</title>
+      <link>https://yuler.asia/categories/thinking/</link>
+      <pubDate>Sun, 27 Jun 2021 06:18:43 +0000</pubDate>
+      
+      <guid>https://yuler.asia/categories/thinking/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

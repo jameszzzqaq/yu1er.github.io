@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Paper on yuler&#39;s blog</title>
+    <link>https://yuler.asia/categories/paper/</link>
+    <description>Recent content in Paper on yuler&#39;s blog</description>
+    <image>
+      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Thu, 05 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://yuler.asia/categories/paper/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
+      <link>https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</link>
+      <pubDate>Thu, 05 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</guid>
+      <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
+但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
+ access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
+Background Optane DIMM是第一款商用NVDIMM
+与SSD/HDD相比，它low latency、higher read bandwidth、byte-address
+与DRAM相比，它higher density、persistent
+Optane Memory Optane DIMM使用和DRAM相同的插槽，和处理器的集成内存控制器（iMC)相连接。Intel Cascade Lake处理器是第一个支持Optane DIMM的处理器，有一个或两个processor die，每个die支持两个iMC，每个iMC支持三个channel，因此一个die可以支持6个Optane DIMM
+为了持久化，iMC维护一个asynchronous DRAM refresh(ADR)区域，写入这个区域内的数据都能保证其被持久化。ADR区域不保证处理器cache的持久化。
+iMC按照缓存行粒度(64byte)和Optane DIMM通信。
+3D-XPoint物理介质的访问粒度为256byte，因此会造成写放大，所以会在XPController中维护一个buffer来merge邻近的写操作。
+Operation Model Optane DIMM有两种模式Memory和App Direct
+ Memory Model
+该模式下直接将Optane DIMM作为普通的内存使用，将DRAM作为内存的Cache，DRAM是透明的，直接观察到的内存容量就是Optane DIMM的容量。
+该模式可以解决一些内存数据库内存容量不足的问题。 App Direct Model
+该模式将Optane DIMM作为持久化设备使用，直接通过CPU指令读写。文件系统和其他的管理层管理持久化内存的分配、回收和访问。  Best Practices for Optane DIMM 之前的仿真模拟根本无法捕捉到Optane行为的细节，优化disk和memory软件的传统经验不适用于Optane。
+本文基于实验提出了使用于Optane DIMM的Best Practices
+ Avoid random accesses smaller than &amp;lt; 256 B.</description>
+    </item>
+    
+    <item>
+      <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
+      <link>https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</link>
+      <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
+      
+      <guid>https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</guid>
+      <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
+ 对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
+ 未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍
+因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大
+Insert Latency insert latency来源有三个方面：
+ WAL memtable insert compaction   对于compaction
+内存中的mutable memtable在写满之后会刷新成immutable memtable，由后台进程将其压缩进磁盘，同时新开一个mutable memtable，来接管写入
+问题是新的mutable memtable写满之后，如果immutable memtable还没有刷到磁盘内，就会造成系统的停顿
+当进行大量的写入时，这会成为insert latency的主要来源。
+ 可能会说，让memtable大一点不就可以解决，但这会带来一系列的问题：
+  增大memtable会带来双倍的内存占用，因为mutable memtable和immutable memtable需要同时增大
+  WAL的磁盘占用也会更大，因为他需要容纳更多的指令
+  LSM为了性能并不commit log。
+&amp;gt; Third, LSMs suchas LevelDB and RocksDB do not enforce commits (sync) when writing to a log; as a result, an application crash or power-failure could lead to data loss</description>
+    </item>
+    
+    <item>
+      <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
+      <link>https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</link>
+      <pubDate>Tue, 03 Aug 2021 07:48:31 +0000</pubDate>
+      
+      <guid>https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</guid>
+      <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成
+其中可能同时存在某个数据的多个版本
+(tupleId, Tx-CTS)唯一确定一个tuple
+ LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除  Met-Cache NVM heap在DRAM中的缓存
+ Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。  Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple
+Transaction-Private Data 线程私有 用于事务并发访问 存储相应数据</description>
+    </item>
+    
+  </channel>
+</rss>
