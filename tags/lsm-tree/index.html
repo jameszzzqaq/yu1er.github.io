@@ -94,7 +94,7 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
 Write Amplification: out-of-place数据结构所具有的问题，降低了写性能和磁盘寿命。 Merge Operation: merge后会造成buffer cache miss，大数据量的merge会造成write stall Hardware: 针对large memory,multi-core, SSD/NVM, native storage的优化 Special Workloads: Auto-tuning: 不可能同时达到read,write,space同时最优，并且由于lsm tree拥有大量参数，手动调优也是困难的。 Secondary Indexing: lsm tree只支持简单的kv接口，二级索引也是一个方向。 </p>
 </section>
 <footer class=entry-footer>August 10, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to LSM-based storage techniques: a survey" href=https://zhangyh.me/topics/paper/suvery-of-lsm.html></a>
+<a class=entry-link aria-label="post link to LSM-based storage techniques: a survey" href=https://zhangyh.me/posts/paper/aug/suvery-of-lsm/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -108,7 +108,7 @@ Crash Consistency Optimizations Value-Log Write Buffer 对于写密集的数据�
 Optimizing the LSM-tree Log 在写LSM-tree之前需要先写vlog，因为这里我们加了vlog write buffer，所以我们直接用vlog的日志作为WAL。</p>
 </section>
 <footer class=entry-footer>August 10, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Wiskey" href=https://zhangyh.me/topics/paper/wiskey.html></a>
+<a class=entry-link aria-label="post link to Wiskey" href=https://zhangyh.me/posts/paper/aug/wisckey/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -125,7 +125,7 @@ Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直�
 Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer...</p>
 </section>
 <footer class=entry-footer>August 6, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/topics/paper/lwc-tree.html></a>
+<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/aug/lwc-tree/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>

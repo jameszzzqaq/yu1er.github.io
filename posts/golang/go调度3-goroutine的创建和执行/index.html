@@ -1,0 +1,537 @@
+<!doctype html><html lang=en dir=auto>
+<head><meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>Go调度 | 3. goroutine的创建和执行 | yuler's blog</title>
+<meta name=keywords content="go schedule">
+<meta name=description content="【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
+go程序的启动 TEXT runtime·rt0_go<ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL	runtime·osinit(SB) // 初始化schedule  CALL	runtime·schedinit(SB) MOVQ	$runtime·mainPC(SB), AX	// entry  PUSHQ	AX PUSHQ	$0	// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL	runtime·newproc(SB) POPQ	AX POPQ	AX // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL	runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序  CALL	runtime·abort(SB)	// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine
+func newproc(siz int32, fn *funcval) { argp := add(unsafe.">
+<meta name=author content="yuler">
+<link rel=canonical href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/>
+<meta name=google-site-verification content="XYZabc">
+<meta name=yandex-verification content="XYZabc">
+<meta name=msvalidate.01 content="XYZabc">
+<link crossorigin=anonymous href=/assets/css/stylesheet.min.9f1d947375927e9847272b1f4e9be81336f539e513bf04d52cade31f81cad1af.css integrity="sha256-nx2Uc3WSfphHJysfTpvoEzb1OeUTvwTVLK3jH4HK0a8=" rel="preload stylesheet" as=style>
+<link rel=preload href=/jiaran.webp as=image>
+<script defer crossorigin=anonymous src=/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5+kdJvBz5iKbt6B5PJI=" onload=hljs.initHighlightingOnLoad()></script>
+<link rel=icon href=https://zhangyh.me/jiaran16.ico>
+<link rel=icon type=image/png sizes=16x16 href=https://zhangyh.me/jiaran16.ico>
+<link rel=icon type=image/png sizes=32x32 href=https://zhangyh.me/jiaran32.ico>
+<link rel=apple-touch-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
+<link rel=mask-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<meta name=generator content="Hugo 0.88.1">
+<noscript>
+<style>#theme-toggle,.top-link{display:none}</style>
+<style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
+</noscript>
+<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go调度 | 3. goroutine的创建和执行">
+<meta property="og:description" content="【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
+go程序的启动 TEXT runtime·rt0_go<ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL	runtime·osinit(SB) // 初始化schedule  CALL	runtime·schedinit(SB) MOVQ	$runtime·mainPC(SB), AX	// entry  PUSHQ	AX PUSHQ	$0	// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL	runtime·newproc(SB) POPQ	AX POPQ	AX // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL	runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序  CALL	runtime·abort(SB)	// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine
+func newproc(siz int32, fn *funcval) { argp := add(unsafe.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-07-01T00:00:00+00:00">
+<meta property="article:modified_time" content="2021-07-01T00:00:00+00:00"><meta property="og:site_name" content="yuler's blog">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
+<meta name=twitter:title content="Go调度 | 3. goroutine的创建和执行">
+<meta name=twitter:description content="【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
+go程序的启动 TEXT runtime·rt0_go<ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL	runtime·osinit(SB) // 初始化schedule  CALL	runtime·schedinit(SB) MOVQ	$runtime·mainPC(SB), AX	// entry  PUSHQ	AX PUSHQ	$0	// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL	runtime·newproc(SB) POPQ	AX POPQ	AX // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL	runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序  CALL	runtime·abort(SB)	// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine
+func newproc(siz int32, fn *funcval) { argp := add(unsafe.">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"Go调度 | 3. goroutine的创建和执行","item":"https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go调度 | 3. goroutine的创建和执行","name":"Go调度 | 3. goroutine的创建和执行","description":"【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。\ngo程序的启动 TEXT runtime·rt0_go\u0026lt;ABIInternal\u0026gt;(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL\truntime·osinit(SB) // 初始化schedule  CALL\truntime·schedinit(SB) MOVQ\t$runtime·mainPC(SB), AX\t// entry  PUSHQ\tAX PUSHQ\t$0\t// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL\truntime·newproc(SB) POPQ\tAX POPQ\tAX // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL\truntime·mstart(SB) // mstart是不会返回的，如果返回，终止程序  CALL\truntime·abort(SB)\t// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine\nfunc newproc(siz int32, fn *funcval) { argp := add(unsafe.","keywords":["go schedule"],"articleBody":"【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。\ngo程序的启动 TEXT runtime·rt0_goABIInternal(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL\truntime·osinit(SB) // 初始化schedule  CALL\truntime·schedinit(SB) MOVQ\t$runtime·mainPC(SB), AX\t// entry  PUSHQ\tAX PUSHQ\t$0\t// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL\truntime·newproc(SB) POPQ\tAX POPQ\tAX // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL\truntime·mstart(SB) // mstart是不会返回的，如果返回，终止程序  CALL\truntime·abort(SB)\t// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine\nfunc newproc(siz int32, fn *funcval) { argp := add(unsafe.Pointer(\u0026fn), sys.PtrSize) gp := getg() pc := getcallerpc() systemstack(func() { // 创建初始化好的newg \tnewg := newproc1(fn, argp, siz, gp, pc) // 把newg放入_p_的运行队列，初始化的时候一定是p的本地运行队列，其它时候可能因为本地队列满了而放入全局队列 \t_p_ := getg().m.p.ptr() runqput(_p_, newg, true) if mainStarted { wakep() } }) } newproc主要是对newproc1的封装。newproc首先获取要执行函数fn的参数地址argp，然后通过systemstack切换到g0栈去执行newproc1，然后把生成的g放入到绑定的p的本地队列中。\n需要注意在这里由于我们当前已经是g0，因此不需要切换，但由于newproc函数是通用的，在用户的goroutine中也会被调用，因此这里使用systemstack进行栈切换是有必要的。\n下面我们看一下newproc1做了什么。\n// 参数分别为函数fn,参数地址gp，参数以字节为单位的大小narg，调用者的g，调用者的pc func newproc1(fn *funcval, argp unsafe.Pointer, narg int32, callergp *g, callerpc uintptr) *g { _g_ := getg() // g0  .... _p_ := _g_.m.p.ptr() // 得到和当前线程绑定的p  newg := gfget(_p_) //从p的本地缓冲里获取一个没有使用的g，初始化时没有，返回nil  if newg == nil { //new一个g结构体对象，然后从堆上为其分配栈，栈大小为2k。_StackMin=2048  newg = malg(_StackMin) // 设置g的状态为_Gdead  casgstatus(newg, _Gidle, _Gdead) //放入全局变量allgs切片中  allgadd(newg) } .... // 调整newg的栈指针  totalSize := 4*sys.RegSize + uintptr(siz) + sys.MinFrameSize totalSize += -totalSize \u0026 (sys.SpAlign - 1) sp := newg.stack.hi - totalSize spArg := sp if usesLR { // caller's LR  *(*uintptr)(unsafe.Pointer(sp)) = 0 prepGoExitFrame(sp) spArg += sys.MinFrameSize } // 如果有参数，将参数从g0栈拷贝到newg的栈  if narg  0 { memmove(unsafe.Pointer(spArg), argp, uintptr(narg)) .... } // 重置newg.sched \tmemclrNoHeapPointers(unsafe.Pointer(\u0026newg.sched), unsafe.Sizeof(newg.sched)) // 设置newg的参数 \tnewg.sched.sp = sp // sp \tnewg.stktopsp = sp newg.sched.pc = funcPC(goexit) + sys.PCQuantum // pc \tnewg.sched.g = guintptr(unsafe.Pointer(newg)) // go  // 模拟goexit调用fn，同时调整sp和pc,使pc指向fn \tgostartcallfn(\u0026newg.sched, fn) newg.gopc = callerpc newg.ancestors = saveAncestors(callergp) newg.startpc = fn.fn if _g_.m.curg != nil { newg.labels = _g_.m.curg.labels } if isSystemGoroutine(newg, false) { atomic.Xadd(\u0026sched.ngsys, +1) } // 设置g的状态为_Grunnable \tcasgstatus(newg, _Gdead, _Grunnable) .... return newg } 到此时，我们已经完成main goroutine的创建，我们参考这篇文章，给出当前的状态图。\n 这个图看起来比较复杂，因为表示指针的箭头实在是太多了，这里对其稍作一下解释。\n 首先，main goroutine对应的newg结构体对象的sched成员已经完成了初始化，图中只显示了pc和sp成员，pc成员指向了runtime.main函数的第一条指令，sp成员指向了newg的栈顶内存单元，该内存单元保存了runtime.main函数执行完成之后的返回地址，也就是runtime.goexit函数的第二条指令，预期runtime.main函数执行完返回之后就会去执行runtime.exit函数的CALL runtime.goexit1(SB)这条指令； 其次，newg已经放入与当前主线程绑定的p结构体对象的本地运行队列，因为它是第一个真正意义上的goroutine，还没有其它goroutine，所以它被放在了本地运行队列的头部； 最后，newg的m成员为nil，因为它还没有被调度起来运行，也就没有跟任何m进行绑定。   ![图片来源：https://www.cnblogs.com/abozhang/p/10825342.html](https://cos.yuler.asia/img/post/main-goroutine.webp\nmstart() func mstart() { _g_ := getg() .... mstart1() // Exit this thread. \tif mStackIsSystemAllocated() { // Windows, Solaris, illumos, Darwin, AIX and Plan 9 always system-allocate \t// the stack, but put it in _g_.stack before mstart, \t// so the logic above hasn't set osStack yet. \tosStack = true } mexit(osStack) } mstart没有什么多说的，主要封装了mstart1，我们下面分析mstart1。\nfunc mstart1() { _g_ := getg() if _g_ != _g_.m.g0 { throw(\"bad runtime·mstart\") } // 保存调用者的pc和sp \tsave(getcallerpc(), getcallersp()) asminit() minit() .... schedule() } schedule() func schedule() { _g_ := getg() ..... // 通过调度获取下一个可执行的gp，具体的调度过程我们将来会分析  execute(gp, inheritTime) } execute() func execute(gp *g, inheritTime bool) { _g_ := getg() // g0  // 将gp和m绑定 \t// 设置gp状态为_Grunning  _g_.m.curg = gp gp.m = _g_.m casgstatus(gp, _Grunnable, _Grunning) gp.waitsince = 0 gp.preempt = false gp.stackguard0 = gp.stack.lo + _StackGuard .... // 实现了从g0到gp的切换 \tgogo(\u0026gp.sched) } 此时还是在g0的栈上运行，通过gogo函数切换到gp的栈上运行\ngogo()  gogo函数也是通过汇编语言编写的，这里之所以需要使用汇编，是因为goroutine的调度涉及不同执行流之间的切换，前面我们在讨论操作系统切换线程时已经看到过，执行流的切换从本质上来说就是CPU寄存器以及函数调用栈的切换，然而不管是go还是c这种高级语言都无法精确控制CPU寄存器的修改，因而高级语言在这里也就无能为力了，只能依靠汇编指令来达成目的。\n # restore state from Gobuf; longjmp TEXT runtime·gogo(SB), NOSPLIT, $16-8 #buf = \u0026gp.sched MOVQ buf+0(FP), BX # BX = buf #gobuf-g -- dx register MOVQ gobuf_g(BX), DX # DX = gp.sched.g #下面这行代码没有实质作用，检查gp.sched.g是否是nil，如果是nil进程会crash死掉 MOVQ 0(DX), CX # make sure g != nil get_tls(CX) #把要运行的g的指针放入线程本地存储，这样后面的代码就可以通过线程本地存储 #获取到当前正在执行的goroutine的g结构体对象，从而找到与之关联的m和p MOVQ DX, g(CX) #恢复调度上下文到CPU相关寄存器 MOVQ gobuf_sp(BX), SP # restore SP #把CPU的SP寄存器设置为sched.sp，完成了栈的切换 MOVQ gobuf_ret(BX), AX MOVQ gobuf_ctxt(BX), DX MOVQ gobuf_bp(BX), BP #清空sched的值，因为我们已把相关值放入CPU对应的寄存器了，不再需要，这样做可以少gc的工作量 MOVQ $0, gobuf_sp(BX) # clear to help garbage collector MOVQ $0, gobuf_ret(BX) MOVQ $0, gobuf_ctxt(BX) MOVQ $0, gobuf_bp(BX) #把sched.pc值放入BX寄存器 MOVQ gobuf_pc(BX), BX #JMP把BX寄存器的包含的地址值放入CPU的IP寄存器，于是，CPU跳转到该地址继续执行指令， JMP BX gogo的作用为：\n 把gp.sched的成员恢复到CPU的寄存器完成状态以及栈的切换； 跳转到gp.sched.pc所指的指令地址（runtime.main）处执行。  runtime.main() // The main goroutine. func main() { g := getg() // Racectx of m0-g0 is used only as the parent of the main goroutine. \t// It must not be used for anything else. \tg.m.g0.racectx = 0 if sys.PtrSize == 8 { maxstacksize = 1000000000 // 64位栈最大为1G \t} else { maxstacksize = 250000000 } // Allow newproc to start new Ms. \tmainStarted = true if GOARCH != \"wasm\" { // 切换到g0栈去运行监控线程sysmon \tatomic.Store(\u0026sched.sysmonStarting, 1) systemstack(func() { newm(sysmon, nil, -1) }) } doInit(\u0026runtime_inittask) // runtime init  gcenable() // 开启gc  fn := main_main // 调用main.main函数 \tfn() //进入系统调用，退出进程，可以看出main goroutine并未返回，而是直接进入系统调用退出进程了\t\texit(0) for { var x *int32 *x = 0 } } runtime.main函数主要工作流程如下：\n 启动一个sysmon系统监控线程，该线程负责整个程序的gc、抢占调度以及netpoll等功能的监控，在抢占调度一章我们再继续分析sysmon是如何协助完成goroutine的抢占调度的； 执行runtime包的初始化； 执行main包以及main包import的所有包的初始化； 执行main.main函数； 从main.main函数返回后调用exit系统调用退出进程；  非main goroutine main goroutine结束时会执行exit(0)直接结束进程，从而使得所有其余的goroutine被终止。 而非main goroutine结束时则会执行goexit()函数完成清理工作。\ngoexit() TEXT runtime·goexit(SB),NOSPLIT,$0-0 BYTE $0x90 // NOP  CALL runtime·goexit1(SB) // does not return  BYTE $0x90 // NOP 调用runtime.goexit1()函数\nfunc goexit1() { if raceenabled { // 静态检查 \tracegoend() } if trace.enabled { // trace检查 \ttraceGoEnd() } mcall(goexit0) // 执行goexit0 } goexit1函数通过调用mcall从当前运行的go goroutine切换到g0，然后在g0栈上调用和执行goexit0这个函数。\n// goexit continuation on g0. func goexit0(gp *g) { _g_ := getg() //g0  // 状态改为_Gdead \tcasgstatus(gp, _Grunning, _Gdead) if isSystemGoroutine(gp, false) { atomic.Xadd(\u0026sched.ngsys, -1) } // 清理gp \tgp.m = nil locked := gp.lockedm != 0 gp.lockedm = 0 _g_.m.lockedg = 0 gp.preemptStop = false gp.paniconfault = false gp._defer = nil // should be true already but just in case. \tgp._panic = nil // non-nil for Goexit during panic. points at stack-allocated data. \tgp.writebuf = nil gp.waitreason = 0 gp.param = nil gp.labels = nil gp.timer = nil //g-m = nil, m-currg = nil 解绑g和m之关系 \tdropg() // g放入p的freeg队列，方便下次重用，免得再去申请内存，提高效率 \tgfput(_g_.m.p.ptr(), gp) // 再次回到调度函数 \tschedule() } 下面开始在g0栈执行goexit0函数，该函数完成最后的清理工作：\n 把g的状态从_Grunning变更为_Gdead； 然后把g的一些字段清空成0值； 调用dropg函数解除g和m之间的关系，其实就是设置g-m = nil, m-currg = nil； 把g放入p的freeg队列缓存起来供下次创建g时快速获取而不用从内存分配。freeg就是g的一个对象池； 调用schedule函数再次进行调度；  总结  我们用上图来总结一下工作线程的执行流程：\n 初始化，调用mstart函数； 调用mstart1函数，在该函数中调用save函数设置g0.sched.sp和g0.sched.pc等调度信息，其中g0.sched.sp指向mstart函数栈帧的栈顶； 依次调用schedule-execute-gogo函数执行调度； 运行用户的goroutine代码； 用户goroutine代码执行过程中调用runtime中的某些函数，然后这些函数调用mcall切换到g0.sched.sp所指的栈并最终再次调用schedule函数进入新一轮调度，之后工作线程一直循环执行着3～5这一调度循环直到进程退出为止。   ","wordCount":"779","inLanguage":"en","datePublished":"2021-07-01T00:00:00Z","dateModified":"2021-07-01T00:00:00Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/jiaran16.ico"}}}</script>
+</head>
+<body id=top>
+<script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
+<header class=header>
+<nav class=nav>
+<div class=logo>
+<a href=https://zhangyh.me/ accesskey=h title="Home (Alt + H)">
+<img src=/jiaran.webp alt=logo aria-label=logo height=35>Home</a>
+<span class=logo-switches>
+<button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+</span>
+</div>
+<ul id=menu>
+<li>
+<a href=https://zhangyh.me/archives/ title=archives>
+<span>archives</span>
+</a>
+</li>
+<li>
+<a href=https://zhangyh.me/categories/ title=categories>
+<span>categories</span>
+</a>
+</li>
+<li>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
+</a>
+</li>
+<li>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
+</a>
+</li>
+</ul>
+</nav>
+</header>
+<main class=main>
+<article class=post-single>
+<header class=post-header>
+<div class=breadcrumbs><a href=https://zhangyh.me/>Home</a>&nbsp;»&nbsp;<a href=https://zhangyh.me/posts/>Posts</a></div>
+<h1 class=post-title>
+Go调度 | 3. goroutine的创建和执行
+</h1>
+<div class=post-meta>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/[go%e8%b0%83%e5%ba%a6]3-goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+</div>
+</header> <div class=toc>
+<details>
+<summary accesskey=c title="(Alt + C)">
+<span class=details>Table of Contents</span>
+</summary>
+<div class=inner><ul>
+<li>
+<a href=#go%e8%b0%83%e5%ba%a63-goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c aria-label="【go调度】3. goroutine的创建和执行">【go调度】3. goroutine的创建和执行</a><ul>
+<li>
+<a href=#go%e7%a8%8b%e5%ba%8f%e7%9a%84%e5%90%af%e5%8a%a8 aria-label=go程序的启动>go程序的启动</a></li>
+<li>
+<a href=#main-goroutine aria-label="main goroutine">main goroutine</a><ul>
+<li>
+<a href=#newproc aria-label=newproc()>newproc()</a></li>
+<li>
+<a href=#mstart aria-label=mstart()>mstart()</a><ul>
+<li>
+<a href=#schedule aria-label=schedule()>schedule()</a></li>
+<li>
+<a href=#execute aria-label=execute()>execute()</a></li>
+<li>
+<a href=#gogo aria-label=gogo()>gogo()</a></li>
+<li>
+<a href=#runtimemain aria-label=runtime.main()>runtime.main()</a></li></ul>
+</li></ul>
+</li>
+<li>
+<a href=#%e9%9d%9emain-goroutine aria-label="非main goroutine">非main goroutine</a><ul>
+<li>
+<a href=#goexit aria-label=goexit()>goexit()</a></li></ul>
+</li>
+<li>
+<a href=#%e6%80%bb%e7%bb%93 aria-label=总结>总结</a>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+</div>
+<div class=post-content><h1 id=go调度3-goroutine的创建和执行>【go调度】3. goroutine的创建和执行<a hidden class=anchor aria-hidden=true href=#go调度3-goroutine的创建和执行>#</a></h1>
+<p>参考<a href>上篇文章</a>对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。</p>
+<h2 id=go程序的启动>go程序的启动<a hidden class=anchor aria-hidden=true href=#go程序的启动>#</a></h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go>
+<span style=color:#a6e22e>TEXT</span> <span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>rt0_go</span>&lt;<span style=color:#a6e22e>ABIInternal</span>&gt;(<span style=color:#a6e22e>SB</span>),<span style=color:#a6e22e>NOSPLIT</span>,<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>
+
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#75715e>// 初始化系统核心, 获取CPU的核数并放在global变量ncpu中
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>CALL</span>	<span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>osinit</span>(<span style=color:#a6e22e>SB</span>)
+
+  <span style=color:#75715e>// 初始化schedule
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>CALL</span>	<span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>schedinit</span>(<span style=color:#a6e22e>SB</span>)
+
+  <span style=color:#a6e22e>MOVQ</span>	<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>mainPC</span>(<span style=color:#a6e22e>SB</span>), <span style=color:#a6e22e>AX</span>		<span style=color:#75715e>// entry
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>PUSHQ</span>	<span style=color:#a6e22e>AX</span>
+  <span style=color:#a6e22e>PUSHQ</span>	<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>			<span style=color:#75715e>// arg size
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// 创建新的goroutine来执行程序(main()函数)
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>CALL</span>	<span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>newproc</span>(<span style=color:#a6e22e>SB</span>)
+  <span style=color:#a6e22e>POPQ</span>	<span style=color:#a6e22e>AX</span>
+  <span style=color:#a6e22e>POPQ</span>	<span style=color:#a6e22e>AX</span>
+
+  <span style=color:#75715e>// 主线程进入调度循环，运行刚刚创建的 goroutine
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>CALL</span>	<span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>mstart</span>(<span style=color:#a6e22e>SB</span>)
+
+  <span style=color:#75715e>// mstart是不会返回的，如果返回，终止程序
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>CALL</span>	<span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>abort</span>(<span style=color:#a6e22e>SB</span>)	<span style=color:#75715e>// mstart should never return
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>RET</span>
+</code></pre></div><h2 id=main-goroutine>main goroutine<a hidden class=anchor aria-hidden=true href=#main-goroutine>#</a></h2>
+<h3 id=newproc>newproc()<a hidden class=anchor aria-hidden=true href=#newproc>#</a></h3>
+<p>该函数创建出main goroutine</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>newproc</span>(<span style=color:#a6e22e>siz</span> <span style=color:#66d9ef>int32</span>, <span style=color:#a6e22e>fn</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>funcval</span>) {
+	<span style=color:#a6e22e>argp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>add</span>(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>fn</span>), <span style=color:#a6e22e>sys</span>.<span style=color:#a6e22e>PtrSize</span>)
+	<span style=color:#a6e22e>gp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+	<span style=color:#a6e22e>pc</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getcallerpc</span>()
+	<span style=color:#a6e22e>systemstack</span>(<span style=color:#66d9ef>func</span>() {
+    <span style=color:#75715e>// 创建初始化好的newg
+</span><span style=color:#75715e></span>		<span style=color:#a6e22e>newg</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>newproc1</span>(<span style=color:#a6e22e>fn</span>, <span style=color:#a6e22e>argp</span>, <span style=color:#a6e22e>siz</span>, <span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>pc</span>)
+
+    <span style=color:#75715e>// 把newg放入_p_的运行队列，初始化的时候一定是p的本地运行队列，其它时候可能因为本地队列满了而放入全局队列
+</span><span style=color:#75715e></span>		<span style=color:#a6e22e>_p_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>().<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>ptr</span>()
+		<span style=color:#a6e22e>runqput</span>(<span style=color:#a6e22e>_p_</span>, <span style=color:#a6e22e>newg</span>, <span style=color:#66d9ef>true</span>)
+
+		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>mainStarted</span> {
+			<span style=color:#a6e22e>wakep</span>()
+		}
+	})
+}
+</code></pre></div><p><code>newproc</code>主要是对<code>newproc1</code>的封装。<code>newproc</code>首先获取要执行函数<code>fn</code>的参数地址<code>argp</code>，然后通过<code>systemstack</code>切换到<code>g0</code>栈去执行<code>newproc1</code>，然后把生成的<code>g</code>放入到绑定的<code>p</code>的本地队列中。</p>
+<p>需要注意在这里由于我们当前已经是<code>g0</code>，因此不需要切换，但由于<code>newproc</code>函数是通用的，在用户的<code>goroutine</code>中也会被调用，因此这里使用<code>systemstack</code>进行栈切换是有必要的。</p>
+<p>下面我们看一下<code>newproc1</code>做了什么。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// 参数分别为函数fn,参数地址gp，参数以字节为单位的大小narg，调用者的g，调用者的pc
+</span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>newproc1</span>(<span style=color:#a6e22e>fn</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>funcval</span>, <span style=color:#a6e22e>argp</span> <span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>, <span style=color:#a6e22e>narg</span> <span style=color:#66d9ef>int32</span>, <span style=color:#a6e22e>callergp</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>, <span style=color:#a6e22e>callerpc</span> <span style=color:#66d9ef>uintptr</span>) <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span> {
+  <span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>() <span style=color:#75715e>// g0
+</span><span style=color:#75715e></span>
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#a6e22e>_p_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>ptr</span>() <span style=color:#75715e>// 得到和当前线程绑定的p
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>newg</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>gfget</span>(<span style=color:#a6e22e>_p_</span>) <span style=color:#75715e>//从p的本地缓冲里获取一个没有使用的g，初始化时没有，返回nil
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>newg</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+    <span style=color:#75715e>//new一个g结构体对象，然后从堆上为其分配栈，栈大小为2k。_StackMin=2048
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>newg</span> = <span style=color:#a6e22e>malg</span>(<span style=color:#a6e22e>_StackMin</span>)
+    <span style=color:#75715e>// 设置g的状态为_Gdead
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>casgstatus</span>(<span style=color:#a6e22e>newg</span>, <span style=color:#a6e22e>_Gidle</span>, <span style=color:#a6e22e>_Gdead</span>)
+    <span style=color:#75715e>//放入全局变量allgs切片中
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>allgadd</span>(<span style=color:#a6e22e>newg</span>)
+  }
+
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#75715e>// 调整newg的栈指针
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>totalSize</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>4</span><span style=color:#f92672>*</span><span style=color:#a6e22e>sys</span>.<span style=color:#a6e22e>RegSize</span> <span style=color:#f92672>+</span> uintptr(<span style=color:#a6e22e>siz</span>) <span style=color:#f92672>+</span> <span style=color:#a6e22e>sys</span>.<span style=color:#a6e22e>MinFrameSize</span>
+  <span style=color:#a6e22e>totalSize</span> <span style=color:#f92672>+=</span> <span style=color:#f92672>-</span><span style=color:#a6e22e>totalSize</span> <span style=color:#f92672>&amp;</span> (<span style=color:#a6e22e>sys</span>.<span style=color:#a6e22e>SpAlign</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>) 
+  <span style=color:#a6e22e>sp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>stack</span>.<span style=color:#a6e22e>hi</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>totalSize</span>
+  <span style=color:#a6e22e>spArg</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sp</span>
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>usesLR</span> {
+    <span style=color:#75715e>// caller&#39;s LR
+</span><span style=color:#75715e></span>    <span style=color:#f92672>*</span>(<span style=color:#f92672>*</span><span style=color:#66d9ef>uintptr</span>)(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#a6e22e>sp</span>)) = <span style=color:#ae81ff>0</span>
+    <span style=color:#a6e22e>prepGoExitFrame</span>(<span style=color:#a6e22e>sp</span>)
+    <span style=color:#a6e22e>spArg</span> <span style=color:#f92672>+=</span> <span style=color:#a6e22e>sys</span>.<span style=color:#a6e22e>MinFrameSize</span>
+  }
+
+  <span style=color:#75715e>// 如果有参数，将参数从g0栈拷贝到newg的栈
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>narg</span> &gt; <span style=color:#ae81ff>0</span> {
+    <span style=color:#a6e22e>memmove</span>(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#a6e22e>spArg</span>), <span style=color:#a6e22e>argp</span>, uintptr(<span style=color:#a6e22e>narg</span>))
+    <span style=color:#f92672>...</span>.
+  }
+
+  <span style=color:#75715e>// 重置newg.sched
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>memclrNoHeapPointers</span>(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>sched</span>), <span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Sizeof</span>(<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>sched</span>))
+  <span style=color:#75715e>// 设置newg的参数
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>sp</span> = <span style=color:#a6e22e>sp</span> <span style=color:#75715e>// sp
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>stktopsp</span> = <span style=color:#a6e22e>sp</span>
+	<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>pc</span> = <span style=color:#a6e22e>funcPC</span>(<span style=color:#a6e22e>goexit</span>) <span style=color:#f92672>+</span> <span style=color:#a6e22e>sys</span>.<span style=color:#a6e22e>PCQuantum</span>  <span style=color:#75715e>// pc
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>g</span> = <span style=color:#a6e22e>guintptr</span>(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#a6e22e>newg</span>))  <span style=color:#75715e>// go
+</span><span style=color:#75715e></span>
+  <span style=color:#75715e>// 模拟goexit调用fn，同时调整sp和pc,使pc指向fn
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>gostartcallfn</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>sched</span>, <span style=color:#a6e22e>fn</span>) 
+	<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>gopc</span> = <span style=color:#a6e22e>callerpc</span>
+	<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>ancestors</span> = <span style=color:#a6e22e>saveAncestors</span>(<span style=color:#a6e22e>callergp</span>)
+	<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>startpc</span> = <span style=color:#a6e22e>fn</span>.<span style=color:#a6e22e>fn</span>
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>curg</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+		<span style=color:#a6e22e>newg</span>.<span style=color:#a6e22e>labels</span> = <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>curg</span>.<span style=color:#a6e22e>labels</span>
+	}
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>isSystemGoroutine</span>(<span style=color:#a6e22e>newg</span>, <span style=color:#66d9ef>false</span>) {
+		<span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Xadd</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>ngsys</span>, <span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>)
+	}
+
+  <span style=color:#75715e>// 设置g的状态为_Grunnable
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>casgstatus</span>(<span style=color:#a6e22e>newg</span>, <span style=color:#a6e22e>_Gdead</span>, <span style=color:#a6e22e>_Grunnable</span>)
+
+  <span style=color:#f92672>...</span>.
+
+	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>newg</span>
+}
+</code></pre></div><p>到此时，我们已经完成main goroutine的创建，我们参考<a href=https://www.cnblogs.com/abozhang/p/10825342.html>这篇文章</a>，给出当前的状态图。</p>
+<blockquote>
+<p>这个图看起来比较复杂，因为表示指针的箭头实在是太多了，这里对其稍作一下解释。</p>
+<ul>
+<li>首先，main goroutine对应的newg结构体对象的sched成员已经完成了初始化，图中只显示了pc和sp成员，pc成员指向了runtime.main函数的第一条指令，sp成员指向了newg的栈顶内存单元，该内存单元保存了runtime.main函数执行完成之后的返回地址，也就是runtime.goexit函数的第二条指令，预期runtime.main函数执行完返回之后就会去执行runtime.exit函数的CALL runtime.goexit1(SB)这条指令；</li>
+<li>其次，newg已经放入与当前主线程绑定的p结构体对象的本地运行队列，因为它是第一个真正意义上的goroutine，还没有其它goroutine，所以它被放在了本地运行队列的头部；</li>
+<li>最后，newg的m成员为nil，因为它还没有被调度起来运行，也就没有跟任何m进行绑定。</li>
+</ul>
+</blockquote>
+<p>![图片来源：https://www.cnblogs.com/abozhang/p/10825342.html](<a href=https://cos.yuler.asia/img/post/main-goroutine.webp>https://cos.yuler.asia/img/post/main-goroutine.webp</a></p>
+<h3 id=mstart>mstart()<a hidden class=anchor aria-hidden=true href=#mstart>#</a></h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>mstart</span>() {
+	<span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+
+  <span style=color:#f92672>...</span>.
+
+	<span style=color:#a6e22e>mstart1</span>()
+
+	<span style=color:#75715e>// Exit this thread.
+</span><span style=color:#75715e></span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>mStackIsSystemAllocated</span>() {
+		<span style=color:#75715e>// Windows, Solaris, illumos, Darwin, AIX and Plan 9 always system-allocate
+</span><span style=color:#75715e></span>		<span style=color:#75715e>// the stack, but put it in _g_.stack before mstart,
+</span><span style=color:#75715e></span>		<span style=color:#75715e>// so the logic above hasn&#39;t set osStack yet.
+</span><span style=color:#75715e></span>		<span style=color:#a6e22e>osStack</span> = <span style=color:#66d9ef>true</span>
+	}
+
+	<span style=color:#a6e22e>mexit</span>(<span style=color:#a6e22e>osStack</span>)
+}
+</code></pre></div><p><code>mstart</code>没有什么多说的，主要封装了<code>mstart1</code>，我们下面分析<code>mstart1</code>。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>mstart1</span>() {
+	<span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_g_</span> <span style=color:#f92672>!=</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>g0</span> {
+		<span style=color:#a6e22e>throw</span>(<span style=color:#e6db74>&#34;bad runtime·mstart&#34;</span>)
+	}
+
+	<span style=color:#75715e>// 保存调用者的pc和sp
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>save</span>(<span style=color:#a6e22e>getcallerpc</span>(), <span style=color:#a6e22e>getcallersp</span>())
+	<span style=color:#a6e22e>asminit</span>()
+	<span style=color:#a6e22e>minit</span>()
+
+	<span style=color:#f92672>...</span>.
+
+	<span style=color:#a6e22e>schedule</span>()
+}
+</code></pre></div><h4 id=schedule>schedule()<a hidden class=anchor aria-hidden=true href=#schedule>#</a></h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go>	<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>schedule</span>() {
+	<span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+
+	<span style=color:#f92672>...</span>.. <span style=color:#75715e>// 通过调度获取下一个可执行的gp，具体的调度过程我们将来会分析
+</span><span style=color:#75715e></span>
+	<span style=color:#a6e22e>execute</span>(<span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>inheritTime</span>)
+}
+</code></pre></div><h4 id=execute>execute()<a hidden class=anchor aria-hidden=true href=#execute>#</a></h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>execute</span>(<span style=color:#a6e22e>gp</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>, <span style=color:#a6e22e>inheritTime</span> <span style=color:#66d9ef>bool</span>) {
+	<span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>() <span style=color:#75715e>// g0
+</span><span style=color:#75715e></span>
+	<span style=color:#75715e>// 将gp和m绑定
+</span><span style=color:#75715e></span>	<span style=color:#75715e>// 设置gp状态为_Grunning
+</span><span style=color:#75715e></span>
+	<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>curg</span> = <span style=color:#a6e22e>gp</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>m</span> = <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>
+	<span style=color:#a6e22e>casgstatus</span>(<span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>_Grunnable</span>, <span style=color:#a6e22e>_Grunning</span>)
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>waitsince</span> = <span style=color:#ae81ff>0</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>preempt</span> = <span style=color:#66d9ef>false</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>stackguard0</span> = <span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>stack</span>.<span style=color:#a6e22e>lo</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>_StackGuard</span>
+
+	<span style=color:#f92672>...</span>.
+
+	<span style=color:#75715e>// 实现了从g0到gp的切换
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>gogo</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>sched</span>)
+}
+</code></pre></div><p>此时还是在<code>g0</code>的栈上运行，通过<code>gogo</code>函数切换到<code>gp</code>的栈上运行</p>
+<h4 id=gogo>gogo()<a hidden class=anchor aria-hidden=true href=#gogo>#</a></h4>
+<blockquote>
+<p>gogo函数也是通过汇编语言编写的，这里之所以需要使用汇编，是因为goroutine的调度涉及不同执行流之间的切换，前面我们在讨论操作系统切换线程时已经看到过，执行流的切换从本质上来说就是CPU寄存器以及函数调用栈的切换，然而不管是go还是c这种高级语言都无法精确控制CPU寄存器的修改，因而高级语言在这里也就无能为力了，只能依靠汇编指令来达成目的。</p>
+</blockquote>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#a6e22e>restore</span> <span style=color:#a6e22e>state</span> <span style=color:#a6e22e>from</span> <span style=color:#a6e22e>Gobuf</span>; <span style=color:#a6e22e>longjmp</span>
+<span style=color:#a6e22e>TEXT</span> <span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>gogo</span>(<span style=color:#a6e22e>SB</span>), <span style=color:#a6e22e>NOSPLIT</span>, <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>16</span><span style=color:#f92672>-</span><span style=color:#ae81ff>8</span>
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>buf</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>sched</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>buf</span><span style=color:#f92672>+</span><span style=color:#ae81ff>0</span>(<span style=color:#a6e22e>FP</span>), <span style=color:#a6e22e>BX</span>        <span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#a6e22e>BX</span> = <span style=color:#a6e22e>buf</span>
+    
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>gobuf</span><span style=color:#f92672>-</span>&gt;<span style=color:#a6e22e>g</span> <span style=color:#f92672>--</span>&gt; <span style=color:#a6e22e>dx</span> <span style=color:#a6e22e>register</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>gobuf_g</span>(<span style=color:#a6e22e>BX</span>), <span style=color:#a6e22e>DX</span>  <span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#a6e22e>DX</span> = <span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>g</span>
+    
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>下面这行代码没有实质作用</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>检查gp</span>.<span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>g是否是nil</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>如果是nil进程会crash死掉</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#ae81ff>0</span>(<span style=color:#a6e22e>DX</span>), <span style=color:#a6e22e>CX</span>        <span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#a6e22e>make</span> <span style=color:#a6e22e>sure</span> <span style=color:#a6e22e>g</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>
+    
+    <span style=color:#a6e22e>get_tls</span>(<span style=color:#a6e22e>CX</span>) 
+    
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>把要运行的g的指针放入线程本地存储</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>这样后面的代码就可以通过线程本地存储</span>
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>获取到当前正在执行的goroutine的g结构体对象</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>从而找到与之关联的m和p</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>DX</span>, <span style=color:#a6e22e>g</span>(<span style=color:#a6e22e>CX</span>)
+    
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>恢复调度上下文到CPU相关寄存器</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>gobuf_sp</span>(<span style=color:#a6e22e>BX</span>), <span style=color:#a6e22e>SP</span>    <span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#a6e22e>restore</span> <span style=color:#a6e22e>SP</span> <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>把CPU的SP寄存器设置为sched</span>.<span style=color:#a6e22e>sp</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>完成了栈的切换</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>gobuf_ret</span>(<span style=color:#a6e22e>BX</span>), <span style=color:#a6e22e>AX</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>gobuf_ctxt</span>(<span style=color:#a6e22e>BX</span>), <span style=color:#a6e22e>DX</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>gobuf_bp</span>(<span style=color:#a6e22e>BX</span>), <span style=color:#a6e22e>BP</span>
+    
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>清空sched的值</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>因为我们已把相关值放入CPU对应的寄存器了</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>不再需要</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>这样做可以少gc的工作量</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>, <span style=color:#a6e22e>gobuf_sp</span>(<span style=color:#a6e22e>BX</span>)    <span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#a6e22e>clear</span> <span style=color:#a6e22e>to</span> <span style=color:#a6e22e>help</span> <span style=color:#a6e22e>garbage</span> <span style=color:#a6e22e>collector</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>, <span style=color:#a6e22e>gobuf_ret</span>(<span style=color:#a6e22e>BX</span>)
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>, <span style=color:#a6e22e>gobuf_ctxt</span>(<span style=color:#a6e22e>BX</span>)
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>, <span style=color:#a6e22e>gobuf_bp</span>(<span style=color:#a6e22e>BX</span>)
+    
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>把sched</span>.<span style=color:#a6e22e>pc值放入BX寄存器</span>
+    <span style=color:#a6e22e>MOVQ</span>    <span style=color:#a6e22e>gobuf_pc</span>(<span style=color:#a6e22e>BX</span>), <span style=color:#a6e22e>BX</span>
+    
+    <span style=color:#960050;background-color:#1e0010>#</span><span style=color:#a6e22e>JMP把BX寄存器的包含的地址值放入CPU的IP寄存器</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>于是</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>CPU跳转到该地址继续执行指令</span><span style=color:#960050;background-color:#1e0010>，</span>
+    <span style=color:#a6e22e>JMP</span>    <span style=color:#a6e22e>BX</span>
+</code></pre></div><p>gogo的作用为：</p>
+<ol>
+<li>把gp.sched的成员恢复到CPU的寄存器完成状态以及栈的切换；</li>
+<li>跳转到gp.sched.pc所指的指令地址（runtime.main）处执行。</li>
+</ol>
+<h4 id=runtimemain>runtime.main()<a hidden class=anchor aria-hidden=true href=#runtimemain>#</a></h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// The main goroutine.
+</span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+	<span style=color:#a6e22e>g</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+
+	<span style=color:#75715e>// Racectx of m0-&gt;g0 is used only as the parent of the main goroutine.
+</span><span style=color:#75715e></span>	<span style=color:#75715e>// It must not be used for anything else.
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>g</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>g0</span>.<span style=color:#a6e22e>racectx</span> = <span style=color:#ae81ff>0</span>
+
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>sys</span>.<span style=color:#a6e22e>PtrSize</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>8</span> {
+		<span style=color:#a6e22e>maxstacksize</span> = <span style=color:#ae81ff>1000000000</span> <span style=color:#75715e>// 64位栈最大为1G
+</span><span style=color:#75715e></span>	} <span style=color:#66d9ef>else</span> {
+		<span style=color:#a6e22e>maxstacksize</span> = <span style=color:#ae81ff>250000000</span>
+	}
+
+	<span style=color:#75715e>// Allow newproc to start new Ms.
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>mainStarted</span> = <span style=color:#66d9ef>true</span>
+
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>GOARCH</span> <span style=color:#f92672>!=</span> <span style=color:#e6db74>&#34;wasm&#34;</span> { 
+		<span style=color:#75715e>// 切换到g0栈去运行监控线程sysmon
+</span><span style=color:#75715e></span>		<span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Store</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>sysmonStarting</span>, <span style=color:#ae81ff>1</span>)
+		<span style=color:#a6e22e>systemstack</span>(<span style=color:#66d9ef>func</span>() {
+			<span style=color:#a6e22e>newm</span>(<span style=color:#a6e22e>sysmon</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+		})
+	}
+
+
+	<span style=color:#a6e22e>doInit</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>runtime_inittask</span>) <span style=color:#75715e>// runtime init
+</span><span style=color:#75715e></span>
+	<span style=color:#a6e22e>gcenable</span>() <span style=color:#75715e>// 开启gc
+</span><span style=color:#75715e></span>
+	<span style=color:#a6e22e>fn</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>main_main</span> <span style=color:#75715e>// 调用main.main函数
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>fn</span>()
+
+
+  <span style=color:#75715e>//进入系统调用，退出进程，可以看出main goroutine并未返回，而是直接进入系统调用退出进程了	
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>exit</span>(<span style=color:#ae81ff>0</span>)
+	<span style=color:#66d9ef>for</span> {
+		<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>int32</span>
+		<span style=color:#f92672>*</span><span style=color:#a6e22e>x</span> = <span style=color:#ae81ff>0</span>
+	}
+}
+</code></pre></div><p>runtime.main函数主要工作流程如下：</p>
+<ol>
+<li>启动一个sysmon系统监控线程，该线程负责整个程序的gc、抢占调度以及netpoll等功能的监控，在抢占调度一章我们再继续分析sysmon是如何协助完成goroutine的抢占调度的；</li>
+<li>执行runtime包的初始化；</li>
+<li>执行main包以及main包import的所有包的初始化；</li>
+<li>执行main.main函数；</li>
+<li>从main.main函数返回后调用exit系统调用退出进程；</li>
+</ol>
+<h2 id=非main-goroutine>非main goroutine<a hidden class=anchor aria-hidden=true href=#非main-goroutine>#</a></h2>
+<p><code>main goroutine</code>结束时会执行<code>exit(0)</code>直接结束进程，从而使得所有其余的<code>goroutine</code>被终止。
+而<code>非main goroutine</code>结束时则会执行<code>goexit()</code>函数完成清理工作。</p>
+<h3 id=goexit>goexit()<a hidden class=anchor aria-hidden=true href=#goexit>#</a></h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#a6e22e>TEXT</span> <span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>goexit</span>(<span style=color:#a6e22e>SB</span>),<span style=color:#a6e22e>NOSPLIT</span>,<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span><span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>
+    <span style=color:#a6e22e>BYTE</span>  <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0x90</span>  <span style=color:#75715e>// NOP
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>CALL</span>  <span style=color:#a6e22e>runtime</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#a6e22e>goexit1</span>(<span style=color:#a6e22e>SB</span>)  <span style=color:#75715e>// does not return
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>BYTE</span>  <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0x90</span>  <span style=color:#75715e>// NOP
+</span></code></pre></div><p>调用runtime.goexit1()函数</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>goexit1</span>() {
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>raceenabled</span> { <span style=color:#75715e>// 静态检查
+</span><span style=color:#75715e></span>		<span style=color:#a6e22e>racegoend</span>()
+	}
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>trace</span>.<span style=color:#a6e22e>enabled</span> { <span style=color:#75715e>// trace检查
+</span><span style=color:#75715e></span>		<span style=color:#a6e22e>traceGoEnd</span>()
+	}
+	<span style=color:#a6e22e>mcall</span>(<span style=color:#a6e22e>goexit0</span>) <span style=color:#75715e>// 执行goexit0
+</span><span style=color:#75715e></span>}
+</code></pre></div><p><code>goexit1</code>函数通过调用<code>mcall</code>从当前运行的<code>go goroutine</code>切换到<code>g0</code>，然后在<code>g0</code>栈上调用和执行<code>goexit0</code>这个函数。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// goexit continuation on g0.
+</span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>goexit0</span>(<span style=color:#a6e22e>gp</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>) {
+	<span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>() <span style=color:#75715e>//g0
+</span><span style=color:#75715e></span>
+	<span style=color:#75715e>// 状态改为_Gdead
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>casgstatus</span>(<span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>_Grunning</span>, <span style=color:#a6e22e>_Gdead</span>)
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>isSystemGoroutine</span>(<span style=color:#a6e22e>gp</span>, <span style=color:#66d9ef>false</span>) {
+		<span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Xadd</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>ngsys</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+	}
+
+	<span style=color:#75715e>// 清理gp
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>m</span> = <span style=color:#66d9ef>nil</span>
+	<span style=color:#a6e22e>locked</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>lockedm</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>lockedm</span> = <span style=color:#ae81ff>0</span>
+	<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>lockedg</span> = <span style=color:#ae81ff>0</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>preemptStop</span> = <span style=color:#66d9ef>false</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>paniconfault</span> = <span style=color:#66d9ef>false</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>_defer</span> = <span style=color:#66d9ef>nil</span> <span style=color:#75715e>// should be true already but just in case.
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>_panic</span> = <span style=color:#66d9ef>nil</span> <span style=color:#75715e>// non-nil for Goexit during panic. points at stack-allocated data.
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>writebuf</span> = <span style=color:#66d9ef>nil</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>waitreason</span> = <span style=color:#ae81ff>0</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>param</span> = <span style=color:#66d9ef>nil</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>labels</span> = <span style=color:#66d9ef>nil</span>
+	<span style=color:#a6e22e>gp</span>.<span style=color:#a6e22e>timer</span> = <span style=color:#66d9ef>nil</span>
+
+	<span style=color:#75715e>//g-&gt;m = nil, m-&gt;currg = nil 解绑g和m之关系
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>dropg</span>()
+
+  <span style=color:#75715e>// g放入p的freeg队列，方便下次重用，免得再去申请内存，提高效率
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>gfput</span>(<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>ptr</span>(), <span style=color:#a6e22e>gp</span>)
+
+	<span style=color:#75715e>// 再次回到调度函数
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>schedule</span>()
+}
+</code></pre></div><p>下面开始在g0栈执行goexit0函数，该函数完成最后的清理工作：</p>
+<ol>
+<li>把g的状态从_Grunning变更为_Gdead；</li>
+<li>然后把g的一些字段清空成0值；</li>
+<li>调用dropg函数解除g和m之间的关系，其实就是设置g->m = nil, m->currg = nil；</li>
+<li>把g放入p的freeg队列缓存起来供下次创建g时快速获取而不用从内存分配。freeg就是g的一个对象池；</li>
+<li>调用schedule函数再次进行调度；</li>
+</ol>
+<h2 id=总结>总结<a hidden class=anchor aria-hidden=true href=#总结>#</a></h2>
+<p><img loading=lazy src alt=图片来源:https://www.cnblogs.com/abozhang/p/10856858.html>
+</p>
+<blockquote>
+<p>我们用上图来总结一下工作线程的执行流程：</p>
+<ol>
+<li>初始化，调用mstart函数；</li>
+<li>调用mstart1函数，在该函数中调用save函数设置g0.sched.sp和g0.sched.pc等调度信息，其中g0.sched.sp指向mstart函数栈帧的栈顶；</li>
+<li>依次调用schedule->execute->gogo函数执行调度；</li>
+<li>运行用户的goroutine代码；</li>
+<li>用户goroutine代码执行过程中调用runtime中的某些函数，然后这些函数调用mcall切换到g0.sched.sp所指的栈并最终再次调用schedule函数进入新一轮调度，之后工作线程一直循环执行着3～5这一调度循环直到进程退出为止。</li>
+</ol>
+</blockquote>
+</div>
+<footer class=post-footer>
+<ul class=post-tags>
+<li><a href=https://zhangyh.me/tags/go-schedule/>go schedule</a></li>
+</ul>
+<nav class=paginav>
+<a class=prev href=https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/>
+<span class=title>« Prev Page</span>
+<br>
+<span>理解io多路复用</span>
+</a>
+<a class=next href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/>
+<span class=title>Next Page »</span>
+<br>
+<span>Go调度 | 4. 调度策略</span>
+</a>
+</nav>
+<div class=share-buttons>
+<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 3. goroutine的创建和执行 on twitter" href="https://twitter.com/intent/tweet/?text=Go%e8%b0%83%e5%ba%a6%20%7c%203.%20goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c&url=https%3a%2f%2fzhangyh.me%2fposts%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A63-goroutine%25E7%259A%2584%25E5%2588%259B%25E5%25BB%25BA%25E5%2592%258C%25E6%2589%25A7%25E8%25A1%258C%2f&hashtags=goschedule"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM195.519 424.544c135.939.0 210.268-112.643 210.268-210.268.0-3.218.0-6.437-.153-9.502 14.406-10.421 26.973-23.448 36.935-38.314-13.18 5.824-27.433 9.809-42.452 11.648 15.326-9.196 26.973-23.602 32.49-40.92-14.252 8.429-30.038 14.56-46.896 17.931-13.487-14.406-32.644-23.295-53.946-23.295-40.767.0-73.87 33.104-73.87 73.87.0 5.824.613 11.494 1.992 16.858-61.456-3.065-115.862-32.49-152.337-77.241-6.284 10.881-9.962 23.601-9.962 37.088.0 25.594 13.027 48.276 32.95 61.456-12.107-.307-23.448-3.678-33.41-9.196v.92c0 35.862 25.441 65.594 59.311 72.49-6.13 1.686-12.72 2.606-19.464 2.606-4.751.0-9.348-.46-13.946-1.38 9.349 29.426 36.628 50.728 68.965 51.341-25.287 19.771-57.164 31.571-91.8 31.571-5.977.0-11.801-.306-17.625-1.073 32.337 21.15 71.264 33.41 112.95 33.41z"/></svg>
+</a>
+<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 3. goroutine的创建和执行 on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&url=https%3a%2f%2fzhangyh.me%2fposts%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A63-goroutine%25E7%259A%2584%25E5%2588%259B%25E5%25BB%25BA%25E5%2592%258C%25E6%2589%25A7%25E8%25A1%258C%2f&title=Go%e8%b0%83%e5%ba%a6%20%7c%203.%20goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c&summary=Go%e8%b0%83%e5%ba%a6%20%7c%203.%20goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c&source=https%3a%2f%2fzhangyh.me%2fposts%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A63-goroutine%25E7%259A%2584%25E5%2588%259B%25E5%25BB%25BA%25E5%2592%258C%25E6%2589%25A7%25E8%25A1%258C%2f"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg>
+</a>
+<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 3. goroutine的创建和执行 on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fzhangyh.me%2fposts%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A63-goroutine%25E7%259A%2584%25E5%2588%259B%25E5%25BB%25BA%25E5%2592%258C%25E6%2589%25A7%25E8%25A1%258C%2f&title=Go%e8%b0%83%e5%ba%a6%20%7c%203.%20goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg>
+</a>
+<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 3. goroutine的创建和执行 on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fzhangyh.me%2fposts%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A63-goroutine%25E7%259A%2584%25E5%2588%259B%25E5%25BB%25BA%25E5%2592%258C%25E6%2589%25A7%25E8%25A1%258C%2f"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg>
+</a>
+<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 3. goroutine的创建和执行 on whatsapp" href="https://api.whatsapp.com/send?text=Go%e8%b0%83%e5%ba%a6%20%7c%203.%20goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c%20-%20https%3a%2f%2fzhangyh.me%2fposts%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A63-goroutine%25E7%259A%2584%25E5%2588%259B%25E5%25BB%25BA%25E5%2592%258C%25E6%2589%25A7%25E8%25A1%258C%2f"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg>
+</a>
+<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 3. goroutine的创建和执行 on telegram" href="https://telegram.me/share/url?text=Go%e8%b0%83%e5%ba%a6%20%7c%203.%20goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c&url=https%3a%2f%2fzhangyh.me%2fposts%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A63-goroutine%25E7%259A%2584%25E5%2588%259B%25E5%25BB%25BA%25E5%2592%258C%25E6%2589%25A7%25E8%25A1%258C%2f"><svg viewBox="2 2 28 28"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg>
+</a>
+</div>
+</footer>
+</article>
+</main>
+<footer class=footer>
+<span>&copy; 2021 <a href=https://zhangyh.me/>yuler's blog</a></span>
+<span>
+Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://git.io/hugopapermod rel=noopener target=_blank>PaperMod</a>
+</span>
+</footer>
+<a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a>
+<script>let menu=document.getElementById('menu');menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)},document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener("click",function(b){b.preventDefault();var a=this.getAttribute("href").substr(1);window.matchMedia('(prefers-reduced-motion: reduce)').matches?document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView({behavior:"smooth"}),a==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${a}`)})})</script>
+<script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script>
+<script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove('dark'),localStorage.setItem("pref-theme",'light')):(document.body.classList.add('dark'),localStorage.setItem("pref-theme",'dark'))})</script>
+<script>document.querySelectorAll('pre > code').forEach(b=>{const c=b.parentNode.parentNode,a=document.createElement('button');a.classList.add('copy-code'),a.innerText='copy';function d(){a.innerText='copied!',setTimeout(()=>{a.innerText='copy'},2e3)}a.addEventListener('click',e=>{if('clipboard'in navigator){navigator.clipboard.writeText(b.textContent),d();return}const a=document.createRange();a.selectNodeContents(b);const c=window.getSelection();c.removeAllRanges(),c.addRange(a);try{document.execCommand('copy'),d()}catch(a){}c.removeRange(a)}),c.classList.contains("highlight")?c.appendChild(a):c.parentNode.firstChild==c||(b.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?b.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(a):b.parentNode.appendChild(a))})</script>
+</body>
+</html>

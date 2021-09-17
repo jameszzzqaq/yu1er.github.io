@@ -9,13 +9,13 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Fri, 13 Aug 2021 14:21:59 +0000</lastBuildDate><atom:link href="https://zhangyh.me/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>聊聊内存对齐</title>
-      <link>https://zhangyh.me/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</link>
-      <pubDate>Fri, 13 Aug 2021 14:21:59 +0000</pubDate>
+      <link>https://zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/</link>
+      <pubDate>Fri, 13 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</guid>
+      <guid>https://zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/</guid>
       <description>为什么需要内存对齐？ 首先需要从物理硬件上了解计算机如何进行内存访问的。
  Channel &amp;gt; DIMM &amp;gt; Rank &amp;gt; Chip &amp;gt; Bank &amp;gt; Coloum/Row &amp;gt; Cell
  如上图 CPU包括两个Channel 每个Channel包括两个DIMM 每个DIMM由Rank组成 Rank由8个内存颗粒chip组成 每个Chip包括8个Bank
@@ -33,10 +33,10 @@ package main import ( &amp;#34;fmt&amp;#34; &amp;#34;unsafe&amp;#34; ) type M st
     
     <item>
       <title>LSM-based storage techniques: a survey</title>
-      <link>https://zhangyh.me/topics/paper/suvery-of-lsm.html</link>
-      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/suvery-of-lsm/</link>
+      <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/suvery-of-lsm.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/suvery-of-lsm/</guid>
       <description> paper原文：LSM-based storage techniques: a survey
  LSM-tree basics 对于索引结构通常有两种更新策略，即in-place update和out-of-place update。
 in-place通常使用B+树作为底层数据结构，通过随机写来更新数据项，带来的是读数据的优化，同时每个数据项只存有一份，因此节约了空间。
@@ -52,10 +52,10 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
     
     <item>
       <title>Wiskey</title>
-      <link>https://zhangyh.me/topics/paper/wiskey.html</link>
-      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/wisckey/</link>
+      <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/wiskey.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/wisckey/</guid>
       <description>WiscKey Design Goals  Low写放大 Low读放大 SSD优化 Feature-rich API (scan、snapshot) Realistic k-v size (value的size通常比key的大很多)  K-V Separation  LSM tree的主要性能成本在于Compaction，但它维护了key的有序性，对于加速读也是十分有必要的。 Compaction只需要对key排序，因此考虑将k-v分开存储。只把value的地址和key放在一起。  LSM tree的size将大大变小，减少了写放大。 读操作虽然需要一次额外的寻址操作，但更小的LSM tree加快了检索同时更容易缓存到大内存中。    Challenge   Parallel Range Query 在levelDB中，范围查询通过iterator的顺序读实现，但是现在由于和key一同存储的只有value的地址，范围查询变为了随机io。 我们在读取所有的地址后，写入一个队列，通过多线程并发读取，来加快范围查询的性能。
   Garbage Collection 由于把所有的数据都存到了vLog里，最朴素的垃圾回收的方法当然是扫描一遍LSM-tree，但开销太大了，只适用于离线环境。 WiscKey在vlog中存储(ksize, vsize, key, value)，并维护head和tail指针。   数据在head处添加 垃圾回收线程从tail处扫描，每次扫描一定量的数据（几MB），然后在LSM-tree中查找，如果kv对有效的话，则再把它添加到head处。 因此，只有tail和head之间的数据是有效的。
 Crash Consistency  Optimizations  Value-Log Write Buffer  对于写密集的数据集，频繁的大量的小size的value写入，会导致较大的系统开销。 因此考虑在内存中维护Buffer。 当读数据的时候，先到vlog write buffer中查找，如果没有，再查vlog。 crash-consistency的维护类似于levelDB，使用WAL。
@@ -63,9 +63,9 @@ Optimizing the LSM-tree Log  在写LSM-tree之前需要先写vlog，因为这里
     </item>
     
     <item>
-      <title>Hashkv Enabling efficient updates in KV storage via hashing</title>
+      <title>Hashkv: Enabling efficient updates in KV storage via hashing</title>
       <link>https://zhangyh.me/topics/paper/hashkv.html</link>
-      <pubDate>Sat, 07 Aug 2021 02:47:09 +0000</pubDate>
+      <pubDate>Sat, 07 Aug 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/topics/paper/hashkv.html</guid>
       <description>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
@@ -83,10 +83,10 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
     
     <item>
       <title>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores</title>
-      <link>https://zhangyh.me/topics/paper/lwc-tree.html</link>
-      <pubDate>Fri, 06 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/lwc-tree/</link>
+      <pubDate>Fri, 06 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/lwc-tree.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/lwc-tree/</guid>
       <description>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
  使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子  Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
  读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中  victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
@@ -98,10 +98,10 @@ Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata �
     
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://zhangyh.me/topics/paper/optane.html</link>
-      <pubDate>Thu, 05 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/optane/</link>
+      <pubDate>Thu, 05 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/optane.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/optane/</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
@@ -120,7 +120,7 @@ ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
       <link>https://zhangyh.me/topics/paper/novelsm.html</link>
-      <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
+      <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/topics/paper/novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
@@ -134,10 +134,10 @@ Insert Latency insert latency来源有三个方面：
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://zhangyh.me/topics/paper/zen.html</link>
-      <pubDate>Tue, 03 Aug 2021 07:48:31 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/zen/</link>
+      <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/zen.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/zen/</guid>
       <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成 其中可能同时存在某个数据的多个版本 (tupleId, Tx-CTS)唯一确定一个tuple
  LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除  Met-Cache NVM heap在DRAM中的缓存
  Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。  Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple
@@ -146,10 +146,10 @@ Transaction-Private Data 线程私有 用于事务并发访问 存储相应数�
     
     <item>
       <title>Go | 内存分配</title>
-      <link>https://zhangyh.me/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html</link>
-      <pubDate>Sat, 17 Jul 2021 12:14:57 +0000</pubDate>
+      <link>https://zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</link>
+      <pubDate>Sat, 17 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html</guid>
+      <guid>https://zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</guid>
       <description>Go | 内存分配 设计原理 Go的内存分配参考了TCMalloc的核心思想。
  每一个线程都可以获得一个用于无锁分配小对象的缓存，这样可以让并行程序分配小对象（&amp;lt;=32KB）非常高效。 TCMalloc 管理的堆由一组页组成，一组连续的页面被表示为 span。当分配的对象大于 32KB，将使用页堆（Page Heap）进行内存分配。  相关struct mspan mspan是Go语言内存管理的基本单元。
 type mspan struct { next *mspan // 链表指针 	prev *mspan // 链表指针  startAddr uintptr // span 起始地址 	npages uintptr // page的数量  spanclass spanClass // size class and noscan (uint8) 	state mSpanStateBox // span状态 	limit uintptr // end of data in span } 这里只列出了关心的主要字段。
@@ -158,10 +158,10 @@ type mspan struct { next *mspan // 链表指针 	prev *mspan // 链表指针  st
     
     <item>
       <title>Go | context</title>
-      <link>https://zhangyh.me/topics/golang/go-context.html</link>
-      <pubDate>Fri, 16 Jul 2021 10:25:31 +0000</pubDate>
+      <link>https://zhangyh.me/posts/golang/go-context/</link>
+      <pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/golang/go-context.html</guid>
+      <guid>https://zhangyh.me/posts/golang/go-context/</guid>
       <description>Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
  context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), &amp;#34;key&amp;#34;, &amp;#34;value&amp;#34;) go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println(&amp;#34;handleChainA1&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) go handleChainB(context.WithValue(ctx, &amp;#34;key2&amp;#34;, &amp;#34;value2&amp;#34;)) } func handleChainA2(ctx context.Context) { log.Println(&amp;#34;handleChainA2&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) } func handleChainB(ctx context.Context) { log.Println(&amp;#34;handleChainB&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) log.Println(&amp;#34;handleChainB&amp;#34;, ctx.Value(&amp;#34;key2&amp;#34;)) } func main() { Test1()	}  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.</description>
@@ -169,10 +169,10 @@ type mspan struct { next *mspan // 链表指针 	prev *mspan // 链表指针  st
     
     <item>
       <title>Go | make和new</title>
-      <link>https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html</link>
-      <pubDate>Sun, 11 Jul 2021 07:17:49 +0000</pubDate>
+      <link>https://zhangyh.me/posts/golang/go-make%E5%92%8Cnew/</link>
+      <pubDate>Sun, 11 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html</guid>
+      <guid>https://zhangyh.me/posts/golang/go-make%E5%92%8Cnew/</guid>
       <description>区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身     值类型: 引用类型：
  new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
 package main import ( &amp;#34;fmt&amp;#34; ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference 	fmt.Println(i) // fmt.Println(*i)  num := new(int) fmt.</description>
@@ -180,10 +180,10 @@ package main import ( &amp;#34;fmt&amp;#34; ) type Student struct { name string 
     
     <item>
       <title>理解io多路复用</title>
-      <link>https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</link>
-      <pubDate>Sat, 03 Jul 2021 03:02:56 +0000</pubDate>
+      <link>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</link>
+      <pubDate>Sat, 03 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</guid>
+      <guid>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</guid>
       <description>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。
 为什么需要io多路复用模型? 当我们开启一个socket的时候，需要对发起的连接进行响应。
 阻塞io 阻塞io流程如图 如果使用阻塞io，我们可能会有下面类似的代码框架。
@@ -194,33 +194,57 @@ while(1) { connfd = accept(listenfd); // 阻塞建立连接  append(fds, connfd)
     </item>
     
     <item>
-      <title>Go调度 | 4. 调度策略</title>
-      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</link>
-      <pubDate>Thu, 01 Jul 2021 16:45:55 +0000</pubDate>
-      
-      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</guid>
-      <description>【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
-有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
-schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 &amp;amp;&amp;amp; sched.runqsize &amp;gt; 0 { lock(&amp;amp;sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&amp;amp;sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .</description>
-    </item>
-    
-    <item>
       <title>Go调度 | 3. goroutine的创建和执行</title>
-      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</link>
-      <pubDate>Thu, 01 Jul 2021 04:36:30 +0000</pubDate>
+      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/</link>
+      <pubDate>Thu, 01 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</guid>
+      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/</guid>
       <description>【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
 go程序的启动 TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL	runtime·osinit(SB) // 初始化schedule  CALL	runtime·schedinit(SB) MOVQ	$runtime·mainPC(SB), AX	// entry  PUSHQ	AX PUSHQ	$0	// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL	runtime·newproc(SB) POPQ	AX POPQ	AX // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL	runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序  CALL	runtime·abort(SB)	// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine
 func newproc(siz int32, fn *funcval) { argp := add(unsafe.</description>
     </item>
     
     <item>
-      <title>Go调度 | 2. scheduler初始化</title>
-      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</link>
-      <pubDate>Wed, 30 Jun 2021 10:51:39 +0000</pubDate>
+      <title>Go调度 | 4. 调度策略</title>
+      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/</link>
+      <pubDate>Thu, 01 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</guid>
+      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/</guid>
+      <description>【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 &amp;amp;&amp;amp; sched.runqsize &amp;gt; 0 { lock(&amp;amp;sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&amp;amp;sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .</description>
+    </item>
+    
+    <item>
+      <title>GMP源码分析</title>
+      <link>https://zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/</link>
+      <pubDate>Wed, 30 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/</guid>
+      <description>准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：
+ GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 &amp;ndash; 全局队列，局部队列，working-stealing 何时调度 &amp;ndash;被动，主动，抢占式  创建go routine start=&amp;gt;start: 开始op1=&amp;gt;operation: 获取go func()的func和argsop2=&amp;gt;operation: 切换至g0，使用g0创建对应的Gop3=&amp;gt;operation: gfget(p) 从当前的P获取空闲G;op4=&amp;gt;operation: 参数复制到G,清除堆,pc:func,sp:goexit1op5=&amp;gt;operation: runqput(p,newg,true); 将G加入P的runnable数组;end=&amp;gt;end: 结束start-&amp;gt;op1op1-&amp;gt;op2op2-&amp;gt;op3op3-&amp;gt;op4op4-&amp;gt;op5op5-&amp;gt;end创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  </description>
+    </item>
+    
+    <item>
+      <title>Go调度 | 1. GMP模型</title>
+      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/</link>
+      <pubDate>Wed, 30 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/</guid>
+      <description>本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
+线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
+ 内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程
+ GMP结构 这部分主要从源码层面分析GMP的结构
+G结构 我们暂时忽略一些对我们分析没有影响的字段。
+type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting  // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态</description>
+    </item>
+    
+    <item>
+      <title>Go调度 | 2. scheduler初始化</title>
+      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/</link>
+      <pubDate>Wed, 30 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/</guid>
       <description>上篇文章结尾告诉我们了几个重要的全局变量，本篇文章会用到
 allm *m // 所有的m构成的一个链表，包括下面的m0 allp []*p // 保存所有的p，len(allp) == gomaxprocs  ncpu int32 // 系统中cpu核的数量，程序启动时由runtime代码初始化 gomaxprocs int32 // p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改  m0 m // 代表进程的主线程 g0 g // m0的g0，也就是m0.g0 = &amp;amp;g0 go程序的启动 当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。
 对于linux下的程序来说，入口文件在runtime/rt0_linux_amd64.s，
@@ -231,35 +255,11 @@ TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0 // 拷贝argc和a
     </item>
     
     <item>
-      <title>GMP源码分析</title>
-      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</link>
-      <pubDate>Wed, 30 Jun 2021 08:56:43 +0000</pubDate>
-      
-      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</guid>
-      <description>准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：
- GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 &amp;ndash; 全局队列，局部队列，working-stealing 何时调度 &amp;ndash;被动，主动，抢占式  创建go routine start=&amp;gt;start: 开始op1=&amp;gt;operation: 获取go func()的func和argsop2=&amp;gt;operation: 切换至g0，使用g0创建对应的Gop3=&amp;gt;operation: gfget(p) 从当前的P获取空闲G;op4=&amp;gt;operation: 参数复制到G,清除堆,pc:func,sp:goexit1op5=&amp;gt;operation: runqput(p,newg,true); 将G加入P的runnable数组;end=&amp;gt;end: 结束start-&amp;gt;op1op1-&amp;gt;op2op2-&amp;gt;op3op3-&amp;gt;op4op4-&amp;gt;op5op5-&amp;gt;end创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  </description>
-    </item>
-    
-    <item>
-      <title>Go调度 | 1. GMP模型</title>
-      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</link>
-      <pubDate>Wed, 30 Jun 2021 08:56:43 +0000</pubDate>
-      
-      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</guid>
-      <description>本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
-线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
- 内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程
- GMP结构 这部分主要从源码层面分析GMP的结构
-G结构 我们暂时忽略一些对我们分析没有影响的字段。
-type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting  // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态</description>
-    </item>
-    
-    <item>
       <title>Go | SliceTricks</title>
-      <link>https://zhangyh.me/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html</link>
-      <pubDate>Tue, 29 Jun 2021 03:57:10 +0000</pubDate>
+      <link>https://zhangyh.me/posts/golang/slicetricks/</link>
+      <pubDate>Tue, 29 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html</guid>
+      <guid>https://zhangyh.me/posts/golang/slicetricks/</guid>
       <description>【译】SliceTricks  原文链接: https://github.com/golang/go/wiki/SliceTricks
  go官方给出了许多slice操作的tricks，这里记录一下，并在最后给出examples
 AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) copy(b, a) // 正常拷贝的one-line实现，但实际上边速度要慢一点 b = append(make([]int, 0, len(a)), a...) // 如果拷贝后还需要添加更多的元素，可以使用这种方式 // 但通常来说上面的方式更快 append([]int(nil), a...) // or append(a[:0:0], a...) Cut a = append(a[:i], a[j:]...) Delete a = append(a[:i], a[i:]...) Delete without preserving order a[i] = a[len(a) - 1] a = a[:len(a) - 1] [admonition color=&amp;ldquo;red&amp;rdquo;]如果数组类型为指针，或者时带有指针的结构体,那么上述的操作很可能会导致内存泄露的发生:一些元素仍然被a引用，但没有被垃圾回收器回收。可以使用以下的方式避免内存泄漏[/admonition]
@@ -268,34 +268,11 @@ AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) c
     </item>
     
     <item>
-      <title>《人民币汇率与人民币国际化》——翟东升</title>
-      <link>https://zhangyh.me/topics/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</link>
-      <pubDate>Sun, 27 Jun 2021 06:18:43 +0000</pubDate>
+      <title>人民币汇率与人民币国际化—翟东升</title>
+      <link>https://zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/</link>
+      <pubDate>Sun, 27 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</guid>
-      <description>《人民币汇率与人民币国际化》-翟东升 总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点
-1. 对人民币汇率的错误预测 看空人民币的五个错误理由 看空人民的观点错在哪 人民币是强势货币 2. 汇率的影响因素  短期看市场情绪，中期看政府调控，长期看市场
- 影响长期汇率的直接因素 长期来看影响汇率最直接最有效的因素就是一个国家可贸易品的价格水平。可贸易品的加权平均价决定了汇率。
- 两国之间的可贸易品价格如果差距太大，就会进行倒买倒卖，最终实现抛补平衡
- 技术水平 和 人口老龄化 决定了可贸易品的价格，从而影响了汇率 (参考日本)
-影响汇率的六个深层因素   国家能力 政府财政开支占国家GDP的比例越高，汇率往往越坚挺。
-政府需要提供各种有效的公共产品(医疗、市场、教育、基础设施、贸易协定、治安秩序、商业秩序)。各种企业的成功离不开政府提供的公共产品。
-  贸易开放度 出口所占比例。
-   凡是想做空日元的都没有什么好下场
-  要素特征 出口贸易品类型。 出口以能源、原材料、大宗商品、矿石等为主，汇率呈顺周期。 出口制成品为主，汇率呈逆周期。(汇率下跌，出口工业制成品获得价格优势，贸易顺差扩大，汇率获得上涨动能)
-  文明类型 汇率最坚挺的两大文明：新教文明和东亚文明 鼓励生产，不鼓励消费
-   新教文明：西欧、北欧、北美洲、大洋洲 东亚文明：日本、朝鲜半岛、中国大陆、中国台湾、中国香港、新加坡、越南
- 比较软的货币所属文明：小乘佛教 不鼓励生产，不鼓励消费
-贬值很厉害的货币所属文明：罗马天主教、东正教和伊斯兰教 不鼓励生产，鼓励消费
-人均智商 宗教严肃度  海外投资的汇率风险 中国企业和资本出海需要重点防范：目标国的汇率风险 (结合上面所讲的因素进行思考)</description>
-    </item>
-    
-    <item>
-      <title>《人民币汇率与人民币国际化》——翟东升</title>
-      <link>https://zhangyh.me/topics/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</link>
-      <pubDate>Sun, 27 Jun 2021 06:18:43 +0000</pubDate>
-      
-      <guid>https://zhangyh.me/topics/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</guid>
+      <guid>https://zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/</guid>
       <description>《人民币汇率与人民币国际化》-翟东升 总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点
 1. 对人民币汇率的错误预测 看空人民币的五个错误理由 看空人民的观点错在哪 人民币是强势货币 2. 汇率的影响因素  短期看市场情绪，中期看政府调控，长期看市场
  影响长期汇率的直接因素 长期来看影响汇率最直接最有效的因素就是一个国家可贸易品的价格水平。可贸易品的加权平均价决定了汇率。

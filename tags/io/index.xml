@@ -9,13 +9,13 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 03 Jul 2021 03:02:56 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 03 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/io/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>理解io多路复用</title>
-      <link>https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</link>
-      <pubDate>Sat, 03 Jul 2021 03:02:56 +0000</pubDate>
+      <link>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</link>
+      <pubDate>Sat, 03 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</guid>
+      <guid>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</guid>
       <description>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。
 为什么需要io多路复用模型? 当我们开启一个socket的时候，需要对发起的连接进行响应。
 阻塞io 阻塞io流程如图 如果使用阻塞io，我们可能会有下面类似的代码框架。

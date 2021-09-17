@@ -9,13 +9,13 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 10 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/lsm-tree/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 10 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/lsm-tree/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>LSM-based storage techniques: a survey</title>
-      <link>https://zhangyh.me/topics/paper/suvery-of-lsm.html</link>
-      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/suvery-of-lsm/</link>
+      <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/suvery-of-lsm.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/suvery-of-lsm/</guid>
       <description> paper原文：LSM-based storage techniques: a survey
  LSM-tree basics 对于索引结构通常有两种更新策略，即in-place update和out-of-place update。
 in-place通常使用B+树作为底层数据结构，通过随机写来更新数据项，带来的是读数据的优化，同时每个数据项只存有一份，因此节约了空间。
@@ -31,10 +31,10 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
     
     <item>
       <title>Wiskey</title>
-      <link>https://zhangyh.me/topics/paper/wiskey.html</link>
-      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/wisckey/</link>
+      <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/wiskey.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/wisckey/</guid>
       <description>WiscKey Design Goals  Low写放大 Low读放大 SSD优化 Feature-rich API (scan、snapshot) Realistic k-v size (value的size通常比key的大很多)  K-V Separation  LSM tree的主要性能成本在于Compaction，但它维护了key的有序性，对于加速读也是十分有必要的。 Compaction只需要对key排序，因此考虑将k-v分开存储。只把value的地址和key放在一起。  LSM tree的size将大大变小，减少了写放大。 读操作虽然需要一次额外的寻址操作，但更小的LSM tree加快了检索同时更容易缓存到大内存中。    Challenge   Parallel Range Query 在levelDB中，范围查询通过iterator的顺序读实现，但是现在由于和key一同存储的只有value的地址，范围查询变为了随机io。 我们在读取所有的地址后，写入一个队列，通过多线程并发读取，来加快范围查询的性能。
   Garbage Collection 由于把所有的数据都存到了vLog里，最朴素的垃圾回收的方法当然是扫描一遍LSM-tree，但开销太大了，只适用于离线环境。 WiscKey在vlog中存储(ksize, vsize, key, value)，并维护head和tail指针。   数据在head处添加 垃圾回收线程从tail处扫描，每次扫描一定量的数据（几MB），然后在LSM-tree中查找，如果kv对有效的话，则再把它添加到head处。 因此，只有tail和head之间的数据是有效的。
 Crash Consistency  Optimizations  Value-Log Write Buffer  对于写密集的数据集，频繁的大量的小size的value写入，会导致较大的系统开销。 因此考虑在内存中维护Buffer。 当读数据的时候，先到vlog write buffer中查找，如果没有，再查vlog。 crash-consistency的维护类似于levelDB，使用WAL。
@@ -43,10 +43,10 @@ Optimizing the LSM-tree Log  在写LSM-tree之前需要先写vlog，因为这里
     
     <item>
       <title>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores</title>
-      <link>https://zhangyh.me/topics/paper/lwc-tree.html</link>
-      <pubDate>Fri, 06 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/lwc-tree/</link>
+      <pubDate>Fri, 06 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/lwc-tree.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/lwc-tree/</guid>
       <description>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
  使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子  Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
  读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中  victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
@@ -59,7 +59,7 @@ Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata �
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
       <link>https://zhangyh.me/topics/paper/novelsm.html</link>
-      <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
+      <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/topics/paper/novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：

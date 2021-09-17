@@ -9,11 +9,11 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 07 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/nvm/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 07 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/nvm/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Hashkv Enabling efficient updates in KV storage via hashing</title>
+      <title>Hashkv: Enabling efficient updates in KV storage via hashing</title>
       <link>https://zhangyh.me/topics/paper/hashkv.html</link>
-      <pubDate>Sat, 07 Aug 2021 02:47:09 +0000</pubDate>
+      <pubDate>Sat, 07 Aug 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/topics/paper/hashkv.html</guid>
       <description>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
@@ -31,10 +31,10 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
     
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://zhangyh.me/topics/paper/optane.html</link>
-      <pubDate>Thu, 05 Aug 2021 02:47:09 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/optane/</link>
+      <pubDate>Thu, 05 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/optane.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/optane/</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
@@ -53,7 +53,7 @@ ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
       <link>https://zhangyh.me/topics/paper/novelsm.html</link>
-      <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
+      <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/topics/paper/novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
@@ -67,10 +67,10 @@ Insert Latency insert latency来源有三个方面：
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://zhangyh.me/topics/paper/zen.html</link>
-      <pubDate>Tue, 03 Aug 2021 07:48:31 +0000</pubDate>
+      <link>https://zhangyh.me/posts/paper/aug/zen/</link>
+      <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/zen.html</guid>
+      <guid>https://zhangyh.me/posts/paper/aug/zen/</guid>
       <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成 其中可能同时存在某个数据的多个版本 (tupleId, Tx-CTS)唯一确定一个tuple
  LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除  Met-Cache NVM heap在DRAM中的缓存
  Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。  Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple

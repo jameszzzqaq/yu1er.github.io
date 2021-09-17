@@ -96,7 +96,7 @@ type Type2 struct { a int8 c int32 b int64 } 便可以节约一个字节的内�
 package main import ( "fmt" "unsafe" ) type M struct { m int64 x struct{} } type N struct { x struct{} n int64 } func main() { m, n := M{}, N{} fmt....</p>
 </section>
 <footer class=entry-footer>August 13, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to 聊聊内存对齐" href=https://zhangyh.me/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html></a>
+<a class=entry-link aria-label="post link to 聊聊内存对齐" href=https://zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -113,7 +113,7 @@ listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务
 while(1) { connfd = accept(listenfd); // 阻塞建立连接 append(fds, connfd) for fd in fds { fcntl(connfd, F_SETFL, O_NONBLOCK); int n = read(connfd, buffer); if n !...</p>
 </section>
 <footer class=entry-footer>July 3, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to 理解io多路复用" href=https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html></a>
+<a class=entry-link aria-label="post link to 理解io多路复用" href=https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/></a>
 </article>
 </main>
 <footer class=footer>
