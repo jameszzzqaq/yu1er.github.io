@@ -6,7 +6,7 @@
 <title>IO | yuler's blog</title>
 <meta name=keywords content>
 <meta name=description content="yuler's blog">
-<meta name=author content="Me">
+<meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/tags/io/>
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
@@ -59,13 +59,13 @@
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
-<span>search</span>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/tags/ title=tags>
-<span>tags</span>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
 </a>
 </li>
 </ul>
@@ -89,7 +89,7 @@ listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务
 如果使用非阻塞io，我们可能会有下面类似的代码框架
 while(1) { connfd = accept(listenfd); // 阻塞建立连接 append(fds, connfd) for fd in fds { fcntl(connfd, F_SETFL, O_NONBLOCK); int n = read(connfd, buffer); if n !...</p>
 </section>
-<footer class=entry-footer>July 3, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-3&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to 理解io多路复用" href=https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/></a>
 </article>
 </main>

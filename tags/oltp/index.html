@@ -6,7 +6,7 @@
 <title>OLTP | yuler's blog</title>
 <meta name=keywords content>
 <meta name=description content="yuler's blog">
-<meta name=author content="Me">
+<meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/tags/oltp/>
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
@@ -59,13 +59,13 @@
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
-<span>search</span>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/tags/ title=tags>
-<span>tags</span>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
 </a>
 </li>
 </ul>
@@ -86,7 +86,7 @@ LP: 在commited transaction中最后一个被持久化的tuple，将该标记记
 Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。 Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple
 Transaction-Private Data 线程私有 用于事务并发访问 存储相应数据...</p>
 </section>
-<footer class=entry-footer>August 3, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>8-3&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Zen: a high-throughput log-free OLTP engine for non-volatile main memory" href=https://zhangyh.me/posts/paper/aug/zen/></a>
 </article>
 </main>

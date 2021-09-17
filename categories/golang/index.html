@@ -6,7 +6,7 @@
 <title>Golang | yuler's blog</title>
 <meta name=keywords content>
 <meta name=description content="yuler's blog">
-<meta name=author content="Me">
+<meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/categories/golang/>
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
@@ -59,13 +59,13 @@
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
-<span>search</span>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/tags/ title=tags>
-<span>tags</span>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
 </a>
 </li>
 </ul>
@@ -86,7 +86,7 @@
 type mspan struct { next *mspan // 链表指针 prev *mspan // 链表指针 startAddr uintptr // span 起始地址 npages uintptr // page的数量 spanclass spanClass // size class and noscan (uint8) state mSpanStateBox // span状态 limit uintptr // end of data in span } 这里只列出了关心的主要字段。
 mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内存的地址，npages确定了内存地址范围 每个mspan都管理这npages数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍） state为mspan的状态，不细说。 spanClass 这是mspan中一个很核心的字段，spanClass是跨度类，它决定了mspan中管理的存储对象的大小和个数。...</p>
 </section>
-<footer class=entry-footer>July 17, 2021&nbsp;·&nbsp;3 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-17&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | 内存分配" href=https://zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -99,7 +99,7 @@ mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内
 可以通过以下个函数创建实现对应的功能:
 context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context 使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), "key", "value") go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println("handleChainA1", ctx.Value("key")) go handleChainB(context.WithValue(ctx, "key2", "value2")) } func handleChainA2(ctx context.Context) { log.Println("handleChainA2", ctx.Value("key")) } func handleChainB(ctx context.Context) { log.Println("handleChainB", ctx.Value("key")) log.Println("handleChainB", ctx.Value("key2")) } func main() { Test1() } 注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context....</p>
 </section>
-<footer class=entry-footer>July 16, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-16&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | context" href=https://zhangyh.me/posts/golang/go-context/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -112,7 +112,7 @@ context.WithCancel(): 创建带有取消函数的context，上层goroutine调用
 new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
 package main import ( "fmt" ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference fmt.Println(i) // fmt.Println(*i) num := new(int) fmt....</p>
 </section>
-<footer class=entry-footer>July 11, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-11&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | make和new" href=https://zhangyh.me/posts/golang/go-make%E5%92%8Cnew/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -125,7 +125,7 @@ package main import ( "fmt" ) type Student struct { name string age int } func m
 go程序的启动 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中 CALL runtime·osinit(SB) // 初始化schedule CALL runtime·schedinit(SB) MOVQ $runtime·mainPC(SB), AX // entry PUSHQ AX PUSHQ $0 // arg size // 创建新的goroutine来执行程序(main()函数) CALL runtime·newproc(SB) POPQ AX POPQ AX // 主线程进入调度循环，运行刚刚创建的 goroutine CALL runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序 CALL runtime·abort(SB) // mstart should never return RET main goroutine newproc() 该函数创建出main goroutine
 func newproc(siz int32, fn *funcval) { argp := add(unsafe....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-1&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 3. goroutine的创建和执行" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -138,7 +138,7 @@ func newproc(siz int32, fn *funcval) { argp := add(unsafe....</p>
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
 schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列 if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行 if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列 if gp == nil { // 从本地队列优先获取goroutine gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取 // 如果偷取不到当前线程会block，知道返回可用的goroutine if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available } ....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-1&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 4. 调度策略" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -163,7 +163,7 @@ op4->op5
 op5->end
 创建P References Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园 </p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to GMP源码分析" href=https://zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -179,7 +179,7 @@ GMP结构 这部分主要从源码层面分析GMP的结构
 G结构 我们暂时忽略一些对我们分析没有影响的字段。
 type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化 m *m // 与当前g绑定的m sched gobuf // goroutine的运行线程，主要为寄存器信息 param unsafe.Pointer // warkup 唤醒时传递的参数 atomicstatus uint32 // goroutine的状态 goid int64 // goroutine id schedlink guintptr // 指向全局goroutine队列中的的下一个 // go阻塞的时间和原因 waitsince int64 // approx time when the g become blocked waitreason waitReason // if status==Gwaiting // 抢占调度相关 preempt bool // preemption signal, duplicates stackguard0 = stackpreempt preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态...</p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;2 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 1. GMP模型" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -196,7 +196,7 @@ TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8 JMP _rt0_amd64(SB) 跳转到runtime/asm_am
 // 操作系统内核传递过来的参数argc和argv数组的地址分别放在DI和SI寄存器中 // 然后跳转到 rt0_go 去执行 TEXT _rt0_amd64(SB),NOSPLIT,$-8 MOVQ 0(SP), DI // argc LEAQ 8(SP), SI // argv JMP runtime·rt0_go(SB) 跳转到runtime·rt0_go函数，我们保留该函数的主要流程
 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 // 拷贝argc和argv到指定位置 MOVQ DI, AX // argc MOVQ SI, BX // argv SUBQ $(4*8+7), SP // 2args 2auto ANDQ $~15, SP MOVQ AX, 16(SP) MOVQ BX, 24(SP) // 为g0分配栈空间，g0的栈一般相对较大 // 之后会专门写一篇分析g0的文章 MOVQ $runtime·g0(SB), DI LEAQ (-64*1024+104)(SP), BX MOVQ BX, g_stackguard0(DI) MOVQ BX, g_stackguard1(DI) MOVQ BX, (g_stack+stack_lo)(DI) MOVQ SP, (g_stack+stack_hi)(DI) // ....</p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 2. scheduler初始化" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/></a>
 </article>
 <footer class=page-footer>

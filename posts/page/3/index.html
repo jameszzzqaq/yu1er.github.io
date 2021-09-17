@@ -6,7 +6,7 @@
 <title>Posts | yuler's blog</title>
 <meta name=keywords content>
 <meta name=description content="Posts - yuler's blog">
-<meta name=author content="Me">
+<meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/posts/>
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
@@ -60,13 +60,13 @@
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
-<span>search</span>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/tags/ title=tags>
-<span>tags</span>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
 </a>
 </li>
 </ul>
@@ -90,7 +90,7 @@ TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8 JMP _rt0_amd64(SB) 跳转到runtime/asm_am
 // 操作系统内核传递过来的参数argc和argv数组的地址分别放在DI和SI寄存器中 // 然后跳转到 rt0_go 去执行 TEXT _rt0_amd64(SB),NOSPLIT,$-8 MOVQ 0(SP), DI // argc LEAQ 8(SP), SI // argv JMP runtime·rt0_go(SB) 跳转到runtime·rt0_go函数，我们保留该函数的主要流程
 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 // 拷贝argc和argv到指定位置 MOVQ DI, AX // argc MOVQ SI, BX // argv SUBQ $(4*8+7), SP // 2args 2auto ANDQ $~15, SP MOVQ AX, 16(SP) MOVQ BX, 24(SP) // 为g0分配栈空间，g0的栈一般相对较大 // 之后会专门写一篇分析g0的文章 MOVQ $runtime·g0(SB), DI LEAQ (-64*1024+104)(SP), BX MOVQ BX, g_stackguard0(DI) MOVQ BX, g_stackguard1(DI) MOVQ BX, (g_stack+stack_lo)(DI) MOVQ SP, (g_stack+stack_hi)(DI) // ....</p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 2. scheduler初始化" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/></a>
 </article>
 <article class=post-entry>
@@ -105,7 +105,7 @@ AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) c
 Cut
 copy(a[i:], a[j:]) for k, n := len(a)-j+i, len(a); k &lt; n; k++ { a[k] = nil // or the zero value of T } a = a[:len(a)-j+i] Delete...</p>
 </section>
-<footer class=entry-footer>June 29, 2021&nbsp;·&nbsp;5 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-29&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | SliceTricks" href=https://zhangyh.me/posts/golang/slicetricks/></a>
 </article>
 <article class=post-entry>
@@ -130,7 +130,7 @@ copy(a[i:], a[j:]) for k, n := len(a)-j+i, len(a); k &lt; n; k++ { a[k] = nil //
 贬值很厉害的货币所属文明：罗马天主教、东正教和伊斯兰教 不鼓励生产，鼓励消费
 人均智商 宗教严肃度 海外投资的汇率风险 中国企业和资本出海需要重点防范：目标国的汇率风险 (结合上面所讲的因素进行思考)</p>
 </section>
-<footer class=entry-footer>June 27, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-27&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to 人民币汇率与人民币国际化—翟东升" href=https://zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/></a>
 </article>
 <footer class=page-footer>

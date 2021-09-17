@@ -6,7 +6,7 @@
 <title>go schedule | yuler's blog</title>
 <meta name=keywords content>
 <meta name=description content="yuler's blog">
-<meta name=author content="Me">
+<meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/tags/go-schedule/>
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
@@ -59,13 +59,13 @@
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
-<span>search</span>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/tags/ title=tags>
-<span>tags</span>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
 </a>
 </li>
 </ul>
@@ -85,7 +85,7 @@
 go程序的启动 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中 CALL runtime·osinit(SB) // 初始化schedule CALL runtime·schedinit(SB) MOVQ $runtime·mainPC(SB), AX // entry PUSHQ AX PUSHQ $0 // arg size // 创建新的goroutine来执行程序(main()函数) CALL runtime·newproc(SB) POPQ AX POPQ AX // 主线程进入调度循环，运行刚刚创建的 goroutine CALL runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序 CALL runtime·abort(SB) // mstart should never return RET main goroutine newproc() 该函数创建出main goroutine
 func newproc(siz int32, fn *funcval) { argp := add(unsafe....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-1&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 3. goroutine的创建和执行" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -98,7 +98,7 @@ func newproc(siz int32, fn *funcval) { argp := add(unsafe....</p>
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
 schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列 if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行 if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列 if gp == nil { // 从本地队列优先获取goroutine gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取 // 如果偷取不到当前线程会block，知道返回可用的goroutine if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available } ....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>7-1&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 4. 调度策略" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -123,7 +123,7 @@ op4->op5
 op5->end
 创建P References Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园 </p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to GMP源码分析" href=https://zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -139,7 +139,7 @@ GMP结构 这部分主要从源码层面分析GMP的结构
 G结构 我们暂时忽略一些对我们分析没有影响的字段。
 type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化 m *m // 与当前g绑定的m sched gobuf // goroutine的运行线程，主要为寄存器信息 param unsafe.Pointer // warkup 唤醒时传递的参数 atomicstatus uint32 // goroutine的状态 goid int64 // goroutine id schedlink guintptr // 指向全局goroutine队列中的的下一个 // go阻塞的时间和原因 waitsince int64 // approx time when the g become blocked waitreason waitReason // if status==Gwaiting // 抢占调度相关 preempt bool // preemption signal, duplicates stackguard0 = stackpreempt preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态...</p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;2 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 1. GMP模型" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/></a>
 </article>
 <article class="post-entry tag-entry">
@@ -156,7 +156,7 @@ TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8 JMP _rt0_amd64(SB) 跳转到runtime/asm_am
 // 操作系统内核传递过来的参数argc和argv数组的地址分别放在DI和SI寄存器中 // 然后跳转到 rt0_go 去执行 TEXT _rt0_amd64(SB),NOSPLIT,$-8 MOVQ 0(SP), DI // argc LEAQ 8(SP), SI // argv JMP runtime·rt0_go(SB) 跳转到runtime·rt0_go函数，我们保留该函数的主要流程
 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 // 拷贝argc和argv到指定位置 MOVQ DI, AX // argc MOVQ SI, BX // argv SUBQ $(4*8+7), SP // 2args 2auto ANDQ $~15, SP MOVQ AX, 16(SP) MOVQ BX, 24(SP) // 为g0分配栈空间，g0的栈一般相对较大 // 之后会专门写一篇分析g0的文章 MOVQ $runtime·g0(SB), DI LEAQ (-64*1024+104)(SP), BX MOVQ BX, g_stackguard0(DI) MOVQ BX, g_stackguard1(DI) MOVQ BX, (g_stack+stack_lo)(DI) MOVQ SP, (g_stack+stack_hi)(DI) // ....</p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 2. scheduler初始化" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/></a>
 </article>
 </main>
