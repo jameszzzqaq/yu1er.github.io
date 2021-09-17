@@ -143,9 +143,29 @@ References  https://zhuanlan.zhihu.com/p/355158723 https://zhuanlan.zhihu.com/p/
 <h1 class=post-title>
 聊聊内存对齐
 </h1>
-<div class=post-meta>August 13, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/%3cpath_to_repo%3e/content/posts/misc/2021-08-13-%e8%81%8a%e8%81%8a%e5%86%85%e5%ad%98%e5%af%b9%e9%bd%90.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>August 13, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/misc/2021-08-13-%e8%81%8a%e8%81%8a%e5%86%85%e5%ad%98%e5%af%b9%e9%bd%90.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
-</header>
+</header> <div class=toc>
+<details>
+<summary accesskey=c title="(Alt + C)">
+<span class=details>Table of Contents</span>
+</summary>
+<div class=inner><ul>
+<li>
+<a href=#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81%e5%86%85%e5%ad%98%e5%af%b9%e9%bd%90 aria-label=为什么需要内存对齐？>为什么需要内存对齐？</a></li>
+<li>
+<a href=#%e4%bb%80%e4%b9%88%e6%98%af%e5%86%85%e5%ad%98%e5%af%b9%e9%bd%90 aria-label=什么是内存对齐>什么是内存对齐</a></li>
+<li>
+<a href=#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81%e5%86%85%e5%ad%98%e5%af%b9%e9%bd%90-1 aria-label=为什么需要内存对齐>为什么需要内存对齐</a></li>
+<li>
+<a href=#%e9%9b%b6%e5%a4%a7%e5%b0%8f%e5%ad%97%e6%ae%b5 aria-label=零大小字段>零大小字段</a></li>
+<li>
+<a href=#references aria-label=References>References</a>
+</li>
+</ul>
+</div>
+</details>
+</div>
 <div class=post-content><h2 id=为什么需要内存对齐>为什么需要内存对齐？<a hidden class=anchor aria-hidden=true href=#为什么需要内存对齐>#</a></h2>
 <p>首先需要从物理硬件上了解计算机如何进行内存访问的。</p>
 <blockquote>

@@ -131,9 +131,44 @@ goexit1函数通过调用mcall从当前运行的go goroutine切换到g0，然后
 <h1 class=post-title>
 Go调度 | 3. goroutine的创建和执行
 </h1>
-<div class=post-meta>July 1, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/%3cpath_to_repo%3e/content/posts/go/2021-07-01-go%e8%b0%83%e5%ba%a6-3-goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>July 1, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/go/2021-07-01-go%e8%b0%83%e5%ba%a6-3-goroutine%e7%9a%84%e5%88%9b%e5%bb%ba%e5%92%8c%e6%89%a7%e8%a1%8c.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
-</header>
+</header> <div class=toc>
+<details>
+<summary accesskey=c title="(Alt + C)">
+<span class=details>Table of Contents</span>
+</summary>
+<div class=inner><ul>
+<li>
+<a href=#go%e7%a8%8b%e5%ba%8f%e7%9a%84%e5%90%af%e5%8a%a8 aria-label=go程序的启动>go程序的启动</a></li>
+<li>
+<a href=#main-goroutine aria-label="main goroutine">main goroutine</a><ul>
+<li>
+<a href=#newproc aria-label=newproc()>newproc()</a></li>
+<li>
+<a href=#mstart aria-label=mstart()>mstart()</a><ul>
+<li>
+<a href=#schedule aria-label=schedule()>schedule()</a></li>
+<li>
+<a href=#execute aria-label=execute()>execute()</a></li>
+<li>
+<a href=#gogo aria-label=gogo()>gogo()</a></li>
+<li>
+<a href=#runtimemain aria-label=runtime.main()>runtime.main()</a></li></ul>
+</li></ul>
+</li>
+<li>
+<a href=#%e9%9d%9emain-goroutine aria-label="非main goroutine">非main goroutine</a><ul>
+<li>
+<a href=#goexit aria-label=goexit()>goexit()</a></li></ul>
+</li>
+<li>
+<a href=#%e6%80%bb%e7%bb%93 aria-label=总结>总结</a>
+</li>
+</ul>
+</div>
+</details>
+</div>
 <div class=post-content><p>参考[上篇文章]()对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。</p>
 <h2 id=go程序的启动>go程序的启动<a hidden class=anchor aria-hidden=true href=#go程序的启动>#</a></h2>
 <h2 id=main-goroutine>main goroutine<a hidden class=anchor aria-hidden=true href=#main-goroutine>#</a></h2>

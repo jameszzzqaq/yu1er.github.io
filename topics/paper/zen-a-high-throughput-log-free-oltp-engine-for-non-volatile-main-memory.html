@@ -92,9 +92,54 @@ Transaction-Private Data 线程私有 用于事务并发访问 存储相应数�
 <h1 class=post-title>
 Zen: a high-throughput log-free OLTP engine for non-volatile main memory
 </h1>
-<div class=post-meta>August 3, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/%3cpath_to_repo%3e/content/posts/paper/2021-08-03-zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>August 3, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/paper/2021-08-03-zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
-</header>
+</header> <div class=toc>
+<details>
+<summary accesskey=c title="(Alt + C)">
+<span class=details>Table of Contents</span>
+</summary>
+<div class=inner><ul>
+<li>
+<a href=#design-overview aria-label="Design Overview">Design Overview</a><ul>
+<li>
+<a href=#nvm-heap aria-label="NVM heap">NVM heap</a></li>
+<li>
+<a href=#met-cache aria-label=Met-Cache>Met-Cache</a></li>
+<li>
+<a href=#indices-in-dram aria-label="Indices in DRAM">Indices in DRAM</a></li>
+<li>
+<a href=#transaction-private-data aria-label="Transaction-Private Data">Transaction-Private Data</a></li>
+<li>
+<a href=#nvm-space-management aria-label="NVM Space Management">NVM Space Management</a></li></ul>
+</li>
+<li>
+<a href=#metadata-enhanced-tuple-cache aria-label="Metadata Enhanced Tuple Cache">Metadata Enhanced Tuple Cache</a></li>
+<li>
+<a href=#log-free-persistent-transactions aria-label="Log-Free Persistent Transactions">Log-Free Persistent Transactions</a><ul>
+<li>
+<a href=#normal-process aria-label="Normal Process">Normal Process</a><ul>
+<li>
+<a href=#perform aria-label=Perform>Perform</a></li>
+<li>
+<a href=#persist aria-label=Persist>Persist</a></li>
+<li>
+<a href=#maintenance aria-label=Maintenance>Maintenance</a></li></ul>
+</li>
+<li>
+<a href=#flexible-support-for-concurrency-control-methods aria-label="Flexible Support for Concurrency Control Methods">Flexible Support for Concurrency Control Methods</a></li>
+<li>
+<a href=#crash-recovery-without-logs aria-label="Crash Recovery without Logs">Crash Recovery without Logs</a></li>
+<li>
+<a href=#support-for-long-running-transactions aria-label="Support for Long Running Transactions">Support for Long Running Transactions</a></li></ul>
+</li>
+<li>
+<a href=#lightweight-nvm-space-management aria-label="Lightweight NVM Space Management">Lightweight NVM Space Management</a>
+</li>
+</ul>
+</div>
+</details>
+</div>
 <div class=post-content><h2 id=design-overview>Design Overview<a hidden class=anchor aria-hidden=true href=#design-overview>#</a></h2>
 <ul>
 <li>Hybrid Table(HTable)

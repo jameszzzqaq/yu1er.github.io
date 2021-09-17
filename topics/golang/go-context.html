@@ -95,9 +95,32 @@ Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来�
 <h1 class=post-title>
 Go | context
 </h1>
-<div class=post-meta>July 16, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/%3cpath_to_repo%3e/content/posts/go/2021-07-16-go-context.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>July 16, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/go/2021-07-16-go-context.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
-</header>
+</header> <div class=toc>
+<details>
+<summary accesskey=c title="(Alt + C)">
+<span class=details>Table of Contents</span>
+</summary>
+<div class=inner><ul>
+<li>
+<a href=#%e4%bb%80%e4%b9%88%e6%98%afcontext aria-label=什么是context>什么是context</a></li>
+<li>
+<a href=#%e4%bd%bf%e7%94%a8%e5%9c%ba%e6%99%af aria-label=使用场景>使用场景</a><ul>
+<li>
+<a href=#1-%e9%93%be%e8%b7%af%e4%bc%a0%e5%80%bc aria-label="1. 链路传值">1. 链路传值</a></li>
+<li>
+<a href=#2-%e9%93%be%e8%b7%af%e5%b9%b6%e5%8f%91%e6%8e%a7%e5%88%b6 aria-label="2. 链路并发控制">2. 链路并发控制</a></li></ul>
+</li>
+<li>
+<a href=#%e4%bd%bf%e7%94%a8%e5%8e%9f%e5%88%99 aria-label=使用原则>使用原则</a></li>
+<li>
+<a href=#references aria-label=References>References</a>
+</li>
+</ul>
+</div>
+</details>
+</div>
 <div class=post-content><h2 id=什么是context>什么是context<a hidden class=anchor aria-hidden=true href=#什么是context>#</a></h2>
 <p><code>context</code> 主要用来在<code>goroutine</code>之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。</p>
 <p>可以通过以下个函数创建实现对应的功能:</p>

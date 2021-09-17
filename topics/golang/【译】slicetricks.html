@@ -113,9 +113,68 @@ In-place deduplicate (comparable)  in-place 去重
 <h1 class=post-title>
 Go | SliceTricks
 </h1>
-<div class=post-meta>June 29, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/%3cpath_to_repo%3e/content/posts/go/2021-06-29-%e3%80%90%e8%af%91%e3%80%91slicetricks.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>June 29, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/go/2021-06-29-%e3%80%90%e8%af%91%e3%80%91slicetricks.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
-</header>
+</header> <div class=toc>
+<details>
+<summary accesskey=c title="(Alt + C)">
+<span class=details>Table of Contents</span>
+</summary>
+<div class=inner><ul>
+<li>
+<a href=#appendvector aria-label=AppendVector>AppendVector</a></li>
+<li>
+<a href=#copy aria-label=Copy>Copy</a></li>
+<li>
+<a href=#cut aria-label=Cut>Cut</a></li>
+<li>
+<a href=#delete aria-label=Delete>Delete</a></li>
+<li>
+<a href=#delete-without-preserving-order aria-label="Delete without preserving order">Delete without preserving order</a></li>
+<li>
+<a href=#expand aria-label=Expand>Expand</a></li>
+<li>
+<a href=#extend aria-label=Extend>Extend</a></li>
+<li>
+<a href=#filterin-place aria-label="Filter(in place)">Filter(in place)</a></li>
+<li>
+<a href=#insert aria-label=Insert>Insert</a></li>
+<li>
+<a href=#insertvector aria-label=InsertVector>InsertVector</a></li>
+<li>
+<a href=#push aria-label=Push>Push</a></li>
+<li>
+<a href=#pop aria-label=Pop>Pop</a></li>
+<li>
+<a href=#push-frontunshift aria-label="Push Front/Unshift">Push Front/Unshift</a></li>
+<li>
+<a href=#pop-frontshift aria-label="Pop Front/Shift">Pop Front/Shift</a></li>
+<li>
+<a href=#additional-tricks aria-label="Additional Tricks">Additional Tricks</a><ul>
+<li>
+<a href=#filtering-without-allocating aria-label="Filtering without allocating">Filtering without allocating</a></li>
+<li>
+<a href=#reversing aria-label=Reversing>Reversing</a></li>
+<li>
+<a href=#shuffling aria-label=Shuffling>Shuffling</a></li>
+<li>
+<a href=#batching-with-minimal-allocation aria-label="Batching with minimal allocation">Batching with minimal allocation</a></li>
+<li>
+<a href=#in-place-deduplicate-comparable aria-label="In-place deduplicate (comparable)">In-place deduplicate (comparable)</a></li>
+<li>
+<a href=#move-to-front-or-prepend-if-not-present-in-place-if-possible aria-label="Move to front, or prepend if not present, in place if possible.">Move to front, or prepend if not present, in place if possible.</a></li>
+<li>
+<a href=#sliding-window aria-label="Sliding window">Sliding window</a></li></ul>
+</li>
+<li>
+<a href=#examples aria-label=Examples>Examples</a></li>
+<li>
+<a href=#references aria-label=References>References</a>
+</li>
+</ul>
+</div>
+</details>
+</div>
 <div class=post-content><blockquote>
 <p>原文地址: <a href=https://github.com/golang/go/wiki/SliceTricks>https://github.com/golang/go/wiki/SliceTricks</a></p>
 </blockquote>
