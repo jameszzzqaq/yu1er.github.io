@@ -131,29 +131,12 @@ Transaction-Private Data 线程私有 用于事务并发访问 存储相应数�
 </h2>
 </header>
 <section class=entry-content>
-<p>设计原理 Go的内存分配参考了TCMalloc的核心思想。
+<p>Go | 内存分配 设计原理 Go的内存分配参考了TCMalloc的核心思想。
 每一个线程都可以获得一个用于无锁分配小对象的缓存，这样可以让并行程序分配小对象（&lt;=32KB）非常高效。 TCMalloc 管理的堆由一组页组成，一组连续的页面被表示为 span。当分配的对象大于 32KB，将使用页堆（Page Heap）进行内存分配。 相关struct mspan mspan是Go语言内存管理的基本单元。
-这里只列出了关心的主要字段。
-mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内存的地址，npages确定了内存地址范围 每个mspan都管理这npages数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍） state为mspan的状态，不细说。 spanClass 这是mspan中一个很核心的字段，spanClass是跨度类，它决定了mspan中管理的存储对象的大小和个数。
-Go语言中一共有68种跨度类，每个跨度类会存储特定大小的对象并且需要分配指定数量的page。
-class_to_size表示每个跨度类的字节大小。
-class_to_allocnpages表示每个跨度类需要分配page的数量。
-ID为0的特殊跨度类，用于管理大对象。
-跨度类的最后一个二进制位是nospan标记，即表示对象是否包含指针，用于加快垃圾回收。
-每个mspan的内存都用于指定跨度类的内存分配。在分配内存时，首先需要选择最适合的跨度类，从而避免内存浪费。
-mcache mcache是线程缓存，它和GMP模型中的P绑定，主要用于为用户小于32KB的微、小对象分配内存。
-每个mcache有 $68 * 2$(_NumSizeClasses &lt;&lt; 1) 个 mspan。
-上面我们说过跨度类共有68种，这里每个跨度类又分为有指针和无指针两类。
-对于小对象，在mcache中，为对象寻找mspan的流程如下：
-计算对象所需内存大小size 根据size到size class映射，计算出所需的size class 根据size class和对象是否包含指针计算出span class 获取该span class指向的span。 但是如果对应的mspan没有剩余空间可被分配时，mcache就需要通过refill()函数向mcentral申请mspan,mcache拿到mspan后继续分配内存。
-mcentral 每个中心缓存都会管理某个跨度类的内存管理单元，它会同时持有两个 runtime.spanSet，分别存储包含空闲对象和不包含空闲对象的内存管理单元。
-当mcentral中的span不够用时，会找到mheap分配页数并获取新的mspan结构。
-mheap mheap是内存分配的核心结构体，每个Go语言程序有一个对应的全局变量。
-mheap包含两个重要部分，一个是mcentral数组，它管理所有的跨度类内存。另一个是管理堆内存区域的arenas。
-Go 语言所有的内存空间都由如下所示的二维矩阵 heapArena 管理，这个二维矩阵管理的内存可以是不连续的，每一个 heapArena 都会管理 64MB 的操作系统的内存空间。
-内存分配 大于 32K 的大对象直接从 mheap 分配。 小于 16B 的使用 mcache 的微型分配器分配 对象大小在 16B ~ 32K 之间的的，首先通过计算使用的大小规格，然后使用 mcache 中对应大小规格的块分配 如果对应的大小规格在 mcache 中没有可用的块，则向 mcentral 申请 如果 mcentral 中没有可用的块，则向 mheap 申请，并根据 BestFit 算法找到最合适的 mspan。如果申请到的 mspan 超出申请大小，将会根据需求进行切分，以返回用户所需的页数。剩余的页构成一个新的 mspan 放回 mheap 的空闲列表。 如果 mheap 中没有可用 span，则向操作系统申请一系列新的页（最小 1MB）。 Go 会在操作系统分配超大的页（称作 arena）。分配一大批页会减少和操作系统通信的成本 References https://draveness....</p>
+type mspan struct { next *mspan // 链表指针 prev *mspan // 链表指针 startAddr uintptr // span 起始地址 npages uintptr // page的数量 spanclass spanClass // size class and noscan (uint8) state mSpanStateBox // span状态 limit uintptr // end of data in span } 这里只列出了关心的主要字段。
+mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内存的地址，npages确定了内存地址范围 每个mspan都管理这npages数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍） state为mspan的状态，不细说。 spanClass 这是mspan中一个很核心的字段，spanClass是跨度类，它决定了mspan中管理的存储对象的大小和个数。...</p>
 </section>
-<footer class=entry-footer>July 17, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>July 17, 2021&nbsp;·&nbsp;3 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | 内存分配" href=https://zhangyh.me/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html></a>
 </article>
 <article class=post-entry>
@@ -162,13 +145,9 @@ Go 语言所有的内存空间都由如下所示的二维矩阵 heapArena 管理
 </h2>
 </header>
 <section class=entry-content>
-<p>什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
+<p>Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
-context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context 使用场景 1. 链路传值 注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO() 2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。
-可以把主要的并发模型归为两类，wait和cancel
-Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现
-这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context
-使用原则 不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。 References https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8 </p>
+context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context 使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), "key", "value") go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println("handleChainA1", ctx.Value("key")) go handleChainB(context.WithValue(ctx, "key2", "value2")) } func handleChainA2(ctx context.Context) { log.Println("handleChainA2", ctx.Value("key")) } func handleChainB(ctx context.Context) { log.Println("handleChainB", ctx.Value("key")) log.Println("handleChainB", ctx.Value("key2")) } func main() { Test1() } 注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context....</p>
 </section>
 <footer class=entry-footer>July 16, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | context" href=https://zhangyh.me/topics/golang/go-context.html></a>

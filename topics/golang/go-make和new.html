@@ -5,11 +5,9 @@
 <meta name=robots content="index, follow">
 <title>Go | make和new | yuler's blog</title>
 <meta name=keywords content>
-<meta name=description content="区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身    new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
-make make是为了初始化slice，map，channel这三种引用类型的。
-针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。
-make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化
-总结  new用于为值类型或用户自定义的类型 make只能用于slice,map,channel  new一般不常用，通常直接使用结构体字面量">
+<meta name=description content="区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身     值类型: 引用类型：
+ new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
+package main import ( &#34;fmt&#34; ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference 	fmt.Println(i) // fmt.Println(*i)  num := new(int) fmt.">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html>
 <meta name=google-site-verification content="XYZabc">
@@ -31,11 +29,9 @@ make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
 <script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go | make和new">
-<meta property="og:description" content="区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身    new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
-make make是为了初始化slice，map，channel这三种引用类型的。
-针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。
-make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化
-总结  new用于为值类型或用户自定义的类型 make只能用于slice,map,channel  new一般不常用，通常直接使用结构体字面量">
+<meta property="og:description" content="区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身     值类型: 引用类型：
+ new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
+package main import ( &#34;fmt&#34; ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference 	fmt.Println(i) // fmt.Println(*i)  num := new(int) fmt.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2021-07-11T07:17:49+00:00">
@@ -43,13 +39,11 @@ make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间
 <meta name=twitter:card content="summary_large_image">
 <meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
 <meta name=twitter:title content="Go | make和new">
-<meta name=twitter:description content="区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身    new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
-make make是为了初始化slice，map，channel这三种引用类型的。
-针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。
-make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化
-总结  new用于为值类型或用户自定义的类型 make只能用于slice,map,channel  new一般不常用，通常直接使用结构体字面量">
+<meta name=twitter:description content="区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身     值类型: 引用类型：
+ new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
+package main import ( &#34;fmt&#34; ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference 	fmt.Println(i) // fmt.Println(*i)  num := new(int) fmt.">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"Go | make和new","item":"https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go | make和new","name":"Go | make和new","description":"区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身    new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。\nmake make是为了初始化slice，map，channel这三种引用类型的。\n针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。\nmake 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化\n总结  new用于为值类型或用户自定义的类型 make只能用于slice,map,channel  new一般不常用，通常直接使用结构体字面量","keywords":[],"articleBody":"区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身    new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。\nmake make是为了初始化slice，map，channel这三种引用类型的。\n针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。\nmake 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化\n总结  new用于为值类型或用户自定义的类型 make只能用于slice,map,channel  new一般不常用，通常直接使用结构体字面量\n","wordCount":"28","inLanguage":"en","datePublished":"2021-07-11T07:17:49Z","dateModified":"2021-07-11T07:17:49Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go | make和new","name":"Go | make和new","description":"区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身     值类型: 引用类型：\n new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。\npackage main import ( \u0026#34;fmt\u0026#34; ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference \tfmt.Println(i) // fmt.Println(*i)  num := new(int) fmt.","keywords":[],"articleBody":"区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身     值类型: 引用类型：\n new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。\npackage main import ( \"fmt\" ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference \tfmt.Println(i) // fmt.Println(*i)  num := new(int) fmt.Println(num) fmt.Println(*num) s := new(Student) fmt.Println(s) // \u0026Student{} \tfmt.Println(*s) // Student{} } make make是为了初始化slice，map，channel这三种引用类型的。 针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。\nmake 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化\n总结  new用于为值类型或用户自定义的类型 make只能用于slice,map,channel  new一般不常用，通常直接使用结构体字面量\n","wordCount":"84","inLanguage":"en","datePublished":"2021-07-11T07:17:49Z","dateModified":"2021-07-11T07:17:49Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
 </head>
 <body id=top>
 <script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
@@ -89,7 +83,7 @@ make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间
 <h1 class=post-title>
 Go | make和new
 </h1>
-<div class=post-meta>July 11, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/2021-07-11-go-make%e5%92%8cnew.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>July 11, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/Go%20make%e5%92%8cnew.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
 </header> <div class=toc>
 <details>
@@ -132,10 +126,39 @@ Go | make和new
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p>值类型:
+引用类型：</p>
+</blockquote>
 <h2 id=new>new<a hidden class=anchor aria-hidden=true href=#new>#</a></h2>
 <p><code>new</code>用于为值类型或用户自定义的类型<strong>分配内存</strong>，并<strong>初始化零值</strong>，<strong>返回零值指针</strong>。</p>
-<h2 id=make>make<a hidden class=anchor aria-hidden=true href=#make>#</a></h2>
-<p><code>make</code>是为了初始化<code>slice</code>，<code>map</code>，<code>channel</code>这三种引用类型的。<br>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+
+<span style=color:#f92672>import</span> (
+	<span style=color:#e6db74>&#34;fmt&#34;</span>
+)
+
+<span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Student</span> <span style=color:#66d9ef>struct</span> {
+	<span style=color:#a6e22e>name</span> <span style=color:#66d9ef>string</span>
+	<span style=color:#a6e22e>age</span>  <span style=color:#66d9ef>int</span>
+}
+
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>int</span>
+	<span style=color:#75715e>// *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>i</span>)
+	<span style=color:#75715e>// fmt.Println(*i)
+</span><span style=color:#75715e></span>
+	<span style=color:#a6e22e>num</span> <span style=color:#f92672>:=</span> new(<span style=color:#66d9ef>int</span>)
+	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>num</span>)
+	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#f92672>*</span><span style=color:#a6e22e>num</span>)
+
+	<span style=color:#a6e22e>s</span> <span style=color:#f92672>:=</span> new(<span style=color:#a6e22e>Student</span>)
+	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>s</span>)  <span style=color:#75715e>// &amp;Student{}
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#f92672>*</span><span style=color:#a6e22e>s</span>) <span style=color:#75715e>// Student{}
+</span><span style=color:#75715e></span>}
+</code></pre></div><h2 id=make>make<a hidden class=anchor aria-hidden=true href=#make>#</a></h2>
+<p><code>make</code>是为了初始化<code>slice</code>，<code>map</code>，<code>channel</code>这三种引用类型的。
 针对这三种类型，分别调用<code>runtime.makeslice</code>，<code>runtime.makemap</code>，<code>runtime.makechan</code>函数。</p>
 <p><code>make</code> 相对于 <code>new</code> 来说，做的事情更多，<code>new</code> 只是开辟了内存空间， <code>make</code> 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化</p>
 <h2 id=总结>总结<a hidden class=anchor aria-hidden=true href=#总结>#</a></h2>

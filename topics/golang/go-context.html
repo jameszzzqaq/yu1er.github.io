@@ -5,13 +5,9 @@
 <meta name=robots content="index, follow">
 <title>Go | context | yuler's blog</title>
 <meta name=keywords content>
-<meta name=description content="什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
+<meta name=description content="Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
- context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO()  2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。
-可以把主要的并发模型归为两类，wait和cancel
-Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现
-这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context
-使用原则  不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。  References  https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8  ">
+ context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), &#34;key&#34;, &#34;value&#34;) go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println(&#34;handleChainA1&#34;, ctx.Value(&#34;key&#34;)) go handleChainB(context.WithValue(ctx, &#34;key2&#34;, &#34;value2&#34;)) } func handleChainA2(ctx context.Context) { log.Println(&#34;handleChainA2&#34;, ctx.Value(&#34;key&#34;)) } func handleChainB(ctx context.Context) { log.Println(&#34;handleChainB&#34;, ctx.Value(&#34;key&#34;)) log.Println(&#34;handleChainB&#34;, ctx.Value(&#34;key2&#34;)) } func main() { Test1()	}  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/topics/golang/go-context.html>
 <meta name=google-site-verification content="XYZabc">
@@ -33,13 +29,9 @@ Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来�
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
 <script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go | context">
-<meta property="og:description" content="什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
+<meta property="og:description" content="Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
- context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO()  2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。
-可以把主要的并发模型归为两类，wait和cancel
-Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现
-这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context
-使用原则  不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。  References  https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8  ">
+ context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), &#34;key&#34;, &#34;value&#34;) go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println(&#34;handleChainA1&#34;, ctx.Value(&#34;key&#34;)) go handleChainB(context.WithValue(ctx, &#34;key2&#34;, &#34;value2&#34;)) } func handleChainA2(ctx context.Context) { log.Println(&#34;handleChainA2&#34;, ctx.Value(&#34;key&#34;)) } func handleChainB(ctx context.Context) { log.Println(&#34;handleChainB&#34;, ctx.Value(&#34;key&#34;)) log.Println(&#34;handleChainB&#34;, ctx.Value(&#34;key2&#34;)) } func main() { Test1()	}  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://zhangyh.me/topics/golang/go-context.html"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2021-07-16T10:25:31+00:00">
@@ -47,15 +39,11 @@ Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来�
 <meta name=twitter:card content="summary_large_image">
 <meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
 <meta name=twitter:title content="Go | context">
-<meta name=twitter:description content="什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
+<meta name=twitter:description content="Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
- context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO()  2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。
-可以把主要的并发模型归为两类，wait和cancel
-Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现
-这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context
-使用原则  不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。  References  https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8  ">
+ context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), &#34;key&#34;, &#34;value&#34;) go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println(&#34;handleChainA1&#34;, ctx.Value(&#34;key&#34;)) go handleChainB(context.WithValue(ctx, &#34;key2&#34;, &#34;value2&#34;)) } func handleChainA2(ctx context.Context) { log.Println(&#34;handleChainA2&#34;, ctx.Value(&#34;key&#34;)) } func handleChainB(ctx context.Context) { log.Println(&#34;handleChainB&#34;, ctx.Value(&#34;key&#34;)) log.Println(&#34;handleChainB&#34;, ctx.Value(&#34;key2&#34;)) } func main() { Test1()	}  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"Go | context","item":"https://zhangyh.me/topics/golang/go-context.html"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go | context","name":"Go | context","description":"什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。\n可以通过以下个函数创建实现对应的功能:\n context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO()  2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。\n可以把主要的并发模型归为两类，wait和cancel\nWait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现\n这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context\n使用原则  不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。  References  https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8  ","keywords":[],"articleBody":"什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。\n可以通过以下个函数创建实现对应的功能:\n context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO()  2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。\n可以把主要的并发模型归为两类，wait和cancel\nWait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现\n这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context\n使用原则  不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。  References  https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8  ","wordCount":"57","inLanguage":"en","datePublished":"2021-07-16T10:25:31Z","dateModified":"2021-07-16T10:25:31Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go-context.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go | context","name":"Go | context","description":"Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。\n可以通过以下个函数创建实现对应的功能:\n context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), \u0026#34;key\u0026#34;, \u0026#34;value\u0026#34;) go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println(\u0026#34;handleChainA1\u0026#34;, ctx.Value(\u0026#34;key\u0026#34;)) go handleChainB(context.WithValue(ctx, \u0026#34;key2\u0026#34;, \u0026#34;value2\u0026#34;)) } func handleChainA2(ctx context.Context) { log.Println(\u0026#34;handleChainA2\u0026#34;, ctx.Value(\u0026#34;key\u0026#34;)) } func handleChainB(ctx context.Context) { log.Println(\u0026#34;handleChainB\u0026#34;, ctx.Value(\u0026#34;key\u0026#34;)) log.Println(\u0026#34;handleChainB\u0026#34;, ctx.Value(\u0026#34;key2\u0026#34;)) } func main() { Test1()\t}  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.","keywords":[],"articleBody":"Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。\n可以通过以下个函数创建实现对应的功能:\n context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), \"key\", \"value\") go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println(\"handleChainA1\", ctx.Value(\"key\")) go handleChainB(context.WithValue(ctx, \"key2\", \"value2\")) } func handleChainA2(ctx context.Context) { log.Println(\"handleChainA2\", ctx.Value(\"key\")) } func handleChainB(ctx context.Context) { log.Println(\"handleChainB\", ctx.Value(\"key\")) log.Println(\"handleChainB\", ctx.Value(\"key2\")) } func main() { Test1()\t}  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO()  2. 链路并发控制，释放资源 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。 可以把主要的并发模型归为两类，wait和cancel Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现\nfunc Test2() { ctx, cancel := context.WithCancel(context.Background()) go handle(ctx, 300*time.Millisecond) time.Sleep(1 * time.Second) cancel() // decide when to send cancel signal \tlog.Println(\"main cancel\", ctx.Err()) } func handle(ctx context.Context, duration time.Duration) { i := 1 for { select { case ctx.Done(): log.Println(\"handle cancel\", ctx.Err()) return default: // do work \tlog.Println(\"do work\", i) i++ time.Sleep(duration) } } } func main() { Test2() time.Sleep(1 * time.Second) } 这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context\n使用原则  不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。  References  https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context/#61-%E4%B8%8A%E4%B8%8B%E6%96%87-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8  ","wordCount":"172","inLanguage":"en","datePublished":"2021-07-16T10:25:31Z","dateModified":"2021-07-16T10:25:31Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go-context.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
 </head>
 <body id=top>
 <script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
@@ -95,7 +83,7 @@ Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来�
 <h1 class=post-title>
 Go | context
 </h1>
-<div class=post-meta>July 16, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/2021-07-16-go-context.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>July 16, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/Go%20context.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
 </header> <div class=toc>
 <details>
@@ -104,13 +92,15 @@ Go | context
 </summary>
 <div class=inner><ul>
 <li>
+<a href=#go--context aria-label="Go | context">Go | context</a><ul>
+<li>
 <a href=#%e4%bb%80%e4%b9%88%e6%98%afcontext aria-label=什么是context>什么是context</a></li>
 <li>
 <a href=#%e4%bd%bf%e7%94%a8%e5%9c%ba%e6%99%af aria-label=使用场景>使用场景</a><ul>
 <li>
 <a href=#1-%e9%93%be%e8%b7%af%e4%bc%a0%e5%80%bc aria-label="1. 链路传值">1. 链路传值</a></li>
 <li>
-<a href=#2-%e9%93%be%e8%b7%af%e5%b9%b6%e5%8f%91%e6%8e%a7%e5%88%b6 aria-label="2. 链路并发控制">2. 链路并发控制</a></li></ul>
+<a href=#2-%e9%93%be%e8%b7%af%e5%b9%b6%e5%8f%91%e6%8e%a7%e5%88%b6%e9%87%8a%e6%94%be%e8%b5%84%e6%ba%90 aria-label="2. 链路并发控制，释放资源">2. 链路并发控制，释放资源</a></li></ul>
 </li>
 <li>
 <a href=#%e4%bd%bf%e7%94%a8%e5%8e%9f%e5%88%99 aria-label=使用原则>使用原则</a></li>
@@ -118,10 +108,13 @@ Go | context
 <a href=#references aria-label=References>References</a>
 </li>
 </ul>
+</li>
+</ul>
 </div>
 </details>
 </div>
-<div class=post-content><h2 id=什么是context>什么是context<a hidden class=anchor aria-hidden=true href=#什么是context>#</a></h2>
+<div class=post-content><h1 id=go--context>Go | context<a hidden class=anchor aria-hidden=true href=#go--context>#</a></h1>
+<h2 id=什么是context>什么是context<a hidden class=anchor aria-hidden=true href=#什么是context>#</a></h2>
 <p><code>context</code> 主要用来在<code>goroutine</code>之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。</p>
 <p>可以通过以下个函数创建实现对应的功能:</p>
 <ul>
@@ -132,15 +125,74 @@ Go | context
 </ul>
 <h2 id=使用场景>使用场景<a hidden class=anchor aria-hidden=true href=#使用场景>#</a></h2>
 <h3 id=1-链路传值>1. 链路传值<a hidden class=anchor aria-hidden=true href=#1-链路传值>#</a></h3>
-<ul>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Go data-lang=Go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>Test1</span>() {
+	<span style=color:#a6e22e>ctx</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>WithValue</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Background</span>(), <span style=color:#e6db74>&#34;key&#34;</span>, <span style=color:#e6db74>&#34;value&#34;</span>)
+	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>handleChainA1</span>(<span style=color:#a6e22e>ctx</span>)
+	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>handleChainA2</span>(<span style=color:#a6e22e>ctx</span>)
+
+	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>2</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+}
+
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>handleChainA1</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>) {
+	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;handleChainA1&#34;</span>, <span style=color:#a6e22e>ctx</span>.<span style=color:#a6e22e>Value</span>(<span style=color:#e6db74>&#34;key&#34;</span>))
+	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>handleChainB</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>WithValue</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#e6db74>&#34;key2&#34;</span>, <span style=color:#e6db74>&#34;value2&#34;</span>))
+}
+
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>handleChainA2</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>) {
+	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;handleChainA2&#34;</span>, <span style=color:#a6e22e>ctx</span>.<span style=color:#a6e22e>Value</span>(<span style=color:#e6db74>&#34;key&#34;</span>))
+}
+
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>handleChainB</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>) {
+	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;handleChainB&#34;</span>, <span style=color:#a6e22e>ctx</span>.<span style=color:#a6e22e>Value</span>(<span style=color:#e6db74>&#34;key&#34;</span>))
+	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;handleChainB&#34;</span>, <span style=color:#a6e22e>ctx</span>.<span style=color:#a6e22e>Value</span>(<span style=color:#e6db74>&#34;key2&#34;</span>))
+}
+
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+	<span style=color:#a6e22e>Test1</span>()	
+}
+</code></pre></div><ul>
 <li>注意值的流向只能从上到下，上层<code>context</code>是获取不到下层传入的值的</li>
 <li>传入的<code>context</code>不能为<code>nil</code>，可以传<code>context.Background()</code>或<code>context.TODO()</code></li>
 </ul>
-<h3 id=2-链路并发控制>2. 链路并发控制<a hidden class=anchor aria-hidden=true href=#2-链路并发控制>#</a></h3>
-<p><code>context</code>最主要的作用是解决<code>cancelation</code>问题，也就是通过上层<code>goroutine</code>来释放下层<code>goroutine</code>。<br>
-可以把主要的并发模型归为两类，<code>wait</code>和<code>cancel</code></p>
+<h3 id=2-链路并发控制释放资源>2. 链路并发控制，释放资源<a hidden class=anchor aria-hidden=true href=#2-链路并发控制释放资源>#</a></h3>
+<p><code>context</code>最主要的作用是解决<code>cancelation</code>问题，也就是通过上层<code>goroutine</code>来释放下层<code>goroutine</code>。
+可以把主要的并发模型归为两类，<code>wait</code>和<code>cancel</code>
+<img loading=lazy src=https://cos.yuler.asia/img/post/context-wait.webp alt=Wait>
+<img loading=lazy src=https://cos.yuler.asia/img/post/context-cancel.webp alt=Cancel>
+</p>
 <p>Wait主要通过<code>sync.WaitGroup</code>实现，Cancel则需要通过<code>context.Context</code>来实现</p>
-<p>这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>Test2</span>() {
+	<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>cancel</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>WithCancel</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Background</span>())
+
+	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#ae81ff>300</span><span style=color:#f92672>*</span><span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)
+
+	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>1</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+	<span style=color:#a6e22e>cancel</span>() <span style=color:#75715e>// decide when to send cancel signal
+</span><span style=color:#75715e></span>	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;main cancel&#34;</span>, <span style=color:#a6e22e>ctx</span>.<span style=color:#a6e22e>Err</span>())
+}
+
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>duration</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>) {
+	<span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>1</span>
+
+	<span style=color:#66d9ef>for</span> {
+		<span style=color:#66d9ef>select</span> {
+		<span style=color:#66d9ef>case</span> <span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>ctx</span>.<span style=color:#a6e22e>Done</span>():
+			<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;handle cancel&#34;</span>, <span style=color:#a6e22e>ctx</span>.<span style=color:#a6e22e>Err</span>())
+			<span style=color:#66d9ef>return</span>
+		<span style=color:#66d9ef>default</span>:
+			<span style=color:#75715e>// do work
+</span><span style=color:#75715e></span>			<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;do work&#34;</span>, <span style=color:#a6e22e>i</span>)
+			<span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>
+			<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>duration</span>)
+		}
+	}
+}
+
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+	<span style=color:#a6e22e>Test2</span>()
+	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>1</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+}
+</code></pre></div><p>这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context</p>
 <h2 id=使用原则>使用原则<a hidden class=anchor aria-hidden=true href=#使用原则>#</a></h2>
 <ul>
 <li>不要将 <code>Context</code> 塞到结构体里。直接将 <code>Context</code> 类型作为函数的第一参数，而且一般都命名为 <code>ctx</code>。</li>
@@ -150,7 +202,7 @@ Go | context
 </ul>
 <h2 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h2>
 <ol>
-<li><a href=https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context>https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context</a></li>
+<li><a href=https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context/#61-%E4%B8%8A%E4%B8%8B%E6%96%87-context>https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context/#61-%E4%B8%8A%E4%B8%8B%E6%96%87-context</a></li>
 <li><a href=https://www.cnblogs.com/qcrao-2018/p/11007503.html>https://www.cnblogs.com/qcrao-2018/p/11007503.html</a></li>
 <li><a href=https://36kr.com/p/1721518997505>https://36kr.com/p/1721518997505</a></li>
 <li><a href=https://faiface.github.io/post/context-should-go-away-go2/>https://faiface.github.io/post/context-should-go-away-go2/</a></li>

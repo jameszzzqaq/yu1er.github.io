@@ -135,7 +135,7 @@ Zen: a high-throughput log-free OLTP engine for non-volatile main memory
 </details>
 </div>
 <div class=post-content><h2 id=design-overview>Design Overview<a hidden class=anchor aria-hidden=true href=#design-overview>#</a></h2>
-<p><img loading=lazy src=/assets/zen-architecture.png alt=zen-architecture>
+<p><img loading=lazy src=https://cos.yuler.asia/img/post/zen-architecture.webp alt=zen-architecture>
 </p>
 <ul>
 <li>Hybrid Table(HTable)
@@ -187,7 +187,7 @@ Zen: a high-throughput log-free OLTP engine for non-volatile main memory
 </ul>
 <p>初始时，X=500, Y=100, Z=100
 有事务：X账户转账给Y账户100，X账户转账给Z账户100
-<img loading=lazy src=/assets/zen-log-free.png alt=zen-log-free>
+<img loading=lazy src=https://cos.yuler.asia/img/post/zen-log-free.webp alt=zen-log-free>
 </p>
 <h4 id=perform>Perform<a hidden class=anchor aria-hidden=true href=#perform>#</a></h4>
 <ul>
@@ -211,7 +211,7 @@ Zen: a high-throughput log-free OLTP engine for non-volatile main memory
 <li>在持久化完成后，将该事务涉及的最后一个tuple的last persist标志位设置为1</li>
 </ol>
 <p>如果持久化阶段发生crash，如果发现最后一个tuple的LP为1，则证明事务成功提交，如果没有，则丢弃上面被该事务写入的所有tuple。</p>
-<p><img loading=lazy src=/assets/zen-persist-process-algh.png alt=zen-persist-process-algh>
+<p><img loading=lazy src=https://cos.yuler.asia/img/post/zen-persist-process-algh.webp alt=zen-persist-process-algh>
 </p>
 <h4 id=maintenance>Maintenance<a hidden class=anchor aria-hidden=true href=#maintenance>#</a></h4>
 <p>垃圾收集的两个场景：</p>
@@ -225,7 +225,7 @@ Zen: a high-throughput log-free OLTP engine for non-volatile main memory
 <p>分为单版本和多版本的并发控制</p>
 <h3 id=crash-recovery-without-logs>Crash Recovery without Logs<a hidden class=anchor aria-hidden=true href=#crash-recovery-without-logs>#</a></h3>
 <p>Crash发生时，DRAM中的Index、Transaction、Met-Cache等全部被清除，只有NVM中已经被持久化的数据。</p>
-<p><img loading=lazy src=/assets/zen-scan-region-algh.png alt=zen-scan-region-algh>
+<p><img loading=lazy src=https://cos.yuler.asia/img/post/zen-scan-region-algh.webp alt=zen-scan-region-algh>
 </p>
 <p>该算法在recovery时扫描NVM-tuple heap region来重建index，并进行空间整理.</p>
 <p>第一个循环先找当前有LP为1的最大CTS，当碰到小于该CTS的一定是已提交的，大于该CTS的不确定是否是可能absort的tuple</p>

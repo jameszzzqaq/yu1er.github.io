@@ -77,11 +77,9 @@
 </h2>
 </header>
 <section class=entry-content>
-<p>区别 方法 作用对象 返回值 new 值类型和用户定义类型 指向对象的指针 make 内置引用类型slice, map, channel 引用类型本身 new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
-make make是为了初始化slice，map，channel这三种引用类型的。
-针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。
-make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化
-总结 new用于为值类型或用户自定义的类型 make只能用于slice,map,channel new一般不常用，通常直接使用结构体字面量</p>
+<p>区别 方法 作用对象 返回值 new 值类型和用户定义类型 指向对象的指针 make 内置引用类型slice, map, channel 引用类型本身 值类型: 引用类型：
+new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
+package main import ( "fmt" ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference fmt.Println(i) // fmt.Println(*i) num := new(int) fmt....</p>
 </section>
 <footer class=entry-footer>July 11, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | make和new" href=https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html></a>
@@ -109,20 +107,11 @@ while(1) { connfd = accept(listenfd); // 阻塞建立连接 append(fds, connfd) 
 </h2>
 </header>
 <section class=entry-content>
-<p>前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+<p>【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
-schedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。
-具体实现的函数为runqget()
-从schedt的全局队列获取goroutine 需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取
-working-stealing策略 findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容
-正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑 从p2中偷取一半的g放到p中
-如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。
-stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&m.park)函数让自己进入睡眠状态。
-note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。
-回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。
-</p>
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列 if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行 if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列 if gp == nil { // 从本地队列优先获取goroutine gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取 // 如果偷取不到当前线程会block，知道返回可用的goroutine if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available } ....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 4. 调度策略" href=https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html></a>
 </article>
 <article class=post-entry>
@@ -131,27 +120,11 @@ note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通
 </h2>
 </header>
 <section class=entry-content>
-<p>参考[上篇文章]()对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
-go程序的启动 main goroutine newproc() 该函数创建出main goroutine
-newproc主要是对newproc1的封装。newproc首先获取要执行函数fn的参数地址argp，然后通过systemstack切换到g0栈去执行newproc1，然后把生成的g放入到绑定的p的本地队列中。
-需要注意在这里由于我们当前已经是g0，因此不需要切换，但由于newproc函数是通用的，在用户的goroutine中也会被调用，因此这里使用systemstack进行栈切换是有必要的。
-下面我们看一下newproc1做了什么。
-到此时，我们已经完成main goroutine的创建，我们参考这篇文章，给出当前的状态图。
-这个图看起来比较复杂，因为表示指针的箭头实在是太多了，这里对其稍作一下解释。
-首先，main goroutine对应的newg结构体对象的sched成员已经完成了初始化，图中只显示了pc和sp成员，pc成员指向了runtime.main函数的第一条指令，sp成员指向了newg的栈顶内存单元，该内存单元保存了runtime.main函数执行完成之后的返回地址，也就是runtime.goexit函数的第二条指令，预期runtime.main函数执行完返回之后就会去执行runtime.exit函数的CALL runtime.goexit1(SB)这条指令； 其次，newg已经放入与当前主线程绑定的p结构体对象的本地运行队列，因为它是第一个真正意义上的goroutine，还没有其它goroutine，所以它被放在了本地运行队列的头部； 最后，newg的m成员为nil，因为它还没有被调度起来运行，也就没有跟任何m进行绑定。 ![图片来源：https://www.cnblogs.com/abozhang/p/10825342.html](https://cos.yuler.asia/img/post/main-goroutine.png
-mstart() mstart没有什么多说的，主要封装了mstart1，我们下面分析mstart1。
-schedule() execute() 此时还是在g0的栈上运行，通过gogo函数切换到gp的栈上运行
-gogo() gogo函数也是通过汇编语言编写的，这里之所以需要使用汇编，是因为goroutine的调度涉及不同执行流之间的切换，前面我们在讨论操作系统切换线程时已经看到过，执行流的切换从本质上来说就是CPU寄存器以及函数调用栈的切换，然而不管是go还是c这种高级语言都无法精确控制CPU寄存器的修改，因而高级语言在这里也就无能为力了，只能依靠汇编指令来达成目的。
-gogo的作用为：
-把gp.sched的成员恢复到CPU的寄存器完成状态以及栈的切换； 跳转到gp.sched.pc所指的指令地址（runtime.main）处执行。 runtime.main() runtime.main函数主要工作流程如下：
-启动一个sysmon系统监控线程，该线程负责整个程序的gc、抢占调度以及netpoll等功能的监控，在抢占调度一章我们再继续分析sysmon是如何协助完成goroutine的抢占调度的； 执行runtime包的初始化； 执行main包以及main包import的所有包的初始化； 执行main.main函数； 从main.main函数返回后调用exit系统调用退出进程； 非main goroutine main goroutine结束时会执行exit(0)直接结束进程，从而使得所有其余的goroutine被终止。
-而非main goroutine结束时则会执行goexit()函数完成清理工作。
-goexit() 调用runtime.goexit1()函数
-goexit1函数通过调用mcall从当前运行的go goroutine切换到g0，然后在g0栈上调用和执行goexit0这个函数。
-下面开始在g0栈执行goexit0函数，该函数完成最后的清理工作：
-把g的状态从_Grunning变更为_Gdead； 然后把g的一些字段清空成0值； 调用dropg函数解除g和m之间的关系，其实就是设置g->m = nil, m->currg = nil； 把g放入p的freeg队列缓存起来供下次创建g时快速获取而不用从内存分配。freeg就是g的一个对象池； 调用schedule函数再次进行调度； 总结 我们用上图来总结一下工作线程的执行流程：...</p>
+<p>【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
+go程序的启动 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中 CALL runtime·osinit(SB) // 初始化schedule CALL runtime·schedinit(SB) MOVQ $runtime·mainPC(SB), AX // entry PUSHQ AX PUSHQ $0 // arg size // 创建新的goroutine来执行程序(main()函数) CALL runtime·newproc(SB) POPQ AX POPQ AX // 主线程进入调度循环，运行刚刚创建的 goroutine CALL runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序 CALL runtime·abort(SB) // mstart should never return RET main goroutine newproc() 该函数创建出main goroutine
+func newproc(siz int32, fn *funcval) { argp := add(unsafe....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 3. goroutine的创建和执行" href=https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html></a>
 </article>
 <article class=post-entry>
@@ -161,22 +134,14 @@ goexit1函数通过调用mcall从当前运行的go goroutine切换到g0，然后
 </header>
 <section class=entry-content>
 <p>上篇文章结尾告诉我们了几个重要的全局变量，本篇文章会用到
-go程序的启动 当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。
+allm *m // 所有的m构成的一个链表，包括下面的m0 allp []*p // 保存所有的p，len(allp) == gomaxprocs ncpu int32 // 系统中cpu核的数量，程序启动时由runtime代码初始化 gomaxprocs int32 // p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改 m0 m // 代表进程的主线程 g0 g // m0的g0，也就是m0.g0 = &g0 go程序的启动 当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。
 对于linux下的程序来说，入口文件在runtime/rt0_linux_amd64.s，
 具体我们是如何判断入口文件的，可以参考这篇文章，文章简单易懂
-跳转到runtime/asm_amd64.s文件的_rt0_amd64(SB)函数
-跳转到runtime·rt0_go函数，我们保留该函数的主要流程
-根据汇编代码，总结整个流程
-为g0，并分配栈空间 g0和m0相互绑定 // m.g0 = g0; g0.m = m0 osinit() OS初始化 schedinit() 调度器初始化 newproc() 将runtime.main作为参数创建goroutine mstart() 主线程进入调度循环 当初对tls的内容不了解，这里详细解释下
-set_tls()通过系统调用把m0.tls[1]的地址设置成了fs段的段基址。CPU中有个叫fs的段寄存器与之对应，而每个线程都有自己的一组CPU寄存器值，操作系统在把线程调离CPU运行时会帮我们把所有寄存器中的值保存在内存中，调度线程起来运行时又会从内存中把这些寄存器的值恢复到CPU。这样，在此之后，工作线程代码就可以通过fs寄存器来找到m.tls
-scheinit() 省略我们暂时不关心的代码
-mcommoninit() ——初始化m0 主要用来初始化mp，包括设置id、设置random、设置gsignal、挂载到全局m中
-procresize() ——初始化allp procresize()通过GOMAXPROC可以动态的调整p的总个数，但其中涉及的问题比较复杂。
-在这里我们只考虑初始化时的代码
-通过启动时候的schedinit调用procresize生成对应个数的P。因为可以通过runtime.GOMAXPROCS来动态修改P的个数，所以在procresize中会对P数组进行调整，或新增P或减少P。被减少的P会将自身的runable、runnext、gfree移到全局去。
-如果当前P不在多余的P中，则状态为running 如果当前P在多余的P中，则将当前M和P解绑，再将M和P数组的第一P绑定，并设为running 除了当前P外；所有P都设为idle，如果P中没有runnable,则将P加入全局空闲P,否则获取全局空闲M和P绑定。 References golang 源码学习之GMP (goroutine) – 简书 开天辟地 —— Go scheduler 初始化（二） Go语言goroutine调度器初始化(12) </p>
+TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8 JMP _rt0_amd64(SB) 跳转到runtime/asm_amd64.s文件的_rt0_amd64(SB)函数
+// 操作系统内核传递过来的参数argc和argv数组的地址分别放在DI和SI寄存器中 // 然后跳转到 rt0_go 去执行 TEXT _rt0_amd64(SB),NOSPLIT,$-8 MOVQ 0(SP), DI // argc LEAQ 8(SP), SI // argv JMP runtime·rt0_go(SB) 跳转到runtime·rt0_go函数，我们保留该函数的主要流程
+TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 // 拷贝argc和argv到指定位置 MOVQ DI, AX // argc MOVQ SI, BX // argv SUBQ $(4*8+7), SP // 2args 2auto ANDQ $~15, SP MOVQ AX, 16(SP) MOVQ BX, 24(SP) // 为g0分配栈空间，g0的栈一般相对较大 // 之后会专门写一篇分析g0的文章 MOVQ $runtime·g0(SB), DI LEAQ (-64*1024+104)(SP), BX MOVQ BX, g_stackguard0(DI) MOVQ BX, g_stackguard1(DI) MOVQ BX, (g_stack+stack_lo)(DI) MOVQ SP, (g_stack+stack_hi)(DI) // ....</p>
 </section>
-<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>June 30, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 2. scheduler初始化" href=https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html></a>
 </article>
 <footer class=page-footer>

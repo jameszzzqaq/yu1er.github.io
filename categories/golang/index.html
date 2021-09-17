@@ -76,29 +76,12 @@
 </h2>
 </header>
 <section class=entry-content>
-<p>设计原理 Go的内存分配参考了TCMalloc的核心思想。
+<p>Go | 内存分配 设计原理 Go的内存分配参考了TCMalloc的核心思想。
 每一个线程都可以获得一个用于无锁分配小对象的缓存，这样可以让并行程序分配小对象（&lt;=32KB）非常高效。 TCMalloc 管理的堆由一组页组成，一组连续的页面被表示为 span。当分配的对象大于 32KB，将使用页堆（Page Heap）进行内存分配。 相关struct mspan mspan是Go语言内存管理的基本单元。
-这里只列出了关心的主要字段。
-mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内存的地址，npages确定了内存地址范围 每个mspan都管理这npages数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍） state为mspan的状态，不细说。 spanClass 这是mspan中一个很核心的字段，spanClass是跨度类，它决定了mspan中管理的存储对象的大小和个数。
-Go语言中一共有68种跨度类，每个跨度类会存储特定大小的对象并且需要分配指定数量的page。
-class_to_size表示每个跨度类的字节大小。
-class_to_allocnpages表示每个跨度类需要分配page的数量。
-ID为0的特殊跨度类，用于管理大对象。
-跨度类的最后一个二进制位是nospan标记，即表示对象是否包含指针，用于加快垃圾回收。
-每个mspan的内存都用于指定跨度类的内存分配。在分配内存时，首先需要选择最适合的跨度类，从而避免内存浪费。
-mcache mcache是线程缓存，它和GMP模型中的P绑定，主要用于为用户小于32KB的微、小对象分配内存。
-每个mcache有 $68 * 2$(_NumSizeClasses &lt;&lt; 1) 个 mspan。
-上面我们说过跨度类共有68种，这里每个跨度类又分为有指针和无指针两类。
-对于小对象，在mcache中，为对象寻找mspan的流程如下：
-计算对象所需内存大小size 根据size到size class映射，计算出所需的size class 根据size class和对象是否包含指针计算出span class 获取该span class指向的span。 但是如果对应的mspan没有剩余空间可被分配时，mcache就需要通过refill()函数向mcentral申请mspan,mcache拿到mspan后继续分配内存。
-mcentral 每个中心缓存都会管理某个跨度类的内存管理单元，它会同时持有两个 runtime.spanSet，分别存储包含空闲对象和不包含空闲对象的内存管理单元。
-当mcentral中的span不够用时，会找到mheap分配页数并获取新的mspan结构。
-mheap mheap是内存分配的核心结构体，每个Go语言程序有一个对应的全局变量。
-mheap包含两个重要部分，一个是mcentral数组，它管理所有的跨度类内存。另一个是管理堆内存区域的arenas。
-Go 语言所有的内存空间都由如下所示的二维矩阵 heapArena 管理，这个二维矩阵管理的内存可以是不连续的，每一个 heapArena 都会管理 64MB 的操作系统的内存空间。
-内存分配 大于 32K 的大对象直接从 mheap 分配。 小于 16B 的使用 mcache 的微型分配器分配 对象大小在 16B ~ 32K 之间的的，首先通过计算使用的大小规格，然后使用 mcache 中对应大小规格的块分配 如果对应的大小规格在 mcache 中没有可用的块，则向 mcentral 申请 如果 mcentral 中没有可用的块，则向 mheap 申请，并根据 BestFit 算法找到最合适的 mspan。如果申请到的 mspan 超出申请大小，将会根据需求进行切分，以返回用户所需的页数。剩余的页构成一个新的 mspan 放回 mheap 的空闲列表。 如果 mheap 中没有可用 span，则向操作系统申请一系列新的页（最小 1MB）。 Go 会在操作系统分配超大的页（称作 arena）。分配一大批页会减少和操作系统通信的成本 References https://draveness....</p>
+type mspan struct { next *mspan // 链表指针 prev *mspan // 链表指针 startAddr uintptr // span 起始地址 npages uintptr // page的数量 spanclass spanClass // size class and noscan (uint8) state mSpanStateBox // span状态 limit uintptr // end of data in span } 这里只列出了关心的主要字段。
+mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内存的地址，npages确定了内存地址范围 每个mspan都管理这npages数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍） state为mspan的状态，不细说。 spanClass 这是mspan中一个很核心的字段，spanClass是跨度类，它决定了mspan中管理的存储对象的大小和个数。...</p>
 </section>
-<footer class=entry-footer>July 17, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>July 17, 2021&nbsp;·&nbsp;3 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | 内存分配" href=https://zhangyh.me/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html></a>
 </article>
 <article class="post-entry tag-entry">
@@ -107,13 +90,9 @@ Go 语言所有的内存空间都由如下所示的二维矩阵 heapArena 管理
 </h2>
 </header>
 <section class=entry-content>
-<p>什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
+<p>Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
-context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context 使用场景 1. 链路传值 注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO() 2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。
-可以把主要的并发模型归为两类，wait和cancel
-Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来实现
-这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context
-使用原则 不要将 Context 塞到结构体里。直接将 Context 类型作为函数的第一参数，而且一般都命名为 ctx。 不要向函数传入一个 nil 的 context，如果你实在不知道传什么，标准库给你准备好了一个 context.TODO() 不要把本应该作为函数参数的类型塞到 context 中，context 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。 同一个 context 可能会被传递到多个 goroutine，别担心，context 是并发安全的。 References https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context https://www.cnblogs.com/qcrao-2018/p/11007503.html https://36kr.com/p/1721518997505 https://faiface.github.io/post/context-should-go-away-go2/ https://golang.org/pkg/context/#example_WithDeadline https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8 </p>
+context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context 使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), "key", "value") go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println("handleChainA1", ctx.Value("key")) go handleChainB(context.WithValue(ctx, "key2", "value2")) } func handleChainA2(ctx context.Context) { log.Println("handleChainA2", ctx.Value("key")) } func handleChainB(ctx context.Context) { log.Println("handleChainB", ctx.Value("key")) log.Println("handleChainB", ctx.Value("key2")) } func main() { Test1() } 注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context....</p>
 </section>
 <footer class=entry-footer>July 16, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | context" href=https://zhangyh.me/topics/golang/go-context.html></a>
@@ -124,11 +103,9 @@ Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来�
 </h2>
 </header>
 <section class=entry-content>
-<p>区别 方法 作用对象 返回值 new 值类型和用户定义类型 指向对象的指针 make 内置引用类型slice, map, channel 引用类型本身 new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
-make make是为了初始化slice，map，channel这三种引用类型的。
-针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。
-make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间， make 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化
-总结 new用于为值类型或用户自定义的类型 make只能用于slice,map,channel new一般不常用，通常直接使用结构体字面量</p>
+<p>区别 方法 作用对象 返回值 new 值类型和用户定义类型 指向对象的指针 make 内置引用类型slice, map, channel 引用类型本身 值类型: 引用类型：
+new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
+package main import ( "fmt" ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference fmt.Println(i) // fmt.Println(*i) num := new(int) fmt....</p>
 </section>
 <footer class=entry-footer>July 11, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | make和new" href=https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html></a>
@@ -139,20 +116,11 @@ make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间
 </h2>
 </header>
 <section class=entry-content>
-<p>前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+<p>【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
-schedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。
-具体实现的函数为runqget()
-从schedt的全局队列获取goroutine 需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取
-working-stealing策略 findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容
-正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑 从p2中偷取一半的g放到p中
-如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。
-stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&m.park)函数让自己进入睡眠状态。
-note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。
-回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。
-</p>
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列 if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行 if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列 if gp == nil { // 从本地队列优先获取goroutine gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取 // 如果偷取不到当前线程会block，知道返回可用的goroutine if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available } ....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 4. 调度策略" href=https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html></a>
 </article>
 <article class="post-entry tag-entry">
@@ -161,27 +129,11 @@ note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通
 </h2>
 </header>
 <section class=entry-content>
-<p>参考[上篇文章]()对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
-go程序的启动 main goroutine newproc() 该函数创建出main goroutine
-newproc主要是对newproc1的封装。newproc首先获取要执行函数fn的参数地址argp，然后通过systemstack切换到g0栈去执行newproc1，然后把生成的g放入到绑定的p的本地队列中。
-需要注意在这里由于我们当前已经是g0，因此不需要切换，但由于newproc函数是通用的，在用户的goroutine中也会被调用，因此这里使用systemstack进行栈切换是有必要的。
-下面我们看一下newproc1做了什么。
-到此时，我们已经完成main goroutine的创建，我们参考这篇文章，给出当前的状态图。
-这个图看起来比较复杂，因为表示指针的箭头实在是太多了，这里对其稍作一下解释。
-首先，main goroutine对应的newg结构体对象的sched成员已经完成了初始化，图中只显示了pc和sp成员，pc成员指向了runtime.main函数的第一条指令，sp成员指向了newg的栈顶内存单元，该内存单元保存了runtime.main函数执行完成之后的返回地址，也就是runtime.goexit函数的第二条指令，预期runtime.main函数执行完返回之后就会去执行runtime.exit函数的CALL runtime.goexit1(SB)这条指令； 其次，newg已经放入与当前主线程绑定的p结构体对象的本地运行队列，因为它是第一个真正意义上的goroutine，还没有其它goroutine，所以它被放在了本地运行队列的头部； 最后，newg的m成员为nil，因为它还没有被调度起来运行，也就没有跟任何m进行绑定。 ![图片来源：https://www.cnblogs.com/abozhang/p/10825342.html](https://cos.yuler.asia/img/post/main-goroutine.png
-mstart() mstart没有什么多说的，主要封装了mstart1，我们下面分析mstart1。
-schedule() execute() 此时还是在g0的栈上运行，通过gogo函数切换到gp的栈上运行
-gogo() gogo函数也是通过汇编语言编写的，这里之所以需要使用汇编，是因为goroutine的调度涉及不同执行流之间的切换，前面我们在讨论操作系统切换线程时已经看到过，执行流的切换从本质上来说就是CPU寄存器以及函数调用栈的切换，然而不管是go还是c这种高级语言都无法精确控制CPU寄存器的修改，因而高级语言在这里也就无能为力了，只能依靠汇编指令来达成目的。
-gogo的作用为：
-把gp.sched的成员恢复到CPU的寄存器完成状态以及栈的切换； 跳转到gp.sched.pc所指的指令地址（runtime.main）处执行。 runtime.main() runtime.main函数主要工作流程如下：
-启动一个sysmon系统监控线程，该线程负责整个程序的gc、抢占调度以及netpoll等功能的监控，在抢占调度一章我们再继续分析sysmon是如何协助完成goroutine的抢占调度的； 执行runtime包的初始化； 执行main包以及main包import的所有包的初始化； 执行main.main函数； 从main.main函数返回后调用exit系统调用退出进程； 非main goroutine main goroutine结束时会执行exit(0)直接结束进程，从而使得所有其余的goroutine被终止。
-而非main goroutine结束时则会执行goexit()函数完成清理工作。
-goexit() 调用runtime.goexit1()函数
-goexit1函数通过调用mcall从当前运行的go goroutine切换到g0，然后在g0栈上调用和执行goexit0这个函数。
-下面开始在g0栈执行goexit0函数，该函数完成最后的清理工作：
-把g的状态从_Grunning变更为_Gdead； 然后把g的一些字段清空成0值； 调用dropg函数解除g和m之间的关系，其实就是设置g->m = nil, m->currg = nil； 把g放入p的freeg队列缓存起来供下次创建g时快速获取而不用从内存分配。freeg就是g的一个对象池； 调用schedule函数再次进行调度； 总结 我们用上图来总结一下工作线程的执行流程：...</p>
+<p>【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
+go程序的启动 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中 CALL runtime·osinit(SB) // 初始化schedule CALL runtime·schedinit(SB) MOVQ $runtime·mainPC(SB), AX // entry PUSHQ AX PUSHQ $0 // arg size // 创建新的goroutine来执行程序(main()函数) CALL runtime·newproc(SB) POPQ AX POPQ AX // 主线程进入调度循环，运行刚刚创建的 goroutine CALL runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序 CALL runtime·abort(SB) // mstart should never return RET main goroutine newproc() 该函数创建出main goroutine
+func newproc(siz int32, fn *funcval) { argp := add(unsafe....</p>
 </section>
-<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
+<footer class=entry-footer>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 3. goroutine的创建和执行" href=https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html></a>
 </article>
 <footer class=page-footer>

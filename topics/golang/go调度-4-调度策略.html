@@ -5,18 +5,9 @@
 <meta name=robots content="index, follow">
 <title>Go调度 | 4. 调度策略 | yuler's blog</title>
 <meta name=keywords content="schedule">
-<meta name=description content="前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+<meta name=description content="【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
-schedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。
-具体实现的函数为runqget()
-从schedt的全局队列获取goroutine  需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取
- working-stealing策略  findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容
-  正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑  从p2中偷取一半的g放到p中
-如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。
- stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&m.park)函数让自己进入睡眠状态。
-note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。
-回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。
- ">
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html>
 <meta name=google-site-verification content="XYZabc">
@@ -38,18 +29,9 @@ note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
 <script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go调度 | 4. 调度策略">
-<meta property="og:description" content="前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+<meta property="og:description" content="【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
-schedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。
-具体实现的函数为runqget()
-从schedt的全局队列获取goroutine  需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取
- working-stealing策略  findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容
-  正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑  从p2中偷取一半的g放到p中
-如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。
- stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&m.park)函数让自己进入睡眠状态。
-note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。
-回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。
- ">
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2021-07-01T16:45:55+00:00">
@@ -57,20 +39,11 @@ note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通
 <meta name=twitter:card content="summary_large_image">
 <meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
 <meta name=twitter:title content="Go调度 | 4. 调度策略">
-<meta name=twitter:description content="前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+<meta name=twitter:description content="【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
-schedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。
-具体实现的函数为runqget()
-从schedt的全局队列获取goroutine  需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取
- working-stealing策略  findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容
-  正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑  从p2中偷取一半的g放到p中
-如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。
- stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&m.park)函数让自己进入睡眠状态。
-note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。
-回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。
- ">
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"Go调度 | 4. 调度策略","item":"https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go调度 | 4. 调度策略","name":"Go调度 | 4. 调度策略","description":"前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。\n有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。\nschedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。\n具体实现的函数为runqget()\n从schedt的全局队列获取goroutine  需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取\n working-stealing策略  findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容\n  正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑  从p2中偷取一半的g放到p中\n如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。\n stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(\u0026amp;m.park)函数让自己进入睡眠状态。\nnote是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。\n回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。\n ","keywords":["schedule"],"articleBody":"前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。\n有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。\nschedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。\n具体实现的函数为runqget()\n从schedt的全局队列获取goroutine  需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取\n working-stealing策略  findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容\n  正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑  从p2中偷取一半的g放到p中\n如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。\n stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(\u0026m.park)函数让自己进入睡眠状态。\nnote是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。\n回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。\n ","wordCount":"18","inLanguage":"en","datePublished":"2021-07-01T16:45:55Z","dateModified":"2021-07-01T16:45:55Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go调度 | 4. 调度策略","name":"Go调度 | 4. 调度策略","description":"【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。\n有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。\nschedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 \u0026amp;\u0026amp; sched.runqsize \u0026gt; 0 { lock(\u0026amp;sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(\u0026amp;sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .","keywords":["schedule"],"articleBody":"【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。\n有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。\nschedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 \u0026\u0026 sched.runqsize  0 { lock(\u0026sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(\u0026sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .... execute(gp, inheritTime) } 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。\n具体实现的函数为runqget()\nfunc runqget(_p_ *p) (gp *g, inheritTime bool) { // 如果runnext不为空，则返回runnext指向的goroutine  // 这里使用乐观锁CAS  for { next := _p_.runnext if next == 0 { break } if _p_.runnext.cas(next, 0) { return next.ptr(), true } } // 从循环队列中获取goroutine  for { h := atomic.LoadAcq(\u0026_p_.runqhead) // load-acquire, synchronize with other consumers  t := _p_.runqtail if t == h { return nil, false } gp := _p_.runq[h%uint32(len(_p_.runq))].ptr() if atomic.CasRel(\u0026_p_.runqhead, h, h+1) { // cas-release, commits consume  return gp, false } } } 从schedt的全局队列获取goroutine  需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取\n // 从全局队列中取最多max个G到p的本地队列中 func globrunqget(_p_ *p, max int32) *g { assertLockHeld(\u0026sched.lock) if sched.runqsize == 0 { return nil } // 根据p的数量平分全局队列中的G  n := sched.runqsize/gomaxprocs + 1 if n  sched.runqsize { n = sched.runqsize } if max  0 \u0026\u0026 n  max { n = max } if n  int32(len(_p_.runq))/2 { n = int32(len(_p_.runq)) / 2 } sched.runqsize -= n // 直接返回gp，其余的通过runqput放到p的本地队列中去  gp := sched.runq.pop() n-- for ; n  0; n-- { gp1 := sched.runq.pop() runqput(_p_, gp1, false) } return gp } working-stealing策略  findrunnable主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略gc和netpoll相关的内容\n // Finds a runnable goroutine to execute. // Tries to steal from other P's, get g from local or global queue, poll network. func findrunnable() (gp *g, inheritTime bool) { _g_ := getg() // The conditions here and in handoffp must agree: if  // findrunnable would return a G to run, handoffp must start  // an M.  top: _p_ := _g_.m.p.ptr() .... // 再次检查本地队列  if gp, inheritTime := runqget(_p_); gp != nil { return gp, inheritTime } // 再次检查全局队列  if sched.runqsize != 0 { lock(\u0026sched.lock) gp := globrunqget(_p_, 0) unlock(\u0026sched.lock) if gp != nil { return gp, false } } .... // 从其他工作的p偷取  procs := uint32(gomaxprocs) ranTimer := false // 偷取的两个前提条件  // 1. 状态为 非自旋  // 2. 已经有很多工作线程在自旋偷取工作了，自己就先歇会  if !_g_.m.spinning \u0026\u0026 2*atomic.Load(\u0026sched.nmspinning) = procs-atomic.Load(\u0026sched.npidle) { goto stop } // 设置m状态为spinning  if !_g_.m.spinning { _g_.m.spinning = true atomic.Xadd(\u0026sched.nmspinning, 1) } // 从其他p的本地队列偷取goroutine  const stealTries = 4 for i := 0; i stealTries; i++ { stealTimersOrRunNextG := i == stealTries-1 for enum := stealOrder.start(fastrand()); !enum.done(); enum.next() { if sched.gcwaiting != 0 { goto top } p2 := allp[enum.position()] if _p_ == p2 { continue } .... if !idlepMask.read(enum.position()) { if gp := runqsteal(_p_, p2, stealTimersOrRunNextG); gp != nil { return gp, false } } } } if ranTimer { // Running a timer may have made some goroutine ready.  goto top } stop: .... // Before we drop our P, make a snapshot of the allp slice,  // which can change underfoot once we no longer block  // safe-points. We don't need to snapshot the contents because  // everything up to cap(allp) is immutable.  allpSnapshot := allp .... // return P and block  lock(\u0026sched.lock) if sched.gcwaiting != 0 || _p_.runSafePointFn != 0 { unlock(\u0026sched.lock) goto top } if sched.runqsize != 0 { gp := globrunqget(_p_, 0) unlock(\u0026sched.lock) return gp, false } // 解除当前线程和P之间的绑定，准备休眠  if releasep() != _p_ { throw(\"findrunnable: wrong p\") } // 把p放入空闲队列  pidleput(_p_) unlock(\u0026sched.lock) wasSpinning := _g_.m.spinning if _g_.m.spinning { // m即将睡眠  _g_.m.spinning = false if int32(atomic.Xadd(\u0026sched.nmspinning, -1)) 0 { throw(\"findrunnable: negative nmspinning\") } } // check all runqueues once again  for id, _p_ := range allpSnapshot { if !idlepMaskSnapshot.read(uint32(id)) \u0026\u0026 !runqempty(_p_) { lock(\u0026sched.lock) _p_ = pidleget() unlock(\u0026sched.lock) if _p_ != nil { acquirep(_p_) if wasSpinning { _g_.m.spinning = true atomic.Xadd(\u0026sched.nmspinning, 1) } goto top } break } } .... // 休眠  stopm() goto top }  正在偷取g的工作线程处于spinning状态。 偷取时通过一种伪随机的方式遍历allp，然后在内层循环中通过runqsteal实现steal逻辑  // Steal half of elements from local runnable queue of p2 // and put onto local runnable queue of p. // Returns one of the stolen elements (or nil if failed). func runqsteal(_p_, p2 *p, stealRunNextG bool) *g { t := _p_.runqtail n := runqgrab(p2, \u0026_p_.runq, t, stealRunNextG) if n == 0 { return nil } n-- gp := _p_.runq[(t+n)%uint32(len(_p_.runq))].ptr() if n == 0 { return gp } h := atomic.LoadAcq(\u0026_p_.runqhead) // load-acquire, synchronize with consumers \tif t-h+n = uint32(len(_p_.runq)) { throw(\"runqsteal: runq overflow\") } atomic.StoreRel(\u0026_p_.runqtail, t+n) // store-release, makes the item available for consumption \treturn gp } 从p2中偷取一半的g放到p中\n如果无论如何都没有获取到可以运行的goroutine，则调用stopm进入睡眠状态，等待被其他的工作线程唤醒。\n// Stops execution of the current m until new work is available. // Returns with acquired P. func stopm() { _g_ := getg() if _g_.m.locks != 0 { throw(\"stopm holding locks\") } if _g_.m.p != 0 { throw(\"stopm holding p\") } if _g_.m.spinning { throw(\"stopm spinning\") } lock(\u0026sched.lock) mput(_g_.m) unlock(\u0026sched.lock) mPark() acquirep(_g_.m.nextp.ptr()) _g_.m.nextp = 0 }  stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(\u0026m.park)函数让自己进入睡眠状态。 note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(*note)进入睡眠状态，而另外一个线程则可以通过notewakeup(*note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。 回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。\n ","wordCount":"799","inLanguage":"en","datePublished":"2021-07-01T16:45:55Z","dateModified":"2021-07-01T16:45:55Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
 </head>
 <body id=top>
 <script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
@@ -110,7 +83,7 @@ note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通
 <h1 class=post-title>
 Go调度 | 4. 调度策略
 </h1>
-<div class=post-meta>July 1, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/2021-07-02-go%e8%b0%83%e5%ba%a6-4-%e8%b0%83%e5%ba%a6%e7%ad%96%e7%95%a5.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>July 1, 2021&nbsp;·&nbsp;4 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/[go%e8%b0%83%e5%ba%a6]4-%e8%b0%83%e5%ba%a6%e7%ad%96%e7%95%a5.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
 </header> <div class=toc>
 <details>
@@ -118,6 +91,8 @@ Go调度 | 4. 调度策略
 <span class=details>Table of Contents</span>
 </summary>
 <div class=inner><ul>
+<li>
+<a href=#go%e8%b0%83%e5%ba%a64-%e8%b0%83%e5%ba%a6%e7%ad%96%e7%95%a5 aria-label="【go调度】4. 调度策略">【go调度】4. 调度策略</a><ul>
 <li>
 <a href=#schedule aria-label=schedule()>schedule()</a></li>
 <li>
@@ -128,32 +103,310 @@ Go调度 | 4. 调度策略
 <a href=#working-stealing%e7%ad%96%e7%95%a5 aria-label=working-stealing策略>working-stealing策略</a>
 </li>
 </ul>
+</li>
+</ul>
 </div>
 </details>
 </div>
-<div class=post-content><p>前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。</p>
+<div class=post-content><h1 id=go调度4-调度策略>【go调度】4. 调度策略<a hidden class=anchor aria-hidden=true href=#go调度4-调度策略>#</a></h1>
+<p>前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。</p>
 <p>有关调度策略的部分主要位于调度函数<code>schedule()</code>中，本文将具体分析。</p>
 <h2 id=schedule>schedule()<a hidden class=anchor aria-hidden=true href=#schedule>#</a></h2>
-<h2 id=从p的本地队列获取goroutine>从p的本地队列获取goroutine<a hidden class=anchor aria-hidden=true href=#从p的本地队列获取goroutine>#</a></h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>schedule</span>() {
+	<span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+
+<span style=color:#a6e22e>top</span>:
+
+	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>gp</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#75715e>// 全局队列
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>gp</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+    <span style=color:#75715e>// 为了公平起见，每调度61次，就去全局队列优先获取goroutine
+</span><span style=color:#75715e></span>    <span style=color:#75715e>// 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>ptr</span>().<span style=color:#a6e22e>schedtick</span><span style=color:#f92672>%</span><span style=color:#ae81ff>61</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span> &gt; <span style=color:#ae81ff>0</span> {
+      <span style=color:#a6e22e>lock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+      <span style=color:#a6e22e>gp</span> = <span style=color:#a6e22e>globrunqget</span>(<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>ptr</span>(), <span style=color:#ae81ff>1</span>)
+      <span style=color:#a6e22e>unlock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+    }
+  }
+
+  <span style=color:#75715e>// 本地队列
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>gp</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+    <span style=color:#75715e>// 从本地队列优先获取goroutine
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>inheritTime</span> = <span style=color:#a6e22e>runqget</span>(<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>ptr</span>())
+  }
+
+  <span style=color:#75715e>// 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// 如果偷取不到当前线程会block，知道返回可用的goroutine
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>gp</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+    <span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>inheritTime</span> = <span style=color:#a6e22e>findrunnable</span>() <span style=color:#75715e>// blocks until work is available
+</span><span style=color:#75715e></span>  }
+
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#a6e22e>execute</span>(<span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>inheritTime</span>)
+}
+</code></pre></div><h2 id=从p的本地队列获取goroutine>从p的本地队列获取goroutine<a hidden class=anchor aria-hidden=true href=#从p的本地队列获取goroutine>#</a></h2>
 <p>从源码上看，p的本地队列包括两部分，一个是<code>runnext</code>所指向的goroutine，另一个就是由<code>runq</code>,<code>runhead</code>和<code>runtail</code>组成的无锁队列。</p>
 <p>具体实现的函数为<code>runqget()</code></p>
-<h2 id=从schedt的全局队列获取goroutine>从schedt的全局队列获取goroutine<a hidden class=anchor aria-hidden=true href=#从schedt的全局队列获取goroutine>#</a></h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go>
+<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>runqget</span>(<span style=color:#a6e22e>_p_</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>p</span>) (<span style=color:#a6e22e>gp</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>, <span style=color:#a6e22e>inheritTime</span> <span style=color:#66d9ef>bool</span>) {
+  <span style=color:#75715e>// 如果runnext不为空，则返回runnext指向的goroutine
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// 这里使用乐观锁CAS
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>for</span> {
+    <span style=color:#a6e22e>next</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runnext</span>
+    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>next</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> {
+      <span style=color:#66d9ef>break</span>
+    }
+    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runnext</span>.<span style=color:#a6e22e>cas</span>(<span style=color:#a6e22e>next</span>, <span style=color:#ae81ff>0</span>) {
+      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>next</span>.<span style=color:#a6e22e>ptr</span>(), <span style=color:#66d9ef>true</span>
+    }
+  }
+
+  <span style=color:#75715e>// 从循环队列中获取goroutine
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>for</span> {
+    <span style=color:#a6e22e>h</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>LoadAcq</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runqhead</span>) <span style=color:#75715e>// load-acquire, synchronize with other consumers
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>t</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runqtail</span>
+    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>t</span> <span style=color:#f92672>==</span> <span style=color:#a6e22e>h</span> {
+      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>false</span>
+    }
+    <span style=color:#a6e22e>gp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>[<span style=color:#a6e22e>h</span><span style=color:#f92672>%</span>uint32(len(<span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>))].<span style=color:#a6e22e>ptr</span>()
+    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>CasRel</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runqhead</span>, <span style=color:#a6e22e>h</span>, <span style=color:#a6e22e>h</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>) { <span style=color:#75715e>// cas-release, commits consume
+</span><span style=color:#75715e></span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>, <span style=color:#66d9ef>false</span>
+    }
+  }
+}
+</code></pre></div><h2 id=从schedt的全局队列获取goroutine>从schedt的全局队列获取goroutine<a hidden class=anchor aria-hidden=true href=#从schedt的全局队列获取goroutine>#</a></h2>
 <blockquote>
 <p>需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取</p>
 </blockquote>
-<h2 id=working-stealing策略>working-stealing策略<a hidden class=anchor aria-hidden=true href=#working-stealing策略>#</a></h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// 从全局队列中取最多max个G到p的本地队列中
+</span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>globrunqget</span>(<span style=color:#a6e22e>_p_</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>p</span>, <span style=color:#a6e22e>max</span> <span style=color:#66d9ef>int32</span>) <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span> {
+  <span style=color:#a6e22e>assertLockHeld</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> {
+    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+  }
+
+  <span style=color:#75715e>// 根据p的数量平分全局队列中的G
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>n</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span><span style=color:#f92672>/</span><span style=color:#a6e22e>gomaxprocs</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>n</span> &gt; <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span> {
+    <span style=color:#a6e22e>n</span> = <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span>
+  }
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>max</span> &gt; <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>n</span> &gt; <span style=color:#a6e22e>max</span> {
+    <span style=color:#a6e22e>n</span> = <span style=color:#a6e22e>max</span>
+  }
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>n</span> &gt; int32(len(<span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>))<span style=color:#f92672>/</span><span style=color:#ae81ff>2</span> {
+    <span style=color:#a6e22e>n</span> = int32(len(<span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>)) <span style=color:#f92672>/</span> <span style=color:#ae81ff>2</span>
+  }
+
+  <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span> <span style=color:#f92672>-=</span> <span style=color:#a6e22e>n</span>
+
+  <span style=color:#75715e>// 直接返回gp，其余的通过runqput放到p的本地队列中去
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>gp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runq</span>.<span style=color:#a6e22e>pop</span>()
+  <span style=color:#a6e22e>n</span><span style=color:#f92672>--</span>
+  <span style=color:#66d9ef>for</span> ; <span style=color:#a6e22e>n</span> &gt; <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>n</span><span style=color:#f92672>--</span> {
+    <span style=color:#a6e22e>gp1</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runq</span>.<span style=color:#a6e22e>pop</span>()
+    <span style=color:#a6e22e>runqput</span>(<span style=color:#a6e22e>_p_</span>, <span style=color:#a6e22e>gp1</span>, <span style=color:#66d9ef>false</span>)
+  }
+  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>
+}
+</code></pre></div><h2 id=working-stealing策略>working-stealing策略<a hidden class=anchor aria-hidden=true href=#working-stealing策略>#</a></h2>
 <blockquote>
 <p><code>findrunnable</code>主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略<code>gc</code>和<code>netpoll</code>相关的内容</p>
 </blockquote>
-<ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// Finds a runnable goroutine to execute.
+</span><span style=color:#75715e>// Tries to steal from other P&#39;s, get g from local or global queue, poll network.
+</span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>findrunnable</span>() (<span style=color:#a6e22e>gp</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>, <span style=color:#a6e22e>inheritTime</span> <span style=color:#66d9ef>bool</span>) {
+  <span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+
+  <span style=color:#75715e>// The conditions here and in handoffp must agree: if
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// findrunnable would return a G to run, handoffp must start
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// an M.
+</span><span style=color:#75715e></span>
+<span style=color:#a6e22e>top</span>:
+  <span style=color:#a6e22e>_p_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>ptr</span>()
+
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#75715e>// 再次检查本地队列
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>inheritTime</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>runqget</span>(<span style=color:#a6e22e>_p_</span>); <span style=color:#a6e22e>gp</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>, <span style=color:#a6e22e>inheritTime</span>
+  }
+
+  <span style=color:#75715e>// 再次检查全局队列
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+    <span style=color:#a6e22e>lock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+    <span style=color:#a6e22e>gp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>globrunqget</span>(<span style=color:#a6e22e>_p_</span>, <span style=color:#ae81ff>0</span>)
+    <span style=color:#a6e22e>unlock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>gp</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>, <span style=color:#66d9ef>false</span>
+    }
+  }
+
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#75715e>// 从其他工作的p偷取
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>procs</span> <span style=color:#f92672>:=</span> uint32(<span style=color:#a6e22e>gomaxprocs</span>)
+  <span style=color:#a6e22e>ranTimer</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>false</span>
+  <span style=color:#75715e>// 偷取的两个前提条件
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// 1. 状态为 非自旋
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// 2. 已经有很多工作线程在自旋偷取工作了，自己就先歇会
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>2</span><span style=color:#f92672>*</span><span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Load</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>nmspinning</span>) <span style=color:#f92672>&gt;=</span> <span style=color:#a6e22e>procs</span><span style=color:#f92672>-</span><span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Load</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>npidle</span>) {
+    <span style=color:#66d9ef>goto</span> <span style=color:#a6e22e>stop</span>
+  }
+  <span style=color:#75715e>// 设置m状态为spinning
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span> {
+    <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span> = <span style=color:#66d9ef>true</span>
+    <span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Xadd</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>nmspinning</span>, <span style=color:#ae81ff>1</span>)
+  }
+
+  <span style=color:#75715e>// 从其他p的本地队列偷取goroutine
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>stealTries</span> = <span style=color:#ae81ff>4</span>
+  <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#a6e22e>stealTries</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
+    <span style=color:#a6e22e>stealTimersOrRunNextG</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>==</span> <span style=color:#a6e22e>stealTries</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+
+    <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>enum</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>stealOrder</span>.<span style=color:#a6e22e>start</span>(<span style=color:#a6e22e>fastrand</span>()); !<span style=color:#a6e22e>enum</span>.<span style=color:#a6e22e>done</span>(); <span style=color:#a6e22e>enum</span>.<span style=color:#a6e22e>next</span>() {
+      <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>gcwaiting</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+        <span style=color:#66d9ef>goto</span> <span style=color:#a6e22e>top</span>
+      }
+      <span style=color:#a6e22e>p2</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>allp</span>[<span style=color:#a6e22e>enum</span>.<span style=color:#a6e22e>position</span>()]
+      <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_p_</span> <span style=color:#f92672>==</span> <span style=color:#a6e22e>p2</span> {
+        <span style=color:#66d9ef>continue</span>
+      }
+
+      <span style=color:#f92672>...</span>.
+
+      <span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>idlepMask</span>.<span style=color:#a6e22e>read</span>(<span style=color:#a6e22e>enum</span>.<span style=color:#a6e22e>position</span>()) {
+        <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>gp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>runqsteal</span>(<span style=color:#a6e22e>_p_</span>, <span style=color:#a6e22e>p2</span>, <span style=color:#a6e22e>stealTimersOrRunNextG</span>); <span style=color:#a6e22e>gp</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+          <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>, <span style=color:#66d9ef>false</span>
+        }
+      }
+    }
+  }
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>ranTimer</span> {
+    <span style=color:#75715e>// Running a timer may have made some goroutine ready.
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>goto</span> <span style=color:#a6e22e>top</span>
+  }
+
+<span style=color:#a6e22e>stop</span>:
+
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#75715e>// Before we drop our P, make a snapshot of the allp slice,
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// which can change underfoot once we no longer block
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// safe-points. We don&#39;t need to snapshot the contents because
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// everything up to cap(allp) is immutable.
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>allpSnapshot</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>allp</span>
+
+  <span style=color:#f92672>...</span>.
+  
+  <span style=color:#75715e>// return P and block
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>lock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>gcwaiting</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runSafePointFn</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+    <span style=color:#a6e22e>unlock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+    <span style=color:#66d9ef>goto</span> <span style=color:#a6e22e>top</span>
+  }
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>runqsize</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+    <span style=color:#a6e22e>gp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>globrunqget</span>(<span style=color:#a6e22e>_p_</span>, <span style=color:#ae81ff>0</span>)
+    <span style=color:#a6e22e>unlock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>, <span style=color:#66d9ef>false</span>
+  }
+  <span style=color:#75715e>// 解除当前线程和P之间的绑定，准备休眠
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>releasep</span>() <span style=color:#f92672>!=</span> <span style=color:#a6e22e>_p_</span> {
+    <span style=color:#a6e22e>throw</span>(<span style=color:#e6db74>&#34;findrunnable: wrong p&#34;</span>)
+  }
+  <span style=color:#75715e>// 把p放入空闲队列
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>pidleput</span>(<span style=color:#a6e22e>_p_</span>)
+  <span style=color:#a6e22e>unlock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+
+
+  <span style=color:#a6e22e>wasSpinning</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span>
+  <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span> {
+    <span style=color:#75715e>// m即将睡眠
+</span><span style=color:#75715e></span>    <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span> = <span style=color:#66d9ef>false</span>
+    <span style=color:#66d9ef>if</span> int32(<span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Xadd</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>nmspinning</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)) &lt; <span style=color:#ae81ff>0</span> {
+      <span style=color:#a6e22e>throw</span>(<span style=color:#e6db74>&#34;findrunnable: negative nmspinning&#34;</span>)
+    }
+  }
+
+  <span style=color:#75715e>// check all runqueues once again
+</span><span style=color:#75715e></span>  <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>_p_</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>allpSnapshot</span> {
+    <span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>idlepMaskSnapshot</span>.<span style=color:#a6e22e>read</span>(uint32(<span style=color:#a6e22e>id</span>)) <span style=color:#f92672>&amp;&amp;</span> !<span style=color:#a6e22e>runqempty</span>(<span style=color:#a6e22e>_p_</span>) {
+      <span style=color:#a6e22e>lock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+      <span style=color:#a6e22e>_p_</span> = <span style=color:#a6e22e>pidleget</span>()
+      <span style=color:#a6e22e>unlock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+      <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_p_</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+        <span style=color:#a6e22e>acquirep</span>(<span style=color:#a6e22e>_p_</span>)
+        <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>wasSpinning</span> {
+          <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span> = <span style=color:#66d9ef>true</span>
+          <span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>Xadd</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>nmspinning</span>, <span style=color:#ae81ff>1</span>)
+        }
+        <span style=color:#66d9ef>goto</span> <span style=color:#a6e22e>top</span>
+      }
+      <span style=color:#66d9ef>break</span>
+    }
+  }
+
+  <span style=color:#f92672>...</span>.
+
+  <span style=color:#75715e>// 休眠
+</span><span style=color:#75715e></span>  <span style=color:#a6e22e>stopm</span>()
+  <span style=color:#66d9ef>goto</span> <span style=color:#a6e22e>top</span>
+  }
+</code></pre></div><ol>
 <li>正在偷取g的工作线程处于<code>spinning</code>状态。</li>
 <li>偷取时通过一种伪随机的方式遍历<code>allp</code>，然后在内层循环中通过<code>runqsteal</code>实现steal逻辑</li>
 </ol>
-<p>从p2中偷取一半的g放到p中</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// Steal half of elements from local runnable queue of p2
+</span><span style=color:#75715e>// and put onto local runnable queue of p.
+</span><span style=color:#75715e>// Returns one of the stolen elements (or nil if failed).
+</span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>runqsteal</span>(<span style=color:#a6e22e>_p_</span>, <span style=color:#a6e22e>p2</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>p</span>, <span style=color:#a6e22e>stealRunNextG</span> <span style=color:#66d9ef>bool</span>) <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span> {
+	<span style=color:#a6e22e>t</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runqtail</span>
+	<span style=color:#a6e22e>n</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>runqgrab</span>(<span style=color:#a6e22e>p2</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>, <span style=color:#a6e22e>t</span>, <span style=color:#a6e22e>stealRunNextG</span>)
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>n</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> {
+		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+	}
+	<span style=color:#a6e22e>n</span><span style=color:#f92672>--</span>
+	<span style=color:#a6e22e>gp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>[(<span style=color:#a6e22e>t</span><span style=color:#f92672>+</span><span style=color:#a6e22e>n</span>)<span style=color:#f92672>%</span>uint32(len(<span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>))].<span style=color:#a6e22e>ptr</span>()
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>n</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> {
+		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>
+	}
+	<span style=color:#a6e22e>h</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>LoadAcq</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runqhead</span>) <span style=color:#75715e>// load-acquire, synchronize with consumers
+</span><span style=color:#75715e></span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>t</span><span style=color:#f92672>-</span><span style=color:#a6e22e>h</span><span style=color:#f92672>+</span><span style=color:#a6e22e>n</span> <span style=color:#f92672>&gt;=</span> uint32(len(<span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runq</span>)) {
+		<span style=color:#a6e22e>throw</span>(<span style=color:#e6db74>&#34;runqsteal: runq overflow&#34;</span>)
+	}
+	<span style=color:#a6e22e>atomic</span>.<span style=color:#a6e22e>StoreRel</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_p_</span>.<span style=color:#a6e22e>runqtail</span>, <span style=color:#a6e22e>t</span><span style=color:#f92672>+</span><span style=color:#a6e22e>n</span>) <span style=color:#75715e>// store-release, makes the item available for consumption
+</span><span style=color:#75715e></span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>gp</span>
+}
+</code></pre></div><p>从p2中偷取一半的g放到p中</p>
 <p>如果无论如何都没有获取到可以运行的<code>goroutine</code>，则调用<code>stopm</code>进入睡眠状态，等待被其他的工作线程唤醒。</p>
-<blockquote>
-<p>stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&m.park)函数让自己进入睡眠状态。<br>
-note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。<br>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// Stops execution of the current m until new work is available.
+</span><span style=color:#75715e>// Returns with acquired P.
+</span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>stopm</span>() {
+	<span style=color:#a6e22e>_g_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>getg</span>()
+
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>locks</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+		<span style=color:#a6e22e>throw</span>(<span style=color:#e6db74>&#34;stopm holding locks&#34;</span>)
+	}
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>p</span> <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+		<span style=color:#a6e22e>throw</span>(<span style=color:#e6db74>&#34;stopm holding p&#34;</span>)
+	}
+	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>spinning</span> {
+		<span style=color:#a6e22e>throw</span>(<span style=color:#e6db74>&#34;stopm spinning&#34;</span>)
+	}
+
+	<span style=color:#a6e22e>lock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+	<span style=color:#a6e22e>mput</span>(<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>)
+	<span style=color:#a6e22e>unlock</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>sched</span>.<span style=color:#a6e22e>lock</span>)
+	<span style=color:#a6e22e>mPark</span>()
+	<span style=color:#a6e22e>acquirep</span>(<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>nextp</span>.<span style=color:#a6e22e>ptr</span>())
+	<span style=color:#a6e22e>_g_</span>.<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>nextp</span> = <span style=color:#ae81ff>0</span>
+}
+</code></pre></div><blockquote>
+<p>stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&m.park)函数让自己进入睡眠状态。
+note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(*note)进入睡眠状态，而另外一个线程则可以通过notewakeup(*note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。
 回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。</p>
 </blockquote>
 </div>

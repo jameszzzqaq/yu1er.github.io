@@ -9,7 +9,28 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 03 Jul 2021 03:02:56 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/os/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Aug 2021 14:21:59 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/os/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>聊聊内存对齐</title>
+      <link>https://zhangyh.me/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</link>
+      <pubDate>Fri, 13 Aug 2021 14:21:59 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</guid>
+      <description>为什么需要内存对齐？ 首先需要从物理硬件上了解计算机如何进行内存访问的。
+ Channel &amp;gt; DIMM &amp;gt; Rank &amp;gt; Chip &amp;gt; Bank &amp;gt; Coloum/Row &amp;gt; Cell
+ 如上图 CPU包括两个Channel 每个Channel包括两个DIMM 每个DIMM由Rank组成 Rank由8个内存颗粒chip组成 每个Chip包括8个Bank
+CPU读取内存时从8个chip中每个读取8bit字节，从而构成64bit column和row定位的一个单元格cell中有8个bit
+因此一次性最少读取64bit，这恰好也是cacheline的大小。 （cacheline是cache的基本单位，每个cache由若干cacheline组成）
+什么是内存对齐 从上面我们可以知道，一次性最少读取8B，这也是局部性原理的一种使用。
+内存对齐就是代码编译后在内存中的布局，当一个内存地址刚好能够整除8，就称为其内存地址是8字节对齐的。
+为什么需要内存对齐 对于go中定义的如下结构
+type Type1 struct { a int8 b int64 c int32 } 其内存布局是这样的： 通过unsafe.Sizeof()可以打印出该结构占用了24字节的内存。
+如果调整一下顺序：
+type Type2 struct { a int8 c int32 b int64 } 便可以节约一个字节的内存
+零大小字段 如果结构体或数组类型不包含大小大于零的字段或元素，那么它的大小就为0
+package main import ( &amp;#34;fmt&amp;#34; &amp;#34;unsafe&amp;#34; ) type M struct { m int64 x struct{} } type N struct { x struct{} n int64 } func main() { m, n := M{}, N{} fmt.</description>
+    </item>
+    
     <item>
       <title>理解io多路复用</title>
       <link>https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</link>
