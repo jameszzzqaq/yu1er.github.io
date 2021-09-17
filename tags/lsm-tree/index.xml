@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>lsm-tree on yuler&#39;s blog</title>
+    <link>https://zhangyh.me/tags/lsm-tree/</link>
+    <description>Recent content in lsm-tree on yuler&#39;s blog</description>
+    <image>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Tue, 10 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/lsm-tree/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LSM-based storage techniques: a survey</title>
+      <link>https://zhangyh.me/topics/paper/suvery-of-lsm.html</link>
+      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/suvery-of-lsm.html</guid>
+      <description> paper原文：LSM-based storage techniques: a survey
+ LSM-tree basics 对于索引结构通常有两种更新策略，即in-place update和out-of-place update。
+in-place通常使用B+树作为底层数据结构，通过随机写来更新数据项，带来的是读数据的优化，同时每个数据项只存有一份，因此节约了空间。
+out-place通常使用lsm tree作为底层数据结构，将随机写转化为顺序写，加快了写的速度，但同时降低了读数据的性能，另外，对同一个key，存有多个版本，带来了空间上的浪费。
+LevelDB是谷歌开源的kv数据库，它基于内存-磁盘的存储层次，实现了LSM Tree最基本的功能。 内存中有memtable，使用skiplist来按顺序存储kv对 磁盘中有分层的sstable，使用sorted-string table以文件的形式来存储。 sstable包括了data block、index block、footer block
+如今的lsm tree通常为了加快读速度，往往会具有bloom filter组件，该组件有两个操作：插入key和检查key是否存在。为磁盘中的每一level，维护一个bloom filter，从而提高读性能。需要注意，它是false positive的。 同时因为该结构比较小，往往把他缓存到内存当中。
+对于failure recovery，使用WAL保证内存中memtable的recovery，使用manifest保证merge过程中sstable的recovery。
+有两种常用的merge policy，如上图所示。 Leveling merge policy，要求每一层的SSTable之间不能overlap，merge的时候将第i层的SSTable和第i+1层overlape的所有SSTables进行merge，然后写入i+1层。也就是说通过leveling通过频繁的merge，使得每一层全部有序，牺牲部分写性能来换取读性能。
+Tiering merge policy，要求每一层的SSTable之间可以overlap，在sstable达到一定的数量或者size要求后，对该层所有的SSTable进行merge sort，然后直接flush进下一层。该策略通过减少merge操作，牺牲部分读性能换取了写性能。
+LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
+ Write Amplification: out-of-place数据结构所具有的问题，降低了写性能和磁盘寿命。 Merge Operation: merge后会造成buffer cache miss，大数据量的merge会造成write stall Hardware: 针对large memory,multi-core, SSD/NVM, native storage的优化 Special Workloads: Auto-tuning: 不可能同时达到read,write,space同时最优，并且由于lsm tree拥有大量参数，手动调优也是困难的。 Secondary Indexing: lsm tree只支持简单的kv接口，二级索引也是一个方向。  </description>
+    </item>
+    
+    <item>
+      <title>Wiskey</title>
+      <link>https://zhangyh.me/topics/paper/wiskey.html</link>
+      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/wiskey.html</guid>
+      <description>WiscKey Design Goals  Low写放大 Low读放大 SSD优化 Feature-rich API (scan、snapshot) Realistic k-v size (value的size通常比key的大很多)  K-V Separation  LSM tree的主要性能成本在于Compaction，但它维护了key的有序性，对于加速读也是十分有必要的。 Compaction只需要对key排序，因此考虑将k-v分开存储。只把value的地址和key放在一起。  LSM tree的size将大大变小，减少了写放大。 读操作虽然需要一次额外的寻址操作，但更小的LSM tree加快了检索同时更容易缓存到大内存中。    Challenge   Parallel Range Query 在levelDB中，范围查询通过iterator的顺序读实现，但是现在由于和key一同存储的只有value的地址，范围查询变为了随机io。 我们在读取所有的地址后，写入一个队列，通过多线程并发读取，来加快范围查询的性能。
+  Garbage Collection 由于把所有的数据都存到了vLog里，最朴素的垃圾回收的方法当然是扫描一遍LSM-tree，但开销太大了，只适用于离线环境。 WiscKey在vlog中存储(ksize, vsize, key, value)，并维护head和tail指针。   数据在head处添加 垃圾回收线程从tail处扫描，每次扫描一定量的数据（几MB），然后在LSM-tree中查找，如果kv对有效的话，则再把它添加到head处。 因此，只有tail和head之间的数据是有效的。
+Crash Consistency  Optimizations  Value-Log Write Buffer  对于写密集的数据集，频繁的大量的小size的value写入，会导致较大的系统开销。 因此考虑在内存中维护Buffer。 当读数据的时候，先到vlog write buffer中查找，如果没有，再查vlog。 crash-consistency的维护类似于levelDB，使用WAL。
+Optimizing the LSM-tree Log  在写LSM-tree之前需要先写vlog，因为这里我们加了vlog write buffer，所以我们直接用vlog的日志作为WAL。</description>
+    </item>
+    
+    <item>
+      <title>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores</title>
+      <link>https://zhangyh.me/topics/paper/lwc-tree.html</link>
+      <pubDate>Fri, 06 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/lwc-tree.html</guid>
+      <description>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
+ 使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子  Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
+ 读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中  victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
+降低了大概10X的写放大.
+Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直接从overlaped读，但这带来的随机io违背了我们的设计初衷。 另一种是直接在内存中缓存元数据，但这部分开销并不算小，并不划算 为了解决这个问题，我们提出了元数据聚合。 在一次compaction完成后，第i+1层被更新的元数据存储到victim中，以此避免下一次compaction时对metadata的访问呢。
+通过compaction过程中一次额外的写，减少AF倍的i+1层的随机读。
+Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer</description>
+    </item>
+    
+    <item>
+      <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
+      <link>https://zhangyh.me/topics/paper/novelsm.html</link>
+      <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/novelsm.html</guid>
+      <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
+ 对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
+ 未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍 因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大
+Insert Latency insert latency来源有三个方面：
+ WAL memtable insert compaction   对于compaction 内存中的mutable memtable在写满之后会刷新成immutable memtable，由后台进程将其压缩进磁盘，同时新开一个mutable memtable，来接管写入 问题是新的mutable memtable写满之后，如果immutable memtable还没有刷到磁盘内，就会造成系统的停顿 当进行大量的写入时，这会成为insert latency的主要来源。
+ 可能会说，让memtable大一点不就可以解决，但这会带来一系列的问题：
+ 增大memtable会带来双倍的内存占用，因为mutable memtable和immutable memtable需要同时增大 WAL的磁盘占用也会更大，因为他需要容纳更多的指令 LSM为了性能并不commit log。   Third, LSMs suchas LevelDB and RocksDB do not enforce commits (sync) when writing to a log; as a result, an application crash or power-failure could lead to data loss</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -3,7 +3,7 @@
 <meta http-equiv=x-ua-compatible content="IE=edge">
 <meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
 <meta name=robots content="index, follow">
-<title>io | yuler's blog</title>
+<title>IO | yuler's blog</title>
 <meta name=keywords content>
 <meta name=description content="ExampleSite description">
 <meta name=author content="Me">
@@ -26,13 +26,13 @@
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="io">
+<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="IO">
 <meta property="og:description" content="ExampleSite description">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://zhangyh.me/tags/io/"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="og:site_name" content="ExampleSite">
 <meta name=twitter:card content="summary_large_image">
 <meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
-<meta name=twitter:title content="io">
+<meta name=twitter:title content="IO">
 <meta name=twitter:description content="ExampleSite description">
 </head>
 <body class=list id=top>
@@ -68,7 +68,7 @@
 </header>
 <main class=main>
 <header class=page-header><div class=breadcrumbs><a href=https://zhangyh.me/>Home</a>&nbsp;»&nbsp;<a href=https://zhangyh.me/tags/>Tags</a></div>
-<h1>io</h1>
+<h1>IO</h1>
 </header>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -78,24 +78,11 @@
 <section class=entry-content>
 <p>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。
 为什么需要io多路复用模型? 当我们开启一个socket的时候，需要对发起的连接进行响应。
-阻塞io 阻塞io流程如图
-如果使用阻塞io，我们可能会有下面类似的代码框架。
-在accept()建立起连接后，我们会使用多线程来接手连接套接字connfd，阻塞的读取客户端发送来的内容。
+阻塞io 阻塞io流程如图 如果使用阻塞io，我们可能会有下面类似的代码框架。
+listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务器地址绑定 listend(listenfd) // 转换为监听套接字 while(1) { connfd = accept(listenfd) // 阻塞建立连接 new thread func(){ int n = read(connfd, buf) // 阻塞读数据 do_something() // 业务代码 close(connfd) //关闭连接套接字 } } 在accept()建立起连接后，我们会使用多线程来接手连接套接字connfd，阻塞的读取客户端发送来的内容。
 每个连接都要开启一个线程来阻塞读取数据，但大多数线程都处于阻塞状态，造成了严重的线程浪费 非阻塞io 非阻塞io流程如图
 如果使用非阻塞io，我们可能会有下面类似的代码框架
-将建立的连接放到数组中，然后进行轮询，当有能够读取到消息的时候，再开启新的线程进一步处理。
-轮询时使用系统调用read，导致用户态和内核态的频繁切换 io多路复用 考虑到上述两种io模型的缺点，提出了io多路复用，使用一个线程监听多个fd，同时又能减少系统调用的次数。
-io多路复用包括三种模型select, poll和epoll。
-select selet流程如图
-select的思路是，将监听的fd数组从用户空间拷贝到内核空间，由内核负责遍历fd数组，确定哪些fd是可读写的，然后再将可读写的fd进行标记，拷贝标记数组到用户空间，并返回总的可读写的数量。再由用户进行遍历标记数组，处理相应的fd。
-select由以下的问题：
-fd数组的大小有限制，最大为1024 fd数组从用户空间到内核空间的频繁拷贝 用户还是需要根据返回的可读fd大小，对标记数组进行遍历，判断具体可操作的fd是哪个 poll poll使用链表代替了数组，解决了最大监听数1024的限制，但频繁拷贝和遍历问题仍未得到解决
-epoll 针对select的三个问题，epoll进行了改进
-可监控的fd数量没有限制 数据结构位于内核中，无需用户每次从用户空间拷贝，只需要告诉内核需要修改的部分即可。 内核只会将有io事件的fd返回给用户，避免了多余的遍历操作。 用户把需要监听的io事件添加到内核空间的红黑树中，对于每一个事件都会通过回调函数与网卡驱动建立回调关系，当相应的事件发生时，就会调用回调函数，通过回调函数把发生的事件添加到事件队列，当通过epoll_wait()检查是否有事件发生时，只需要检查队列是否为空即可，如果不为空，就把队列中的内容复制到用户态，同时将事件数量返回给用户。
-epoll还是用了共享内存加速了用户空间和内核空间的消息传递。
-epoll有LT(level trigger)和ET(edge trigger)两种模式：
-水平触发(LT)：只要fd的事件还未处理（比如数据还没有读），每次epoll_wait都会返回该事件，提醒用户处理 边缘触发(ET): 当epoll_wait检测到事件并通知用户时，用户必须立马处理，否则下次也不会通知该事件。 该术语使用了脉冲信号相关的属于，很形象的表达了它们的功能。水平触发就是水平信号，只要事件不处理，就会一直发送该信号。边缘触发就是上升沿和下降沿，事件只会通知一次。
-总结 &lt;th style="text-align: center;"> select &lt;/th> &lt;th style="text-align: center;"> poll &lt;/th> &lt;th style="text-align: center;"> epoll &lt;/th> &lt;td style="text-align: center;"> 遍历 &lt;/td> &lt;td style="text-align: center;"> 遍历 &lt;/td> &lt;td style="text-align: center;"> 回调 &lt;/td> &lt;td style="text-align: center;"> 数组 &lt;/td> &lt;td style="text-align: center;"> 链表 &lt;/td> &lt;td style="text-align: center;"> 红黑树 &lt;/td> &lt;td style="text-align: center;"> O(n) &lt;/td> &lt;td style="text-align: center;"> O(n) &lt;/td> &lt;td style="text-align: center;"> O(1) &lt;/td> &lt;td style="text-align: center;"> 1024 &lt;/td> &lt;td style="text-align: center;"> 无上限 &lt;/td> &lt;td style="text-align: center;"> 无上限 &lt;/td> &lt;td style="text-align: center;"> 每次拷贝所有数据 &lt;/td> &lt;td style="text-align: center;"> 每次拷贝所有数据 &lt;/td> &lt;td style="text-align: center;"> 拷贝相应的增删改操作 &lt;/td> References 1....</p>
+while(1) { connfd = accept(listenfd); // 阻塞建立连接 append(fds, connfd) for fd in fds { fcntl(connfd, F_SETFL, O_NONBLOCK); int n = read(connfd, buffer); if n !...</p>
 </section>
 <footer class=entry-footer>July 3, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to 理解io多路复用" href=https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html></a>

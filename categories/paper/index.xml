@@ -9,63 +9,115 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 05 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/paper/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 10 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/paper/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LSM-based storage techniques: a survey</title>
+      <link>https://zhangyh.me/topics/paper/suvery-of-lsm.html</link>
+      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/suvery-of-lsm.html</guid>
+      <description> paper原文：LSM-based storage techniques: a survey
+ LSM-tree basics 对于索引结构通常有两种更新策略，即in-place update和out-of-place update。
+in-place通常使用B+树作为底层数据结构，通过随机写来更新数据项，带来的是读数据的优化，同时每个数据项只存有一份，因此节约了空间。
+out-place通常使用lsm tree作为底层数据结构，将随机写转化为顺序写，加快了写的速度，但同时降低了读数据的性能，另外，对同一个key，存有多个版本，带来了空间上的浪费。
+LevelDB是谷歌开源的kv数据库，它基于内存-磁盘的存储层次，实现了LSM Tree最基本的功能。 内存中有memtable，使用skiplist来按顺序存储kv对 磁盘中有分层的sstable，使用sorted-string table以文件的形式来存储。 sstable包括了data block、index block、footer block
+如今的lsm tree通常为了加快读速度，往往会具有bloom filter组件，该组件有两个操作：插入key和检查key是否存在。为磁盘中的每一level，维护一个bloom filter，从而提高读性能。需要注意，它是false positive的。 同时因为该结构比较小，往往把他缓存到内存当中。
+对于failure recovery，使用WAL保证内存中memtable的recovery，使用manifest保证merge过程中sstable的recovery。
+有两种常用的merge policy，如上图所示。 Leveling merge policy，要求每一层的SSTable之间不能overlap，merge的时候将第i层的SSTable和第i+1层overlape的所有SSTables进行merge，然后写入i+1层。也就是说通过leveling通过频繁的merge，使得每一层全部有序，牺牲部分写性能来换取读性能。
+Tiering merge policy，要求每一层的SSTable之间可以overlap，在sstable达到一定的数量或者size要求后，对该层所有的SSTable进行merge sort，然后直接flush进下一层。该策略通过减少merge操作，牺牲部分读性能换取了写性能。
+LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
+ Write Amplification: out-of-place数据结构所具有的问题，降低了写性能和磁盘寿命。 Merge Operation: merge后会造成buffer cache miss，大数据量的merge会造成write stall Hardware: 针对large memory,multi-core, SSD/NVM, native storage的优化 Special Workloads: Auto-tuning: 不可能同时达到read,write,space同时最优，并且由于lsm tree拥有大量参数，手动调优也是困难的。 Secondary Indexing: lsm tree只支持简单的kv接口，二级索引也是一个方向。  </description>
+    </item>
+    
+    <item>
+      <title>Wiskey</title>
+      <link>https://zhangyh.me/topics/paper/wiskey.html</link>
+      <pubDate>Tue, 10 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/wiskey.html</guid>
+      <description>WiscKey Design Goals  Low写放大 Low读放大 SSD优化 Feature-rich API (scan、snapshot) Realistic k-v size (value的size通常比key的大很多)  K-V Separation  LSM tree的主要性能成本在于Compaction，但它维护了key的有序性，对于加速读也是十分有必要的。 Compaction只需要对key排序，因此考虑将k-v分开存储。只把value的地址和key放在一起。  LSM tree的size将大大变小，减少了写放大。 读操作虽然需要一次额外的寻址操作，但更小的LSM tree加快了检索同时更容易缓存到大内存中。    Challenge   Parallel Range Query 在levelDB中，范围查询通过iterator的顺序读实现，但是现在由于和key一同存储的只有value的地址，范围查询变为了随机io。 我们在读取所有的地址后，写入一个队列，通过多线程并发读取，来加快范围查询的性能。
+  Garbage Collection 由于把所有的数据都存到了vLog里，最朴素的垃圾回收的方法当然是扫描一遍LSM-tree，但开销太大了，只适用于离线环境。 WiscKey在vlog中存储(ksize, vsize, key, value)，并维护head和tail指针。   数据在head处添加 垃圾回收线程从tail处扫描，每次扫描一定量的数据（几MB），然后在LSM-tree中查找，如果kv对有效的话，则再把它添加到head处。 因此，只有tail和head之间的数据是有效的。
+Crash Consistency  Optimizations  Value-Log Write Buffer  对于写密集的数据集，频繁的大量的小size的value写入，会导致较大的系统开销。 因此考虑在内存中维护Buffer。 当读数据的时候，先到vlog write buffer中查找，如果没有，再查vlog。 crash-consistency的维护类似于levelDB，使用WAL。
+Optimizing the LSM-tree Log  在写LSM-tree之前需要先写vlog，因为这里我们加了vlog write buffer，所以我们直接用vlog的日志作为WAL。</description>
+    </item>
+    
+    <item>
+      <title>Hashkv Enabling efficient updates in KV storage via hashing</title>
+      <link>https://zhangyh.me/topics/paper/hashkv.html</link>
+      <pubDate>Sat, 07 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/hashkv.html</guid>
+      <description>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
+ 最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读  Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.
+segment group 包括一个main segment和多个log segment.
+内存中全局的segment table存储每一个segment group接下来插入或更新的位置。
+为了方便GC，segment group存储了key/value size，key，value
+GC Collection GC以segment group为单元，当free log segment用尽的时候会触发。
+ 首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置  两个问题：
+ 如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。  Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。
+hot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()
+如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。
+我们称呼该过程为tagging，注意，tagging只发生在GC时。</description>
+    </item>
+    
+    <item>
+      <title>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores</title>
+      <link>https://zhangyh.me/topics/paper/lwc-tree.html</link>
+      <pubDate>Fri, 06 Aug 2021 02:47:09 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/topics/paper/lwc-tree.html</guid>
+      <description>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
+ 使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子  Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
+ 读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中  victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
+降低了大概10X的写放大.
+Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直接从overlaped读，但这带来的随机io违背了我们的设计初衷。 另一种是直接在内存中缓存元数据，但这部分开销并不算小，并不划算 为了解决这个问题，我们提出了元数据聚合。 在一次compaction完成后，第i+1层被更新的元数据存储到victim中，以此避免下一次compaction时对metadata的访问呢。
+通过compaction过程中一次额外的写，减少AF倍的i+1层的随机读。
+Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer</description>
+    </item>
+    
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://zhangyh.me/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</link>
+      <link>https://zhangyh.me/topics/paper/optane.html</link>
       <pubDate>Thu, 05 Aug 2021 02:47:09 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</guid>
+      <guid>https://zhangyh.me/topics/paper/optane.html</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
-Background Optane DIMM是第一款商用NVDIMM
-与SSD/HDD相比，它low latency、higher read bandwidth、byte-address
-与DRAM相比，它higher density、persistent
+Background Optane DIMM是第一款商用NVDIMM 与SSD/HDD相比，它low latency、higher read bandwidth、byte-address 与DRAM相比，它higher density、persistent
 Optane Memory Optane DIMM使用和DRAM相同的插槽，和处理器的集成内存控制器（iMC)相连接。Intel Cascade Lake处理器是第一个支持Optane DIMM的处理器，有一个或两个processor die，每个die支持两个iMC，每个iMC支持三个channel，因此一个die可以支持6个Optane DIMM
 为了持久化，iMC维护一个asynchronous DRAM refresh(ADR)区域，写入这个区域内的数据都能保证其被持久化。ADR区域不保证处理器cache的持久化。
 iMC按照缓存行粒度(64byte)和Optane DIMM通信。
-3D-XPoint物理介质的访问粒度为256byte，因此会造成写放大，所以会在XPController中维护一个buffer来merge邻近的写操作。
+Optane DIMM中
+3D-XPoint物理介质的访问粒度为256byte，因此会造成写放大，所以会在XPController中有controller负责将小于256B的操作变成256B的访问，同时内部有Buffer用来合并临近的访问。
+为了磨损均匀、坏块的管理，AIT用于进行内部地址转换。
 Operation Model Optane DIMM有两种模式Memory和App Direct
- Memory Model
-该模式下直接将Optane DIMM作为普通的内存使用，将DRAM作为内存的Cache，DRAM是透明的，直接观察到的内存容量就是Optane DIMM的容量。
-该模式可以解决一些内存数据库内存容量不足的问题。 App Direct Model
-该模式将Optane DIMM作为持久化设备使用，直接通过CPU指令读写。文件系统和其他的管理层管理持久化内存的分配、回收和访问。  Best Practices for Optane DIMM 之前的仿真模拟根本无法捕捉到Optane行为的细节，优化disk和memory软件的传统经验不适用于Optane。
-本文基于实验提出了使用于Optane DIMM的Best Practices
- Avoid random accesses smaller than &amp;lt; 256 B.</description>
+ Memory Model 该模式下直接将Optane DIMM作为普通的内存使用，将DRAM作为内存的Cache，DRAM是透明的，直接观察到的内存容量就是Optane DIMM的容量。 该模式可以解决一些内存数据库内存容量不足的问题。 App Direct Model 该模式将Optane DIMM作为持久化设备使用，直接通过CPU指令读写。文件系统和其他的管理层管理持久化内存的分配、回收和访问。  支持交错访问，最小的单位是4KB，保证一个page一定是从一个DIMM中读取出来的
+ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内存。一般用于写完就不管的情况，可以防止污染cache。 clflush: 把cache line刷回内存，并且让cache line失效。只能串行执行。 clflushopt: 功能同clflush，但是不同缓存行可以并发执行。 clwb: 除了写回后不让cache line失效，其他同clflushopt。 sfence：写屏障，在sfence指令前的写操作当必须在sfence指令后的写操作前完成</description>
     </item>
     
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
-      <link>https://zhangyh.me/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</link>
+      <link>https://zhangyh.me/topics/paper/novelsm.html</link>
       <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</guid>
+      <guid>https://zhangyh.me/topics/paper/novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
  对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
- 未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍
-因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大
+ 未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍 因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大
 Insert Latency insert latency来源有三个方面：
- WAL memtable insert compaction   对于compaction
-内存中的mutable memtable在写满之后会刷新成immutable memtable，由后台进程将其压缩进磁盘，同时新开一个mutable memtable，来接管写入
-问题是新的mutable memtable写满之后，如果immutable memtable还没有刷到磁盘内，就会造成系统的停顿
-当进行大量的写入时，这会成为insert latency的主要来源。
+ WAL memtable insert compaction   对于compaction 内存中的mutable memtable在写满之后会刷新成immutable memtable，由后台进程将其压缩进磁盘，同时新开一个mutable memtable，来接管写入 问题是新的mutable memtable写满之后，如果immutable memtable还没有刷到磁盘内，就会造成系统的停顿 当进行大量的写入时，这会成为insert latency的主要来源。
  可能会说，让memtable大一点不就可以解决，但这会带来一系列的问题：
-  增大memtable会带来双倍的内存占用，因为mutable memtable和immutable memtable需要同时增大
-  WAL的磁盘占用也会更大，因为他需要容纳更多的指令
-  LSM为了性能并不commit log。
-&amp;gt; Third, LSMs suchas LevelDB and RocksDB do not enforce commits (sync) when writing to a log; as a result, an application crash or power-failure could lead to data loss</description>
+ 增大memtable会带来双倍的内存占用，因为mutable memtable和immutable memtable需要同时增大 WAL的磁盘占用也会更大，因为他需要容纳更多的指令 LSM为了性能并不commit log。   Third, LSMs suchas LevelDB and RocksDB do not enforce commits (sync) when writing to a log; as a result, an application crash or power-failure could lead to data loss</description>
     </item>
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://zhangyh.me/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</link>
+      <link>https://zhangyh.me/topics/paper/zen.html</link>
       <pubDate>Tue, 03 Aug 2021 07:48:31 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</guid>
-      <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成
-其中可能同时存在某个数据的多个版本
-(tupleId, Tx-CTS)唯一确定一个tuple
+      <guid>https://zhangyh.me/topics/paper/zen.html</guid>
+      <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成 其中可能同时存在某个数据的多个版本 (tupleId, Tx-CTS)唯一确定一个tuple
  LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除  Met-Cache NVM heap在DRAM中的缓存
  Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。  Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple
 Transaction-Private Data 线程私有 用于事务并发访问 存储相应数据</description>
