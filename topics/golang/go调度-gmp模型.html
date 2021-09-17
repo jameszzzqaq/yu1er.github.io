@@ -3,25 +3,21 @@
 <meta http-equiv=x-ua-compatible content="IE=edge">
 <meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
 <meta name=robots content="index, follow">
-<title>Go调度 | 1. GMP模型 | yuler's blog</title>
+<title>GMP源码分析 | yuler's blog</title>
 <meta name=keywords content="schedule">
-<meta name=description content="本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
-线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
- 内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程
- GMP结构 这部分主要从源码层面分析GMP的结构
-G结构 我们暂时忽略一些对我们分析没有影响的字段。
-type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting  // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态">
+<meta name=description content="准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：
+ GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 &ndash; 全局队列，局部队列，working-stealing 何时调度 &ndash;被动，主动，抢占式  创建go routine start=>start: 开始op1=>operation: 获取go func()的func和argsop2=>operation: 切换至g0，使用g0创建对应的Gop3=>operation: gfget(p) 从当前的P获取空闲G;op4=>operation: 参数复制到G,清除堆,pc:func,sp:goexit1op5=>operation: runqput(p,newg,true); 将G加入P的runnable数组;end=>end: 结束start->op1op1->op2op2->op3op3->op4op4->op5op5->end创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  ">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html>
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.9f1d947375927e9847272b1f4e9be81336f539e513bf04d52cade31f81cad1af.css integrity="sha256-nx2Uc3WSfphHJysfTpvoEzb1OeUTvwTVLK3jH4HK0a8=" rel="preload stylesheet" as=style>
-<link rel=preload href=/apple-touch-icon.png as=image>
+<link rel=preload href=/jiaran.webp as=image>
 <script defer crossorigin=anonymous src=/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5+kdJvBz5iKbt6B5PJI=" onload=hljs.initHighlightingOnLoad()></script>
-<link rel=icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
-<link rel=icon type=image/png sizes=16x16 href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
-<link rel=icon type=image/png sizes=32x32 href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
+<link rel=icon href=https://zhangyh.me/jiaran16.ico>
+<link rel=icon type=image/png sizes=16x16 href=https://zhangyh.me/jiaran16.ico>
+<link rel=icon type=image/png sizes=32x32 href=https://zhangyh.me/jiaran32.ico>
 <link rel=apple-touch-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
 <link rel=mask-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
 <meta name=theme-color content="#2e2e33">
@@ -31,28 +27,20 @@ type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stack
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go调度 | 1. GMP模型">
-<meta property="og:description" content="本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
-线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
- 内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程
- GMP结构 这部分主要从源码层面分析GMP的结构
-G结构 我们暂时忽略一些对我们分析没有影响的字段。
-type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting  // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态">
+<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="GMP源码分析">
+<meta property="og:description" content="准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：
+ GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 &ndash; 全局队列，局部队列，working-stealing 何时调度 &ndash;被动，主动，抢占式  创建go routine start=>start: 开始op1=>operation: 获取go func()的func和argsop2=>operation: 切换至g0，使用g0创建对应的Gop3=>operation: gfget(p) 从当前的P获取空闲G;op4=>operation: 参数复制到G,清除堆,pc:func,sp:goexit1op5=>operation: runqput(p,newg,true); 将G加入P的runnable数组;end=>end: 结束start->op1op1->op2op2->op3op3->op4op4->op5op5->end创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  ">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2021-06-30T08:56:43+00:00">
-<meta property="article:modified_time" content="2021-06-30T08:56:43+00:00"><meta property="og:site_name" content="ExampleSite">
+<meta property="article:modified_time" content="2021-06-30T08:56:43+00:00"><meta property="og:site_name" content="yuler's blog">
 <meta name=twitter:card content="summary_large_image">
 <meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
-<meta name=twitter:title content="Go调度 | 1. GMP模型">
-<meta name=twitter:description content="本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
-线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
- 内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程
- GMP结构 这部分主要从源码层面分析GMP的结构
-G结构 我们暂时忽略一些对我们分析没有影响的字段。
-type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting  // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态">
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"Go调度 | 1. GMP模型","item":"https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Go调度 | 1. GMP模型","name":"Go调度 | 1. GMP模型","description":"本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。\n线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：\n 内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程\n GMP结构 这部分主要从源码层面分析GMP的结构\nG结构 我们暂时忽略一些对我们分析没有影响的字段。\ntype g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] \tstackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 \tparam unsafe.Pointer // warkup 唤醒时传递的参数 \tatomicstatus uint32 // goroutine的状态 \tgoid int64 // goroutine id \tschedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 \twaitsince int64 // approx time when the g become blocked \twaitreason waitReason // if status==Gwaiting  // 抢占调度相关 \tpreempt bool // preemption signal, duplicates stackguard0 = stackpreempt \tpreemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule \tpreemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态","keywords":["schedule"],"articleBody":"本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。\n线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：\n 内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程\n GMP结构 这部分主要从源码层面分析GMP的结构\nG结构 我们暂时忽略一些对我们分析没有影响的字段。\ntype g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] \tstackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 \tparam unsafe.Pointer // warkup 唤醒时传递的参数 \tatomicstatus uint32 // goroutine的状态 \tgoid int64 // goroutine id \tschedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 \twaitsince int64 // approx time when the g become blocked \twaitreason waitReason // if status==Gwaiting  // 抢占调度相关 \tpreempt bool // preemption signal, duplicates stackguard0 = stackpreempt \tpreemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule \tpreemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态\n _Gidle:\t刚刚被分配并且还没有被初始化 _Grunnable:\t没有执行代码，没有栈的所有权，存储在运行队列中 _Grunning:\t可以执行代码，拥有栈的所有权，被赋予了内核线程 M 和处理器 P _Gsyscall:\t正在执行系统调用，拥有栈的所有权，没有执行用户代码，被赋予了内核线程 但是不在运行队列上 _Gwaiting: 由于运行时而被阻塞，没有执行用户代码并且不在运行队列上，但是可能存在Channel 的等待队列上 _Gdead: 没有被使用，没有执行代码，可能有分配的栈 _Gcopystack: 栈正在被拷贝，没有执行代码，不在运行队列上 _Gpreempted: 由于抢占而被阻塞，没有执行用户代码并且不在运行队列上，等待唤醒 _Gscan: GC 正在扫描栈空间，没有执行代码，可以与其他状态同时存在  M 结构 M代表操作系统的内核线程，他最多能创建10000个，但最多只有GOMAXPROCS个线程同时执行。如果不显式的指定，GOMAXPROCS默认为cpu的核心数。\ngolang使用runtime.m来表示操作系统线程。\ntype m struct { g0 *g\t// 用于执行调度指令的 goroutine,g0是特殊的goroutine \tgsignal *g\t// 处理 signal 的 g \ttls [6]uintptr\t// 线程本地存储,主要为了实现m和工作线程的一一对应 \tcurg *g\t// 当前运行的用户 goroutine \tp puintptr\t// 执行go代码时持有的 p (如果没有执行则为 nil) \tspinning bool\t// m 当前没有运行 work 且正处于寻找 work 的活跃状态 \talllink *m\t// 所有的m都在allm 上 \tmcache *mcache // 持有当前线程上进行内存分配的本地缓存  ... }  g0 是一个运行时中比较特殊的 Goroutine，它会深度参与运行时的调度过程，包括 Goroutine 的创建、大内存分配和 CGO 函数的执行。在后面的小节中，我们会经常看到 g0 的身影。\n P 结构 P是goroutine和实际工作线程之间的中间层，它持有一个G的本地队列。\n我们重点关注以下字段\ntype p struct { m muintptr //与当前p绑定的m  runqhead uint32 // 本地队列，无锁访问 \trunqtail uint32 runq [256]guintptr runnext guintptr ... } runtime.p 结构体中的状态 status 字段会是以下五种中的一种：\n _Pidle: 处理器没有运行用户代码或者调度器，被空闲队列或者改变其状态的结构持有，运行队列为空 _Prunning: 被线程 M 持有，并且正在执行用户代码或者调度器 _Psyscall: 没有执行用户代码，当前线程陷入系统调用 _Pgcstop: 被线程 M 持有，当前处理器由于垃圾回收被停止 _Pdead: 当前处理器已经不被使用  调度器sched的结构 type schedt struct { lock mutex pidle puintptr\t// 空闲 p 链表 \tnpidle uint32\t// 空闲 p 数量 \tnmspinning uint32\t// 自旋状态的 M 的数量 \trunq gQueue\t// 全局 runnable G 队列 \trunqsize int32 gFree struct {\t// 有效 dead G 的全局缓存. \tlock mutex stack gList\t// 包含栈的 Gs \tnoStack gList\t// 没有栈的 Gs \tn int32 } sudoglock mutex\t// sudog 结构的集中缓存 \tsudogcache *sudog deferlock mutex\t// 不同大小的有效的 defer 结构的池 \tdeferpool [5]*_defer ... } 一些重要的全局信息 allgs []*g // 保存所有的g allm *m // 所有的m构成的一个链表，包括下面的m0 allp []*p // 保存所有的p，len(allp) == gomaxprocs  ncpu int32 // 系统中cpu核的数量，程序启动时由runtime代码初始化 gomaxprocs int32 // p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改  m0 m // 代表进程的主线程 g0 g // m0的g0，也就是m0.g0 = \u0026g0 References  go/runtime2.go at master · golang/go Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Goroutine调度器(一)：P、M、G关系  ","wordCount":"370","inLanguage":"en","datePublished":"2021-06-30T08:56:43Z","dateModified":"2021-06-30T08:56:43Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
+<meta name=twitter:title content="GMP源码分析">
+<meta name=twitter:description content="准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：
+ GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 &ndash; 全局队列，局部队列，working-stealing 何时调度 &ndash;被动，主动，抢占式  创建go routine start=>start: 开始op1=>operation: 获取go func()的func和argsop2=>operation: 切换至g0，使用g0创建对应的Gop3=>operation: gfget(p) 从当前的P获取空闲G;op4=>operation: 参数复制到G,清除堆,pc:func,sp:goexit1op5=>operation: runqput(p,newg,true); 将G加入P的runnable数组;end=>end: 结束start->op1op1->op2op2->op3op3->op4op4->op5op5->end创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  ">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"GMP源码分析","item":"https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"GMP源码分析","name":"GMP源码分析","description":"准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：\n GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 \u0026ndash; 全局队列，局部队列，working-stealing 何时调度 \u0026ndash;被动，主动，抢占式  创建go routine start=\u0026gt;start: 开始\rop1=\u0026gt;operation: 获取go func()的func和args\rop2=\u0026gt;operation: 切换至g0，使用g0创建对应的G\rop3=\u0026gt;operation: gfget(p) 从当前的P获取空闲G;\rop4=\u0026gt;operation: 参数复制到G,清除堆,pc:func,sp:goexit1\rop5=\u0026gt;operation: runqput(p,newg,true); 将G加入P的runnable数组;\rend=\u0026gt;end: 结束\rstart-\u0026gt;op1\rop1-\u0026gt;op2\rop2-\u0026gt;op3\rop3-\u0026gt;op4\rop4-\u0026gt;op5\rop5-\u0026gt;end\r创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  ","keywords":["schedule"],"articleBody":"准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：\n GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 – 全局队列，局部队列，working-stealing 何时调度 –被动，主动，抢占式  创建go routine start=start: 开始\rop1=operation: 获取go func()的func和args\rop2=operation: 切换至g0，使用g0创建对应的G\rop3=operation: gfget(p) 从当前的P获取空闲G;\rop4=operation: 参数复制到G,清除堆,pc:func,sp:goexit1\rop5=operation: runqput(p,newg,true); 将G加入P的runnable数组;\rend=end: 结束\rstart-op1\rop1-op2\rop2-op3\rop3-op4\rop4-op5\rop5-end\r创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  ","wordCount":"77","inLanguage":"en","datePublished":"2021-06-30T08:56:43Z","dateModified":"2021-06-30T08:56:43Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/jiaran16.ico"}}}</script>
 </head>
 <body id=top>
 <script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
@@ -60,7 +48,7 @@ type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stack
 <nav class=nav>
 <div class=logo>
 <a href=https://zhangyh.me/ accesskey=h title="Home (Alt + H)">
-<img src=/apple-touch-icon.png alt=logo aria-label=logo height=35>Home</a>
+<img src=/jiaran.webp alt=logo aria-label=logo height=35>Home</a>
 <span class=logo-switches>
 <button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
 </button>
@@ -68,18 +56,23 @@ type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stack
 </div>
 <ul id=menu>
 <li>
+<a href=https://zhangyh.me/archives/ title=archives>
+<span>archives</span>
+</a>
+</li>
+<li>
 <a href=https://zhangyh.me/categories/ title=categories>
 <span>categories</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/tags/ title=tags>
-<span>tags</span>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/archives/ title=archives>
-<span>archives</span>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
 </a>
 </li>
 </ul>
@@ -90,33 +83,20 @@ type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stack
 <header class=post-header>
 <div class=breadcrumbs><a href=https://zhangyh.me/>Home</a>&nbsp;»&nbsp;<a href=https://zhangyh.me/posts/>Posts</a></div>
 <h1 class=post-title>
-Go调度 | 1. GMP模型
+GMP源码分析
 </h1>
-<div class=post-meta>June 30, 2021&nbsp;·&nbsp;2 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/[go%e8%b0%83%e5%ba%a6]1-GMP%e6%a8%a1%e5%9e%8b.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>June 30, 2021&nbsp;·&nbsp;1 min&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/golang/GMP%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90-1.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
 </div>
 </header> <div class=toc>
 <details>
 <summary accesskey=c title="(Alt + C)">
 <span class=details>Table of Contents</span>
 </summary>
-<div class=inner><ul>
+<div class=inner><ul><ul>
 <li>
-<a href=#%e7%ba%bf%e7%a8%8b%e5%92%8c%e5%8d%8f%e7%a8%8b aria-label=线程和协程>线程和协程</a></li>
+<a href=#%e5%88%9b%e5%bb%bago-routine aria-label="创建go routine">创建go routine</a></li>
 <li>
-<a href=#gmp%e6%a8%a1%e5%9e%8b aria-label=GMP模型>GMP模型</a></li>
-<li>
-<a href=#gmp%e7%bb%93%e6%9e%84 aria-label=GMP结构>GMP结构</a><ul>
-<li>
-<a href=#g%e7%bb%93%e6%9e%84 aria-label=G结构>G结构</a></li>
-<li>
-<a href=#m-%e7%bb%93%e6%9e%84 aria-label="M 结构">M 结构</a></li>
-<li>
-<a href=#p-%e7%bb%93%e6%9e%84 aria-label="P 结构">P 结构</a></li>
-<li>
-<a href=#%e8%b0%83%e5%ba%a6%e5%99%a8sched%e7%9a%84%e7%bb%93%e6%9e%84 aria-label=调度器sched的结构>调度器sched的结构</a></li>
-<li>
-<a href=#%e4%b8%80%e4%ba%9b%e9%87%8d%e8%a6%81%e7%9a%84%e5%85%a8%e5%b1%80%e4%bf%a1%e6%81%af aria-label=一些重要的全局信息>一些重要的全局信息</a></li></ul>
-</li>
+<a href=#%e5%88%9b%e5%bb%bap aria-label=创建P>创建P</a></li></ul>
 <li>
 <a href=#references aria-label=References>References</a>
 </li>
@@ -124,139 +104,41 @@ Go调度 | 1. GMP模型
 </div>
 </details>
 </div>
-<div class=post-content><p>本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。</p>
-<h2 id=线程和协程>线程和协程<a hidden class=anchor aria-hidden=true href=#线程和协程>#</a></h2>
-<p>协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：</p>
+<div class=post-content><p>准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。
+该系列预期包括以下内容：</p>
 <ol>
-<li>内存占用
-线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。
-线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。</li>
-<li>创建和切换
-线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。
-而协程的创建和切换都是用户态的，并且线程保护的内容相对较少</li>
+<li>GMP模型</li>
+<li>scheduler的初始化</li>
+<li>main goroutine和非main goroutine的启动和结束</li>
+<li>如何调度 &ndash; 全局队列，局部队列，working-stealing</li>
+<li>何时调度 &ndash;被动，主动，抢占式</li>
 </ol>
-<h2 id=gmp模型>GMP模型<a hidden class=anchor aria-hidden=true href=#gmp模型>#</a></h2>
-<blockquote>
-<p>G: goroutine协程,即我们定义的 go func(){}
-P: processor处理器，是一种抽象的、用于G执行的局部资源
-M: machine，也即thread，对应实际的内核线程</p>
-</blockquote>
-<p><img loading=lazy src=https://cos.yuler.asia/img/post/gmp.webp alt=来源:https://www.kancloud.cn/aceld/golang/1958305>
-</p>
-<h2 id=gmp结构>GMP结构<a hidden class=anchor aria-hidden=true href=#gmp结构>#</a></h2>
-<p>这部分主要从源码层面分析GMP的结构</p>
-<h3 id=g结构>G结构<a hidden class=anchor aria-hidden=true href=#g结构>#</a></h3>
-<p>我们暂时忽略一些对我们分析没有影响的字段。</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>g</span> <span style=color:#66d9ef>struct</span> {
-	<span style=color:#a6e22e>stack</span>       <span style=color:#a6e22e>stack</span> <span style=color:#75715e>// goroutine 使用的栈[stack.lo, stack.hi]
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>stackguard0</span> <span style=color:#66d9ef>uintptr</span> 
-	<span style=color:#a6e22e>stackguard1</span> <span style=color:#66d9ef>uintptr</span> <span style=color:#75715e>// 用于栈空间的动态变化
-</span><span style=color:#75715e></span>
-	<span style=color:#a6e22e>m</span>            <span style=color:#f92672>*</span><span style=color:#a6e22e>m</span> <span style=color:#75715e>// 与当前g绑定的m
-</span><span style=color:#75715e></span>
-	<span style=color:#a6e22e>sched</span>        <span style=color:#a6e22e>gobuf</span>  <span style=color:#75715e>// goroutine的运行线程，主要为寄存器信息
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>param</span>        <span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span> <span style=color:#75715e>// warkup 唤醒时传递的参数
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>atomicstatus</span> <span style=color:#66d9ef>uint32</span> <span style=color:#75715e>// goroutine的状态
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>goid</span>         <span style=color:#66d9ef>int64</span> <span style=color:#75715e>// goroutine id
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>schedlink</span>    <span style=color:#a6e22e>guintptr</span> <span style=color:#75715e>// 指向全局goroutine队列中的的下一个
-</span><span style=color:#75715e></span>
-  <span style=color:#75715e>// go阻塞的时间和原因
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>waitsince</span>    <span style=color:#66d9ef>int64</span>      <span style=color:#75715e>// approx time when the g become blocked
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>waitreason</span>   <span style=color:#a6e22e>waitReason</span> <span style=color:#75715e>// if status==Gwaiting
-</span><span style=color:#75715e></span>
-  <span style=color:#75715e>// 抢占调度相关
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>preempt</span>       <span style=color:#66d9ef>bool</span> <span style=color:#75715e>// preemption signal, duplicates stackguard0 = stackpreempt
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>preemptStop</span>   <span style=color:#66d9ef>bool</span> <span style=color:#75715e>// transition to _Gpreempted on preemption; otherwise, just deschedule
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>preemptShrink</span> <span style=color:#66d9ef>bool</span> <span style=color:#75715e>// shrink stack at synchronous safe point
-</span><span style=color:#75715e></span>}
-</code></pre></div><p>其中<code>atomicstatus</code>存储了goroutine的状态，这里列举一些重要的状态</p>
-<ul>
-<li>_Gidle: 刚刚被分配并且还没有被初始化</li>
-<li>_Grunnable: 没有执行代码，没有栈的所有权，存储在运行队列中</li>
-<li>_Grunning: 可以执行代码，拥有栈的所有权，被赋予了内核线程 M 和处理器 P</li>
-<li>_Gsyscall: 正在执行系统调用，拥有栈的所有权，没有执行用户代码，被赋予了内核线程 但是不在运行队列上</li>
-<li>_Gwaiting: 由于运行时而被阻塞，没有执行用户代码并且不在运行队列上，但是可能存在Channel 的等待队列上</li>
-<li>_Gdead: 没有被使用，没有执行代码，可能有分配的栈</li>
-<li>_Gcopystack: 栈正在被拷贝，没有执行代码，不在运行队列上</li>
-<li>_Gpreempted: 由于抢占而被阻塞，没有执行用户代码并且不在运行队列上，等待唤醒</li>
-<li>_Gscan: GC 正在扫描栈空间，没有执行代码，可以与其他状态同时存在</li>
-</ul>
-<h3 id=m-结构>M 结构<a hidden class=anchor aria-hidden=true href=#m-结构>#</a></h3>
-<p>M代表操作系统的内核线程，他最多能创建10000个，但最多只有<code>GOMAXPROCS</code>个线程同时执行。如果不显式的指定，<code>GOMAXPROCS</code>默认为cpu的核心数。</p>
-<p>golang使用<code>runtime.m</code>来表示操作系统线程。</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>m</span> <span style=color:#66d9ef>struct</span> {
-	<span style=color:#a6e22e>g0</span>          <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>		  	<span style=color:#75715e>// 用于执行调度指令的 goroutine,g0是特殊的goroutine
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>gsignal</span>     <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>			  <span style=color:#75715e>// 处理 signal 的 g
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>tls</span>         [<span style=color:#ae81ff>6</span>]<span style=color:#66d9ef>uintptr</span>	<span style=color:#75715e>// 线程本地存储,主要为了实现m和工作线程的一一对应
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>curg</span>        <span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>			  <span style=color:#75715e>// 当前运行的用户 goroutine
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>p</span>           <span style=color:#a6e22e>puintptr</span>	<span style=color:#75715e>// 执行go代码时持有的 p (如果没有执行则为 nil)
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>spinning</span>    <span style=color:#66d9ef>bool</span>	  	<span style=color:#75715e>// m 当前没有运行 work 且正处于寻找 work 的活跃状态
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>alllink</span>     <span style=color:#f92672>*</span><span style=color:#a6e22e>m</span>		  	<span style=color:#75715e>// 所有的m都在allm 上
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>mcache</span>      <span style=color:#f92672>*</span><span style=color:#a6e22e>mcache</span>   <span style=color:#75715e>// 持有当前线程上进行内存分配的本地缓存
-</span><span style=color:#75715e></span>
-	<span style=color:#f92672>...</span>
-}
-</code></pre></div><blockquote>
-<p>g0 是一个运行时中比较特殊的 Goroutine，它会深度参与运行时的调度过程，包括 Goroutine 的创建、大内存分配和 CGO 函数的执行。在后面的小节中，我们会经常看到 g0 的身影。</p>
-</blockquote>
-<h3 id=p-结构>P 结构<a hidden class=anchor aria-hidden=true href=#p-结构>#</a></h3>
-<p>P是goroutine和实际工作线程之间的中间层，它持有一个G的本地队列。</p>
-<p>我们重点关注以下字段</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>p</span> <span style=color:#66d9ef>struct</span> {
-	<span style=color:#a6e22e>m</span>           <span style=color:#a6e22e>muintptr</span> <span style=color:#75715e>//与当前p绑定的m
-</span><span style=color:#75715e></span>
-	<span style=color:#a6e22e>runqhead</span> <span style=color:#66d9ef>uint32</span>  <span style=color:#75715e>// 本地队列，无锁访问
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>runqtail</span> <span style=color:#66d9ef>uint32</span>
-	<span style=color:#a6e22e>runq</span>     [<span style=color:#ae81ff>256</span>]<span style=color:#a6e22e>guintptr</span>
-	<span style=color:#a6e22e>runnext</span> <span style=color:#a6e22e>guintptr</span>
-	<span style=color:#f92672>...</span>
-}
-</code></pre></div><p>runtime.p 结构体中的状态 status 字段会是以下五种中的一种：</p>
-<ul>
-<li>_Pidle: 处理器没有运行用户代码或者调度器，被空闲队列或者改变其状态的结构持有，运行队列为空</li>
-<li>_Prunning: 被线程 M 持有，并且正在执行用户代码或者调度器</li>
-<li>_Psyscall: 没有执行用户代码，当前线程陷入系统调用</li>
-<li>_Pgcstop: 被线程 M 持有，当前处理器由于垃圾回收被停止</li>
-<li>_Pdead: 当前处理器已经不被使用</li>
-</ul>
-<h3 id=调度器sched的结构>调度器sched的结构<a hidden class=anchor aria-hidden=true href=#调度器sched的结构>#</a></h3>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>schedt</span> <span style=color:#66d9ef>struct</span> {
-	<span style=color:#a6e22e>lock</span> <span style=color:#a6e22e>mutex</span>
+<h2 id=创建go-routine>创建go routine<a hidden class=anchor aria-hidden=true href=#创建go-routine>#</a></h2>
+<pre tabindex=0><code class=language-flow data-lang=flow>
+start=&gt;start: 开始
+op1=&gt;operation: 获取go func()的func和args
+op2=&gt;operation: 切换至g0，使用g0创建对应的G
+op3=&gt;operation: gfget(p) 从当前的P获取空闲G;
+op4=&gt;operation: 参数复制到G,清除堆,pc:func,sp:goexit1
+op5=&gt;operation: runqput(p,newg,true); 将G加入P的runnable数组;
+end=&gt;end: 结束
 
-	<span style=color:#a6e22e>pidle</span>      <span style=color:#a6e22e>puintptr</span>	<span style=color:#75715e>// 空闲 p 链表
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>npidle</span>     <span style=color:#66d9ef>uint32</span>	<span style=color:#75715e>// 空闲 p 数量
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>nmspinning</span> <span style=color:#66d9ef>uint32</span>	<span style=color:#75715e>// 自旋状态的 M 的数量
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>runq</span>       <span style=color:#a6e22e>gQueue</span>	<span style=color:#75715e>// 全局 runnable G 队列
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>runqsize</span>   <span style=color:#66d9ef>int32</span>
-	<span style=color:#a6e22e>gFree</span> <span style=color:#66d9ef>struct</span> {		<span style=color:#75715e>// 有效 dead G 的全局缓存.
-</span><span style=color:#75715e></span>		<span style=color:#a6e22e>lock</span>    <span style=color:#a6e22e>mutex</span>
-		<span style=color:#a6e22e>stack</span>   <span style=color:#a6e22e>gList</span>	<span style=color:#75715e>// 包含栈的 Gs
-</span><span style=color:#75715e></span>		<span style=color:#a6e22e>noStack</span> <span style=color:#a6e22e>gList</span>	<span style=color:#75715e>// 没有栈的 Gs
-</span><span style=color:#75715e></span>		<span style=color:#a6e22e>n</span>       <span style=color:#66d9ef>int32</span>
-	}
-	<span style=color:#a6e22e>sudoglock</span>  <span style=color:#a6e22e>mutex</span>	<span style=color:#75715e>// sudog 结构的集中缓存
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>sudogcache</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>sudog</span>
-	<span style=color:#a6e22e>deferlock</span>  <span style=color:#a6e22e>mutex</span>	<span style=color:#75715e>// 不同大小的有效的 defer 结构的池
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>deferpool</span>  [<span style=color:#ae81ff>5</span>]<span style=color:#f92672>*</span><span style=color:#a6e22e>_defer</span>
-	
-	<span style=color:#f92672>...</span>
-}
-</code></pre></div><h3 id=一些重要的全局信息>一些重要的全局信息<a hidden class=anchor aria-hidden=true href=#一些重要的全局信息>#</a></h3>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#a6e22e>allgs</span>    []<span style=color:#f92672>*</span><span style=color:#a6e22e>g</span>   <span style=color:#75715e>// 保存所有的g
-</span><span style=color:#75715e></span><span style=color:#a6e22e>allm</span>     <span style=color:#f92672>*</span><span style=color:#a6e22e>m</span>     <span style=color:#75715e>// 所有的m构成的一个链表，包括下面的m0
-</span><span style=color:#75715e></span><span style=color:#a6e22e>allp</span>     []<span style=color:#f92672>*</span><span style=color:#a6e22e>p</span>  <span style=color:#75715e>// 保存所有的p，len(allp) == gomaxprocs
-</span><span style=color:#75715e></span> 
-<span style=color:#a6e22e>ncpu</span>         <span style=color:#66d9ef>int32</span>  <span style=color:#75715e>// 系统中cpu核的数量，程序启动时由runtime代码初始化
-</span><span style=color:#75715e></span><span style=color:#a6e22e>gomaxprocs</span>   <span style=color:#66d9ef>int32</span>  <span style=color:#75715e>// p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改
-</span><span style=color:#75715e></span> 
-<span style=color:#a6e22e>m0</span> <span style=color:#a6e22e>m</span>        <span style=color:#75715e>// 代表进程的主线程
-</span><span style=color:#75715e></span><span style=color:#a6e22e>g0</span>  <span style=color:#a6e22e>g</span>       <span style=color:#75715e>// m0的g0，也就是m0.g0 = &amp;g0
-</span></code></pre></div><h2 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h2>
+start-&gt;op1
+op1-&gt;op2
+op2-&gt;op3
+op3-&gt;op4
+op4-&gt;op5
+op5-&gt;end
+</code></pre><h2 id=创建p>创建P<a hidden class=anchor aria-hidden=true href=#创建p>#</a></h2>
+<h1 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h1>
 <ol>
-<li><a href=https://github.com/golang/go/blob/master/src/runtime/runtime2.go>go/runtime2.go at master · golang/go</a></li>
 <li><a href=https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-goroutine/#g>Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现</a></li>
+<li><a href=https://www.jianshu.com/p/665aca7af949>golang 源码学习之GMP (goroutine) - 简书</a></li>
+<li><a href=https://github.com/golang/go/blob/master/src/runtime/runtime2.go>go/runtime2.go at master · golang/go</a></li>
+<li><a href=https://colobu.com/2017/05/04/go-scheduler/>[译]Go 调度器: M, P 和 G | 鸟窝</a></li>
+<li><a href=http://ga0.github.io/golang/2015/09/20/golang-runtime-scheduler.html>Golang调度器源码分析</a></li>
 <li><a href=https://www.kancloud.cn/aceld/golang/1958305#4Gogoroutine_120>Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云</a></li>
-<li><a href=https://johng.cn/goroutine1-pmg/>Goroutine调度器(一)：P、M、G关系</a></li>
+<li><a href=https://www.cnblogs.com/zkweb/p/7815600.html>Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园</a></li>
 </ol>
 </div>
 <footer class=post-footer>
@@ -264,17 +146,17 @@ M: machine，也即thread，对应实际的内核线程</p>
 <li><a href=https://zhangyh.me/tags/schedule/>schedule</a></li>
 </ul>
 <div class=share-buttons>
-<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 1. GMP模型 on twitter" href="https://twitter.com/intent/tweet/?text=Go%e8%b0%83%e5%ba%a6%20%7c%201.%20GMP%e6%a8%a1%e5%9e%8b&url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html&hashtags=schedule"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM195.519 424.544c135.939.0 210.268-112.643 210.268-210.268.0-3.218.0-6.437-.153-9.502 14.406-10.421 26.973-23.448 36.935-38.314-13.18 5.824-27.433 9.809-42.452 11.648 15.326-9.196 26.973-23.602 32.49-40.92-14.252 8.429-30.038 14.56-46.896 17.931-13.487-14.406-32.644-23.295-53.946-23.295-40.767.0-73.87 33.104-73.87 73.87.0 5.824.613 11.494 1.992 16.858-61.456-3.065-115.862-32.49-152.337-77.241-6.284 10.881-9.962 23.601-9.962 37.088.0 25.594 13.027 48.276 32.95 61.456-12.107-.307-23.448-3.678-33.41-9.196v.92c0 35.862 25.441 65.594 59.311 72.49-6.13 1.686-12.72 2.606-19.464 2.606-4.751.0-9.348-.46-13.946-1.38 9.349 29.426 36.628 50.728 68.965 51.341-25.287 19.771-57.164 31.571-91.8 31.571-5.977.0-11.801-.306-17.625-1.073 32.337 21.15 71.264 33.41 112.95 33.41z"/></svg>
+<a target=_blank rel="noopener noreferrer" aria-label="share GMP源码分析 on twitter" href="https://twitter.com/intent/tweet/?text=GMP%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90&url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html&hashtags=schedule"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM195.519 424.544c135.939.0 210.268-112.643 210.268-210.268.0-3.218.0-6.437-.153-9.502 14.406-10.421 26.973-23.448 36.935-38.314-13.18 5.824-27.433 9.809-42.452 11.648 15.326-9.196 26.973-23.602 32.49-40.92-14.252 8.429-30.038 14.56-46.896 17.931-13.487-14.406-32.644-23.295-53.946-23.295-40.767.0-73.87 33.104-73.87 73.87.0 5.824.613 11.494 1.992 16.858-61.456-3.065-115.862-32.49-152.337-77.241-6.284 10.881-9.962 23.601-9.962 37.088.0 25.594 13.027 48.276 32.95 61.456-12.107-.307-23.448-3.678-33.41-9.196v.92c0 35.862 25.441 65.594 59.311 72.49-6.13 1.686-12.72 2.606-19.464 2.606-4.751.0-9.348-.46-13.946-1.38 9.349 29.426 36.628 50.728 68.965 51.341-25.287 19.771-57.164 31.571-91.8 31.571-5.977.0-11.801-.306-17.625-1.073 32.337 21.15 71.264 33.41 112.95 33.41z"/></svg>
 </a>
-<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 1. GMP模型 on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html&title=Go%e8%b0%83%e5%ba%a6%20%7c%201.%20GMP%e6%a8%a1%e5%9e%8b&summary=Go%e8%b0%83%e5%ba%a6%20%7c%201.%20GMP%e6%a8%a1%e5%9e%8b&source=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg>
+<a target=_blank rel="noopener noreferrer" aria-label="share GMP源码分析 on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html&title=GMP%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90&summary=GMP%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90&source=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg>
 </a>
-<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 1. GMP模型 on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html&title=Go%e8%b0%83%e5%ba%a6%20%7c%201.%20GMP%e6%a8%a1%e5%9e%8b"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg>
+<a target=_blank rel="noopener noreferrer" aria-label="share GMP源码分析 on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html&title=GMP%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg>
 </a>
-<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 1. GMP模型 on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg>
+<a target=_blank rel="noopener noreferrer" aria-label="share GMP源码分析 on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg>
 </a>
-<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 1. GMP模型 on whatsapp" href="https://api.whatsapp.com/send?text=Go%e8%b0%83%e5%ba%a6%20%7c%201.%20GMP%e6%a8%a1%e5%9e%8b%20-%20https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg>
+<a target=_blank rel="noopener noreferrer" aria-label="share GMP源码分析 on whatsapp" href="https://api.whatsapp.com/send?text=GMP%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90%20-%20https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="0 0 512 512"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg>
 </a>
-<a target=_blank rel="noopener noreferrer" aria-label="share Go调度 | 1. GMP模型 on telegram" href="https://telegram.me/share/url?text=Go%e8%b0%83%e5%ba%a6%20%7c%201.%20GMP%e6%a8%a1%e5%9e%8b&url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="2 2 28 28"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg>
+<a target=_blank rel="noopener noreferrer" aria-label="share GMP源码分析 on telegram" href="https://telegram.me/share/url?text=GMP%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90&url=https%3a%2f%2fzhangyh.me%2ftopics%2fgolang%2fgo%25E8%25B0%2583%25E5%25BA%25A6-gmp%25E6%25A8%25A1%25E5%259E%258B.html"><svg viewBox="2 2 28 28"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg>
 </a>
 </div>
 </footer>

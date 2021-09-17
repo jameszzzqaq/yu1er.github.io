@@ -22,11 +22,11 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.9f1d947375927e9847272b1f4e9be81336f539e513bf04d52cade31f81cad1af.css integrity="sha256-nx2Uc3WSfphHJysfTpvoEzb1OeUTvwTVLK3jH4HK0a8=" rel="preload stylesheet" as=style>
-<link rel=preload href=/apple-touch-icon.png as=image>
+<link rel=preload href=/jiaran.webp as=image>
 <script defer crossorigin=anonymous src=/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5+kdJvBz5iKbt6B5PJI=" onload=hljs.initHighlightingOnLoad()></script>
-<link rel=icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
-<link rel=icon type=image/png sizes=16x16 href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
-<link rel=icon type=image/png sizes=32x32 href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
+<link rel=icon href=https://zhangyh.me/jiaran16.ico>
+<link rel=icon type=image/png sizes=16x16 href=https://zhangyh.me/jiaran16.ico>
+<link rel=icon type=image/png sizes=32x32 href=https://zhangyh.me/jiaran32.ico>
 <link rel=apple-touch-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
 <link rel=mask-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
 <meta name=theme-color content="#2e2e33">
@@ -51,7 +51,7 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://zhangyh.me/topics/paper/hashkv.html"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2021-08-07T02:47:09+00:00">
-<meta property="article:modified_time" content="2021-08-07T02:47:09+00:00"><meta property="og:site_name" content="ExampleSite">
+<meta property="article:modified_time" content="2021-08-07T02:47:09+00:00"><meta property="og:site_name" content="yuler's blog">
 <meta name=twitter:card content="summary_large_image">
 <meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
 <meta name=twitter:title content="Hashkv Enabling efficient updates in KV storage via hashing">
@@ -67,7 +67,7 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
 如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。
 我们称呼该过程为tagging，注意，tagging只发生在GC时。">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"Hashkv Enabling efficient updates in KV storage via hashing","item":"https://zhangyh.me/topics/paper/hashkv.html"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Hashkv Enabling efficient updates in KV storage via hashing","name":"Hashkv Enabling efficient updates in KV storage via hashing","description":"Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：\n 最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读  Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.\nsegment group 包括一个main segment和多个log segment.\n内存中全局的segment table存储每一个segment group接下来插入或更新的位置。\n为了方便GC，segment group存储了key/value size，key，value\nGC Collection GC以segment group为单元，当free log segment用尽的时候会触发。\n 首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置  两个问题：\n 如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。  Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。\nhot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()\n如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。\n我们称呼该过程为tagging，注意，tagging只发生在GC时。","keywords":["NVM"],"articleBody":"Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：\n 最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读  Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.\nsegment group 包括一个main segment和多个log segment.\n内存中全局的segment table存储每一个segment group接下来插入或更新的位置。\n为了方便GC，segment group存储了key/value size，key，value\nGC Collection GC以segment group为单元，当free log segment用尽的时候会触发。\n 首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置  两个问题：\n 如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。  Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。\nhot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()\n如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。\n我们称呼该过程为tagging，注意，tagging只发生在GC时。\nSelective KV Seperation 对于size较大的kv，进行另外的value store 而对于较小的kv，就直接存储到LSM-tree中\nRange Scan read-ahead 预读\n","wordCount":"74","inLanguage":"en","datePublished":"2021-08-07T02:47:09Z","dateModified":"2021-08-07T02:47:09Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/paper/hashkv.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/%3Clink%20/%20abs%20url%3E"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Hashkv Enabling efficient updates in KV storage via hashing","name":"Hashkv Enabling efficient updates in KV storage via hashing","description":"Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：\n 最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读  Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.\nsegment group 包括一个main segment和多个log segment.\n内存中全局的segment table存储每一个segment group接下来插入或更新的位置。\n为了方便GC，segment group存储了key/value size，key，value\nGC Collection GC以segment group为单元，当free log segment用尽的时候会触发。\n 首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置  两个问题：\n 如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。  Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。\nhot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()\n如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。\n我们称呼该过程为tagging，注意，tagging只发生在GC时。","keywords":["NVM"],"articleBody":"Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：\n 最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读  Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.\nsegment group 包括一个main segment和多个log segment.\n内存中全局的segment table存储每一个segment group接下来插入或更新的位置。\n为了方便GC，segment group存储了key/value size，key，value\nGC Collection GC以segment group为单元，当free log segment用尽的时候会触发。\n 首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置  两个问题：\n 如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。  Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。\nhot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()\n如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。\n我们称呼该过程为tagging，注意，tagging只发生在GC时。\nSelective KV Seperation 对于size较大的kv，进行另外的value store 而对于较小的kv，就直接存储到LSM-tree中\nRange Scan read-ahead 预读\n","wordCount":"74","inLanguage":"en","datePublished":"2021-08-07T02:47:09Z","dateModified":"2021-08-07T02:47:09Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/topics/paper/hashkv.html"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/jiaran16.ico"}}}</script>
 </head>
 <body id=top>
 <script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
@@ -75,7 +75,7 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
 <nav class=nav>
 <div class=logo>
 <a href=https://zhangyh.me/ accesskey=h title="Home (Alt + H)">
-<img src=/apple-touch-icon.png alt=logo aria-label=logo height=35>Home</a>
+<img src=/jiaran.webp alt=logo aria-label=logo height=35>Home</a>
 <span class=logo-switches>
 <button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
 </button>
@@ -83,18 +83,23 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
 </div>
 <ul id=menu>
 <li>
+<a href=https://zhangyh.me/archives/ title=archives>
+<span>archives</span>
+</a>
+</li>
+<li>
 <a href=https://zhangyh.me/categories/ title=categories>
 <span>categories</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/tags/ title=tags>
-<span>tags</span>
+<a href=https://zhangyh.me/search/ title="search (Alt + /)" accesskey=/>
+<span>search</span>
 </a>
 </li>
 <li>
-<a href=https://zhangyh.me/archives/ title=archives>
-<span>archives</span>
+<a href=https://zhangyh.me/tags/ title=tags>
+<span>tags</span>
 </a>
 </li>
 </ul>
