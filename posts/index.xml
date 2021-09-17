@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Posts on yuler&#39;s blog</title>
-    <link>https://yuler.asia/posts/</link>
+    <link>https://zhangyh.me/posts/</link>
     <description>Recent content in Posts on yuler&#39;s blog</description>
     <image>
-      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Fri, 13 Aug 2021 14:21:59 +0000</lastBuildDate><atom:link href="https://yuler.asia/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Aug 2021 14:21:59 +0000</lastBuildDate><atom:link href="https://zhangyh.me/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>聊聊内存对齐</title>
-      <link>https://yuler.asia/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</link>
+      <link>https://zhangyh.me/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</link>
       <pubDate>Fri, 13 Aug 2021 14:21:59 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</guid>
+      <guid>https://zhangyh.me/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</guid>
       <description>为什么需要内存对齐？ 首先需要从物理硬件上了解计算机如何进行内存访问的。
  Channel &amp;gt; DIMM &amp;gt; Rank &amp;gt; Chip &amp;gt; Bank &amp;gt; Coloum/Row &amp;gt; Cell
  如上图
@@ -43,10 +43,10 @@ References  https://zhuanlan.zhihu.com/p/355158723 https://zhuanlan.zhihu.com/p/
     
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</link>
+      <link>https://zhangyh.me/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</link>
       <pubDate>Thu, 05 Aug 2021 02:47:09 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</guid>
+      <guid>https://zhangyh.me/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
@@ -68,10 +68,10 @@ Operation Model Optane DIMM有两种模式Memory和App Direct
     
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
-      <link>https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</link>
+      <link>https://zhangyh.me/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</link>
       <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</guid>
+      <guid>https://zhangyh.me/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
  对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
  未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍
@@ -90,10 +90,10 @@ Insert Latency insert latency来源有三个方面：
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</link>
+      <link>https://zhangyh.me/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</link>
       <pubDate>Tue, 03 Aug 2021 07:48:31 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</guid>
+      <guid>https://zhangyh.me/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</guid>
       <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成
 其中可能同时存在某个数据的多个版本
 (tupleId, Tx-CTS)唯一确定一个tuple
@@ -104,10 +104,10 @@ Transaction-Private Data 线程私有 用于事务并发访问 存储相应数�
     
     <item>
       <title>138. 复制带随机指针的链表</title>
-      <link>https://yuler.asia/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</link>
+      <link>https://zhangyh.me/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</link>
       <pubDate>Thu, 22 Jul 2021 00:53:46 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</guid>
       <description> 题目地址
  Solution 两种解决思路：
  使用哈希表存储每个原节点对于复制节点的映射 先通过链表A-&amp;gt;B-&amp;gt;C构造A-&amp;gt;A&amp;amp;#039;-&amp;gt;B-&amp;gt;B&amp;amp;#039;-&amp;gt;C-&amp;gt;C&amp;amp;#039;，然后再拆分成A-&amp;gt;B-&amp;gt;C和A&amp;amp;#039;-&amp;gt;B&amp;amp;#039;-&amp;gt;C&amp;amp;#039;  Code 解法一 解法二 </description>
@@ -115,10 +115,10 @@ Transaction-Private Data 线程私有 用于事务并发访问 存储相应数�
     
     <item>
       <title>Go | 内存分配</title>
-      <link>https://yuler.asia/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html</link>
+      <link>https://zhangyh.me/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html</link>
       <pubDate>Sat, 17 Jul 2021 12:14:57 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html</guid>
       <description>设计原理 Go的内存分配参考了TCMalloc的核心思想。
  每一个线程都可以获得一个用于无锁分配小对象的缓存，这样可以让并行程序分配小对象（&amp;lt;=32KB）非常高效。 TCMalloc 管理的堆由一组页组成，一组连续的页面被表示为 span。当分配的对象大于 32KB，将使用页堆（Page Heap）进行内存分配。  相关struct mspan mspan是Go语言内存管理的基本单元。
 这里只列出了关心的主要字段。
@@ -144,10 +144,10 @@ Go 语言所有的内存空间都由如下所示的二维矩阵 heapArena 管理
     
     <item>
       <title>Go | context</title>
-      <link>https://yuler.asia/topics/golang/go-context.html</link>
+      <link>https://zhangyh.me/topics/golang/go-context.html</link>
       <pubDate>Fri, 16 Jul 2021 10:25:31 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go-context.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go-context.html</guid>
       <description>什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
  context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.Background()或context.TODO()  2. 链路并发控制 context最主要的作用是解决cancelation问题，也就是通过上层goroutine来释放下层goroutine。
@@ -159,10 +159,10 @@ Wait主要通过sync.WaitGroup实现，Cancel则需要通过context.Context来�
     
     <item>
       <title>Go | make和new</title>
-      <link>https://yuler.asia/topics/golang/go-make%E5%92%8Cnew.html</link>
+      <link>https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html</link>
       <pubDate>Sun, 11 Jul 2021 07:17:49 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go-make%E5%92%8Cnew.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go-make%E5%92%8Cnew.html</guid>
       <description>区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身    new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
 make make是为了初始化slice，map，channel这三种引用类型的。
 针对这三种类型，分别调用runtime.makeslice，runtime.makemap，runtime.makechan函数。
@@ -172,10 +172,10 @@ make 相对于 new 来说，做的事情更多，new 只是开辟了内存空间
     
     <item>
       <title>1418. 点菜展示表</title>
-      <link>https://yuler.asia/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</link>
+      <link>https://zhangyh.me/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</link>
       <pubDate>Tue, 06 Jul 2021 06:54:35 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</guid>
       <description>题目地址
  Solution 重点是模拟整个流程。
 golang中没有set，但可以使用map[int]struct{}来表示set，其中的value为struct{}，不会占用内存
@@ -184,10 +184,10 @@ Code 模拟 References 1. Sets in Go</description>
     
     <item>
       <title>理解io多路复用</title>
-      <link>https://yuler.asia/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</link>
+      <link>https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</link>
       <pubDate>Sat, 03 Jul 2021 03:02:56 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</guid>
+      <guid>https://zhangyh.me/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</guid>
       <description>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。
 为什么需要io多路复用模型? 当我们开启一个socket的时候，需要对发起的连接进行响应。
 阻塞io 阻塞io流程如图
@@ -212,10 +212,10 @@ epoll有LT(level trigger)和ET(edge trigger)两种模式：
     
     <item>
       <title>Go调度 | 4. 调度策略</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</link>
       <pubDate>Thu, 01 Jul 2021 16:45:55 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</guid>
       <description>前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
 schedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。
@@ -232,10 +232,10 @@ note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通
     
     <item>
       <title>Go调度 | 3. goroutine的创建和执行</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</link>
       <pubDate>Thu, 01 Jul 2021 04:36:30 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</guid>
       <description>参考[上篇文章]()对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
 go程序的启动 main goroutine newproc() 该函数创建出main goroutine
 newproc主要是对newproc1的封装。newproc首先获取要执行函数fn的参数地址argp，然后通过systemstack切换到g0栈去执行newproc1，然后把生成的g放入到绑定的p的本地队列中。
@@ -259,10 +259,10 @@ goexit1函数通过调用mcall从当前运行的go goroutine切换到g0，然后
     
     <item>
       <title>30. 串联所有单词的子串</title>
-      <link>https://yuler.asia/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</link>
+      <link>https://zhangyh.me/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</link>
       <pubDate>Wed, 30 Jun 2021 15:42:07 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</guid>
       <description> 题目地址
  Solution 这题需要使用滑动窗口，需要通过words中的个数和实际窗口中的单词个数进行比较，当相同时，证明窗口字符串是由words拼接而成。问题是，单纯的比较个数二者并不绝对相等，因此在窗口扩大时，如果新加进来的right_word在窗口中的个数大于实际words中的个数，我们需要对窗口进行左移，直到二者个数相同。
 因此在满足每个对应单词个数分别相同的前提下，比较所有单词个数才是有效的。
@@ -271,10 +271,10 @@ Code 哈希表+滑动窗口 Reference  https://leetcode-cn.com/problems/substrin
     
     <item>
       <title>Go调度 | 2. scheduler初始化</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</link>
       <pubDate>Wed, 30 Jun 2021 10:51:39 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</guid>
       <description>上篇文章结尾告诉我们了几个重要的全局变量，本篇文章会用到
 go程序的启动 当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。
 对于linux下的程序来说，入口文件在runtime/rt0_linux_amd64.s，
@@ -294,10 +294,10 @@ procresize() ——初始化allp  procresize()通过GOMAXPROC可以动态的调�
     
     <item>
       <title>Go调度 | 1. GMP模型</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</link>
       <pubDate>Wed, 30 Jun 2021 08:56:43 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</guid>
       <description>本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
 线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
  内存占用
@@ -318,10 +318,10 @@ M 其实就是 OS 线程，它只有两个状态：自旋、非自旋</descripti
     
     <item>
       <title>126. 127. 单词接龙</title>
-      <link>https://yuler.asia/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</link>
+      <link>https://zhangyh.me/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</link>
       <pubDate>Wed, 30 Jun 2021 07:25:33 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</guid>
       <description> 126 题目地址
 127 题目地址
  Solution 两道题目很类似，127题要求计算最短路径大小，126题要求给出所有的最短路径
@@ -333,20 +333,20 @@ M 其实就是 OS 线程，它只有两个状态：自旋、非自旋</descripti
     
     <item>
       <title>297. 二叉树的序列化与反序列化</title>
-      <link>https://yuler.asia/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</link>
+      <link>https://zhangyh.me/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</link>
       <pubDate>Wed, 30 Jun 2021 02:28:46 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</guid>
       <description>题目地址
  Solution  层序遍历 对于空节点，设置&amp;quot;#&amp;quot;标记 strconv.Atoi返回值类型为(int,error)  Code 层序遍历 很久没写python，手生了</description>
     </item>
     
     <item>
       <title>Go | SliceTricks</title>
-      <link>https://yuler.asia/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html</link>
+      <link>https://zhangyh.me/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html</link>
       <pubDate>Tue, 29 Jun 2021 03:57:10 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html</guid>
+      <guid>https://zhangyh.me/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html</guid>
       <description>原文地址: https://github.com/golang/go/wiki/SliceTricks
  go官方给出了许多slice操作的tricks，这里记录一下，并在最后给出Examples
 AppendVector Copy Cut Delete Delete without preserving order  Cut
@@ -364,10 +364,10 @@ In-place deduplicate (comparable)  in-place 去重
     
     <item>
       <title>第247场周赛</title>
-      <link>https://yuler.asia/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</link>
+      <link>https://zhangyh.me/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</link>
       <pubDate>Sun, 27 Jun 2021 08:07:17 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</guid>
       <description>1. 两个数对之间的最大乘积差  题目地址
  排序  时间复杂度：O(nlogn) 空间复杂度：O(1)  2. 循环轮转矩阵  题目地址
  模拟 next函数获的下一个坐标
@@ -384,10 +384,10 @@ In-place deduplicate (comparable)  in-place 去重
     
     <item>
       <title>《人民币汇率与人民币国际化》——翟东升</title>
-      <link>https://yuler.asia/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</link>
+      <link>https://zhangyh.me/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</link>
       <pubDate>Sun, 27 Jun 2021 06:18:43 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</guid>
+      <guid>https://zhangyh.me/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</guid>
       <description>总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点
 1. 对人民币汇率的错误预测 看空人民币的五个错误理由 看空人民的观点错在哪 人民币是强势货币 2. 汇率的影响因素  短期看市场情绪，中期看政府调控，长期看市场
  影响长期汇率的直接因素 长期来看影响汇率最直接最有效的因素就是一个国家可贸易品的价格水平。可贸易品的加权平均价决定了汇率。
@@ -418,10 +418,10 @@ In-place deduplicate (comparable)  in-place 去重
     
     <item>
       <title>752.打开转盘锁</title>
-      <link>https://yuler.asia/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</link>
+      <link>https://zhangyh.me/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</link>
       <pubDate>Sat, 26 Jun 2021 15:39:07 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</guid>
       <description> 题目地址
  Solution BFS，每次将相邻的可能出现的情况放在队列中，同时维护visited数组，注意使用两个队列
 参考了题解，将时间从200ms降到20ms，关键的优化点：
@@ -430,10 +430,10 @@ In-place deduplicate (comparable)  in-place 去重
     
     <item>
       <title>773. 滑动谜题</title>
-      <link>https://yuler.asia/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</link>
+      <link>https://zhangyh.me/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</link>
       <pubDate>Sat, 26 Jun 2021 15:38:20 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</guid>
       <description> 题目地址
  Solution 与752. 打开转盘锁解题思路相同
  转化为字符串 判断bfs搜索下层路径生成的内容 进行bfs搜索  Code 解法一 </description>
@@ -441,10 +441,10 @@ In-place deduplicate (comparable)  in-place 去重
     
     <item>
       <title>65. 有效数字</title>
-      <link>https://yuler.asia/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</link>
+      <link>https://zhangyh.me/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</link>
       <pubDate>Thu, 17 Jun 2021 08:26:30 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</guid>
       <description>题目地址
  Solution 真真正正的见证了这道题的进化历史————从最开始的题意含糊不清到现在的有条有理。
 暴力模拟的方法非常繁琐，且很容易出错，因此往往选择使用有限状态自动机。
@@ -454,10 +454,10 @@ Code 优化前的DFA  时间复杂度：O(n) 空间复杂度：O(1)  优化后�
     
     <item>
       <title>486. 预测赢家</title>
-      <link>https://yuler.asia/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</link>
+      <link>https://zhangyh.me/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</link>
       <pubDate>Thu, 17 Jun 2021 06:46:45 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</guid>
       <description>题目地址
  Solution  数组长度为偶数时
 此时奇数序列以及偶数序列两个序列中肯定有一个最大序列，而先进行选择的人能够决定选择哪一个序列，因此他是必胜的，直接返回true即可
@@ -472,10 +472,10 @@ dp[i][j]表示，当前选手的净胜分数，无论选手是A和B，我们都�
     
     <item>
       <title>852. 山脉数组的峰顶索引</title>
-      <link>https://yuler.asia/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</link>
+      <link>https://zhangyh.me/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</link>
       <pubDate>Tue, 15 Jun 2021 02:05:20 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</guid>
       <description> 题目地址
  Solution 使用二分法来加速查找，以达到O(n)的时间复杂度。判断的条件是arr[mid] &amp;gt; arr[mid + 1]，需要注意边界控制。
 code  时间复杂度：O(log(n)) 空间复杂度：O(1)  </description>
@@ -483,10 +483,10 @@ code  时间复杂度：O(log(n)) 空间复杂度：O(1)  </description>
     
     <item>
       <title>374. 猜数字大小</title>
-      <link>https://yuler.asia/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</link>
+      <link>https://zhangyh.me/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</link>
       <pubDate>Mon, 14 Jun 2021 15:05:29 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</guid>
       <description> 题目地址
  Solution 很简单的二分法，直接上代码
 code </description>

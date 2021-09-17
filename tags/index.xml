@@ -2,29 +2,29 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Tags on yuler&#39;s blog</title>
-    <link>https://yuler.asia/tags/</link>
+    <link>https://zhangyh.me/tags/</link>
     <description>Recent content in Tags on yuler&#39;s blog</description>
     <image>
-      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 03 Jul 2021 03:02:56 +0000</lastBuildDate><atom:link href="https://yuler.asia/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 03 Jul 2021 03:02:56 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>io</title>
-      <link>https://yuler.asia/tags/io/</link>
+      <link>https://zhangyh.me/tags/io/</link>
       <pubDate>Sat, 03 Jul 2021 03:02:56 +0000</pubDate>
       
-      <guid>https://yuler.asia/tags/io/</guid>
+      <guid>https://zhangyh.me/tags/io/</guid>
       <description></description>
     </item>
     
     <item>
       <title>schedule</title>
-      <link>https://yuler.asia/tags/schedule/</link>
+      <link>https://zhangyh.me/tags/schedule/</link>
       <pubDate>Thu, 01 Jul 2021 16:45:55 +0000</pubDate>
       
-      <guid>https://yuler.asia/tags/schedule/</guid>
+      <guid>https://zhangyh.me/tags/schedule/</guid>
       <description></description>
     </item>
     

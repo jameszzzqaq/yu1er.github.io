@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Thinking on yuler&#39;s blog</title>
-    <link>https://yuler.asia/categories/thinking/</link>
+    <link>https://zhangyh.me/categories/thinking/</link>
     <description>Recent content in Thinking on yuler&#39;s blog</description>
     <image>
-      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 27 Jun 2021 06:18:43 +0000</lastBuildDate><atom:link href="https://yuler.asia/categories/thinking/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 27 Jun 2021 06:18:43 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/thinking/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>《人民币汇率与人民币国际化》——翟东升</title>
-      <link>https://yuler.asia/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</link>
+      <link>https://zhangyh.me/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</link>
       <pubDate>Sun, 27 Jun 2021 06:18:43 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</guid>
+      <guid>https://zhangyh.me/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</guid>
       <description>总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点
 1. 对人民币汇率的错误预测 看空人民币的五个错误理由 看空人民的观点错在哪 人民币是强势货币 2. 汇率的影响因素  短期看市场情绪，中期看政府调控，长期看市场
  影响长期汇率的直接因素 长期来看影响汇率最直接最有效的因素就是一个国家可贸易品的价格水平。可贸易品的加权平均价决定了汇率。

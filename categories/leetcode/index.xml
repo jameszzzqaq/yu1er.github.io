@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Leetcode on yuler&#39;s blog</title>
-    <link>https://yuler.asia/categories/leetcode/</link>
+    <link>https://zhangyh.me/categories/leetcode/</link>
     <description>Recent content in Leetcode on yuler&#39;s blog</description>
     <image>
-      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 22 Jul 2021 00:53:46 +0000</lastBuildDate><atom:link href="https://yuler.asia/categories/leetcode/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 22 Jul 2021 00:53:46 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/leetcode/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>138. 复制带随机指针的链表</title>
-      <link>https://yuler.asia/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</link>
+      <link>https://zhangyh.me/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</link>
       <pubDate>Thu, 22 Jul 2021 00:53:46 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</guid>
       <description> 题目地址
  Solution 两种解决思路：
  使用哈希表存储每个原节点对于复制节点的映射 先通过链表A-&amp;gt;B-&amp;gt;C构造A-&amp;gt;A&amp;amp;#039;-&amp;gt;B-&amp;gt;B&amp;amp;#039;-&amp;gt;C-&amp;gt;C&amp;amp;#039;，然后再拆分成A-&amp;gt;B-&amp;gt;C和A&amp;amp;#039;-&amp;gt;B&amp;amp;#039;-&amp;gt;C&amp;amp;#039;  Code 解法一 解法二 </description>
@@ -23,10 +23,10 @@
     
     <item>
       <title>1418. 点菜展示表</title>
-      <link>https://yuler.asia/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</link>
+      <link>https://zhangyh.me/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</link>
       <pubDate>Tue, 06 Jul 2021 06:54:35 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</guid>
       <description>题目地址
  Solution 重点是模拟整个流程。
 golang中没有set，但可以使用map[int]struct{}来表示set，其中的value为struct{}，不会占用内存
@@ -35,10 +35,10 @@ Code 模拟 References 1. Sets in Go</description>
     
     <item>
       <title>30. 串联所有单词的子串</title>
-      <link>https://yuler.asia/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</link>
+      <link>https://zhangyh.me/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</link>
       <pubDate>Wed, 30 Jun 2021 15:42:07 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</guid>
       <description> 题目地址
  Solution 这题需要使用滑动窗口，需要通过words中的个数和实际窗口中的单词个数进行比较，当相同时，证明窗口字符串是由words拼接而成。问题是，单纯的比较个数二者并不绝对相等，因此在窗口扩大时，如果新加进来的right_word在窗口中的个数大于实际words中的个数，我们需要对窗口进行左移，直到二者个数相同。
 因此在满足每个对应单词个数分别相同的前提下，比较所有单词个数才是有效的。
@@ -47,10 +47,10 @@ Code 哈希表+滑动窗口 Reference  https://leetcode-cn.com/problems/substrin
     
     <item>
       <title>126. 127. 单词接龙</title>
-      <link>https://yuler.asia/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</link>
+      <link>https://zhangyh.me/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</link>
       <pubDate>Wed, 30 Jun 2021 07:25:33 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</guid>
       <description> 126 题目地址
 127 题目地址
  Solution 两道题目很类似，127题要求计算最短路径大小，126题要求给出所有的最短路径
@@ -62,20 +62,20 @@ Code 哈希表+滑动窗口 Reference  https://leetcode-cn.com/problems/substrin
     
     <item>
       <title>297. 二叉树的序列化与反序列化</title>
-      <link>https://yuler.asia/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</link>
+      <link>https://zhangyh.me/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</link>
       <pubDate>Wed, 30 Jun 2021 02:28:46 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</guid>
       <description>题目地址
  Solution  层序遍历 对于空节点，设置&amp;quot;#&amp;quot;标记 strconv.Atoi返回值类型为(int,error)  Code 层序遍历 很久没写python，手生了</description>
     </item>
     
     <item>
       <title>第247场周赛</title>
-      <link>https://yuler.asia/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</link>
+      <link>https://zhangyh.me/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</link>
       <pubDate>Sun, 27 Jun 2021 08:07:17 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</guid>
       <description>1. 两个数对之间的最大乘积差  题目地址
  排序  时间复杂度：O(nlogn) 空间复杂度：O(1)  2. 循环轮转矩阵  题目地址
  模拟 next函数获的下一个坐标
@@ -92,10 +92,10 @@ Code 哈希表+滑动窗口 Reference  https://leetcode-cn.com/problems/substrin
     
     <item>
       <title>752.打开转盘锁</title>
-      <link>https://yuler.asia/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</link>
+      <link>https://zhangyh.me/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</link>
       <pubDate>Sat, 26 Jun 2021 15:39:07 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</guid>
       <description> 题目地址
  Solution BFS，每次将相邻的可能出现的情况放在队列中，同时维护visited数组，注意使用两个队列
 参考了题解，将时间从200ms降到20ms，关键的优化点：
@@ -104,10 +104,10 @@ Code 哈希表+滑动窗口 Reference  https://leetcode-cn.com/problems/substrin
     
     <item>
       <title>773. 滑动谜题</title>
-      <link>https://yuler.asia/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</link>
+      <link>https://zhangyh.me/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</link>
       <pubDate>Sat, 26 Jun 2021 15:38:20 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</guid>
       <description> 题目地址
  Solution 与752. 打开转盘锁解题思路相同
  转化为字符串 判断bfs搜索下层路径生成的内容 进行bfs搜索  Code 解法一 </description>
@@ -115,10 +115,10 @@ Code 哈希表+滑动窗口 Reference  https://leetcode-cn.com/problems/substrin
     
     <item>
       <title>65. 有效数字</title>
-      <link>https://yuler.asia/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</link>
+      <link>https://zhangyh.me/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</link>
       <pubDate>Thu, 17 Jun 2021 08:26:30 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</guid>
       <description>题目地址
  Solution 真真正正的见证了这道题的进化历史————从最开始的题意含糊不清到现在的有条有理。
 暴力模拟的方法非常繁琐，且很容易出错，因此往往选择使用有限状态自动机。
@@ -128,10 +128,10 @@ Code 优化前的DFA  时间复杂度：O(n) 空间复杂度：O(1)  优化后�
     
     <item>
       <title>486. 预测赢家</title>
-      <link>https://yuler.asia/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</link>
+      <link>https://zhangyh.me/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</link>
       <pubDate>Thu, 17 Jun 2021 06:46:45 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</guid>
       <description>题目地址
  Solution  数组长度为偶数时
 此时奇数序列以及偶数序列两个序列中肯定有一个最大序列，而先进行选择的人能够决定选择哪一个序列，因此他是必胜的，直接返回true即可
@@ -146,10 +146,10 @@ dp[i][j]表示，当前选手的净胜分数，无论选手是A和B，我们都�
     
     <item>
       <title>852. 山脉数组的峰顶索引</title>
-      <link>https://yuler.asia/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</link>
+      <link>https://zhangyh.me/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</link>
       <pubDate>Tue, 15 Jun 2021 02:05:20 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</guid>
       <description> 题目地址
  Solution 使用二分法来加速查找，以达到O(n)的时间复杂度。判断的条件是arr[mid] &amp;gt; arr[mid + 1]，需要注意边界控制。
 code  时间复杂度：O(log(n)) 空间复杂度：O(1)  </description>
@@ -157,10 +157,10 @@ code  时间复杂度：O(log(n)) 空间复杂度：O(1)  </description>
     
     <item>
       <title>374. 猜数字大小</title>
-      <link>https://yuler.asia/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</link>
+      <link>https://zhangyh.me/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</link>
       <pubDate>Mon, 14 Jun 2021 15:05:29 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</guid>
+      <guid>https://zhangyh.me/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</guid>
       <description> 题目地址
  Solution 很简单的二分法，直接上代码
 code </description>

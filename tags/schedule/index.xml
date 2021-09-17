@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>schedule on yuler&#39;s blog</title>
-    <link>https://yuler.asia/tags/schedule/</link>
+    <link>https://zhangyh.me/tags/schedule/</link>
     <description>Recent content in schedule on yuler&#39;s blog</description>
     <image>
-      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 01 Jul 2021 16:45:55 +0000</lastBuildDate><atom:link href="https://yuler.asia/tags/schedule/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 01 Jul 2021 16:45:55 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/schedule/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Go调度 | 4. 调度策略</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</link>
       <pubDate>Thu, 01 Jul 2021 16:45:55 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</guid>
       <description>前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
 schedule() 从p的本地队列获取goroutine 从源码上看，p的本地队列包括两部分，一个是runnext所指向的goroutine，另一个就是由runq,runhead和runtail组成的无锁队列。
@@ -32,10 +32,10 @@ note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通
     
     <item>
       <title>Go调度 | 3. goroutine的创建和执行</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</link>
       <pubDate>Thu, 01 Jul 2021 04:36:30 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</guid>
       <description>参考[上篇文章]()对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
 go程序的启动 main goroutine newproc() 该函数创建出main goroutine
 newproc主要是对newproc1的封装。newproc首先获取要执行函数fn的参数地址argp，然后通过systemstack切换到g0栈去执行newproc1，然后把生成的g放入到绑定的p的本地队列中。
@@ -59,10 +59,10 @@ goexit1函数通过调用mcall从当前运行的go goroutine切换到g0，然后
     
     <item>
       <title>Go调度 | 2. scheduler初始化</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</link>
       <pubDate>Wed, 30 Jun 2021 10:51:39 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</guid>
       <description>上篇文章结尾告诉我们了几个重要的全局变量，本篇文章会用到
 go程序的启动 当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。
 对于linux下的程序来说，入口文件在runtime/rt0_linux_amd64.s，
@@ -82,10 +82,10 @@ procresize() ——初始化allp  procresize()通过GOMAXPROC可以动态的调�
     
     <item>
       <title>Go调度 | 1. GMP模型</title>
-      <link>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</link>
+      <link>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</link>
       <pubDate>Wed, 30 Jun 2021 08:56:43 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</guid>
+      <guid>https://zhangyh.me/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</guid>
       <description>本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
 线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
  内存占用

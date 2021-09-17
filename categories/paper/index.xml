@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Paper on yuler&#39;s blog</title>
-    <link>https://yuler.asia/categories/paper/</link>
+    <link>https://zhangyh.me/categories/paper/</link>
     <description>Recent content in Paper on yuler&#39;s blog</description>
     <image>
-      <url>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://yuler.asia/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 05 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://yuler.asia/categories/paper/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 05 Aug 2021 02:47:09 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/paper/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</link>
+      <link>https://zhangyh.me/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</link>
       <pubDate>Thu, 05 Aug 2021 02:47:09 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</guid>
+      <guid>https://zhangyh.me/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
@@ -37,10 +37,10 @@ Operation Model Optane DIMM有两种模式Memory和App Direct
     
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
-      <link>https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</link>
+      <link>https://zhangyh.me/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</link>
       <pubDate>Tue, 03 Aug 2021 07:58:56 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</guid>
+      <guid>https://zhangyh.me/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
  对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
  未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍
@@ -59,10 +59,10 @@ Insert Latency insert latency来源有三个方面：
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</link>
+      <link>https://zhangyh.me/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</link>
       <pubDate>Tue, 03 Aug 2021 07:48:31 +0000</pubDate>
       
-      <guid>https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</guid>
+      <guid>https://zhangyh.me/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</guid>
       <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成
 其中可能同时存在某个数据的多个版本
 (tupleId, Tx-CTS)唯一确定一个tuple
