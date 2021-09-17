@@ -1,0 +1,3163 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN"><title type="text">yuler blog</title><subtitle type="html">MemE 是一个强大且可高度定制的 GoHugo 博客主题，专为个人博客设计。</subtitle><updated>2021-09-17T09:53:45+00:00</updated><id>https://yuler.asia/</id><link rel="alternate" type="text/html" href="https://yuler.asia/"/><link rel="self" type="application/atom+xml" href="https://yuler.asia/atom.xml"/><author><name>reuixiy</name><uri>https://yuler.asia/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><generator uri="https://gohugo.io/" version="0.88.1">Hugo</generator><entry><title type="text">聊聊内存对齐</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html"/><id>https://yuler.asia/topics/misc/%E8%81%8A%E8%81%8A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-08-13T14:21:59+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">为什么需要内存对齐？ 首先需要从物理硬件上了解计算机如何进行内存访问的。 Channel &amp;gt; DIMM &amp;gt; Rank &amp;gt; Chip……</summary><content type="html">&lt;h2 id="为什么需要内存对齐">为什么需要内存对齐？&lt;/h2>
+&lt;p>首先需要从物理硬件上了解计算机如何进行内存访问的。&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/memory-arch.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/memory-arch.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="memory-arch" />
+&lt;/div>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/mem-chip-arch.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/mem-chip-arch.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="mem-chip-arch" />
+&lt;/div>
+&lt;blockquote>
+&lt;p>Channel &amp;gt; DIMM &amp;gt; Rank &amp;gt; Chip &amp;gt; Bank &amp;gt; Coloum/Row &amp;gt; Cell&lt;/p>
+&lt;/blockquote>
+&lt;p>如上图&lt;br>
+CPU包括两个Channel&lt;br>
+每个Channel包括两个DIMM&lt;br>
+每个DIMM由Rank组成&lt;br>
+Rank由8个内存颗粒chip组成&lt;br>
+每个Chip包括8个Bank&lt;/p>
+&lt;p>CPU读取内存时从8个chip中每个读取8bit字节，从而构成64bit&lt;br>
+column和row定位的一个单元格cell中有8个bit&lt;/p>
+&lt;p>因此一次性最少读取64bit，这恰好也是cacheline的大小。&lt;br>
+（cacheline是cache的基本单位，每个cache由若干cacheline组成）&lt;/p>
+&lt;h2 id="什么是内存对齐">什么是内存对齐&lt;/h2>
+&lt;p>从上面我们可以知道，一次性最少读取8B，这也是局部性原理的一种使用。&lt;/p>
+&lt;p>内存对齐就是代码编译后在内存中的布局，当一个内存地址刚好能够整除8，就称为其内存地址是8字节对齐的。&lt;/p>
+&lt;h2 id="为什么需要内存对齐-1">为什么需要内存对齐&lt;/h2>
+&lt;p>对于go中定义的如下结构&lt;/p>
+&lt;pre>&lt;code class="language-go">type Type1 struct {
+a int8
+b int64
+c int32
+}&lt;/code>&lt;/pre>
+&lt;p>其内存布局是这样的：&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/mem-type1-align.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/mem-type1-align.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="mem-type1-align" />
+&lt;/div>
+&lt;p>通过&lt;code>unsafe.Sizeof()&lt;/code>可以打印出该结构占用了24字节的内存。&lt;/p>
+&lt;p>如果调整一下顺序：&lt;/p>
+&lt;pre>&lt;code class="language-go">type Type2 struct {
+a int8
+c int32
+b int64
+}&lt;/code>&lt;/pre>
+&lt;p>便可以节约一个字节的内存&lt;/p>
+&lt;h2 id="零大小字段">零大小字段&lt;/h2>
+&lt;p>如果结构体或数组类型不包含大小大于零的字段或元素，那么它的大小就为0&lt;/p>
+&lt;pre>&lt;code class="language-go">package main
+import (
+"fmt"
+"unsafe"
+)
+type M struct {
+m int64
+x struct{}
+}
+type N struct {
+x struct{}
+n int64
+}
+func main() {
+m, n := M{}, N{}
+fmt.Println(unsafe.Sizeof(m)) // 16
+fmt.Println(unsafe.Sizeof(n)) // 8
+}&lt;/code>&lt;/pre>
+&lt;p>为什么只是把零字段放到struct M的最后面就会导致增加了一个字节。&lt;/p>
+&lt;p>原因是如果我们不额外分配一个字节的内存，那么零字段对应的地址指针就不属于struct管理的范围，就指向了一个非法的地址，成为了野指针。&lt;/p>
+&lt;h2 id="references">References&lt;/h2>
+&lt;ol>
+&lt;li>&lt;a href="https://zhuanlan.zhihu.com/p/355158723">https://zhuanlan.zhihu.com/p/355158723&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://zhuanlan.zhihu.com/p/26327347">https://zhuanlan.zhihu.com/p/26327347&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.derror.com/p/memory-physical-structure/">https://www.derror.com/p/memory-physical-structure/&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/misc/" term="Misc" label="Misc"/></entry><entry><title type="text">An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html"/><id>https://yuler.asia/topics/paper/an-empirical-guide-to-the-behavior-and-use-of-scalable-persistent-memory.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-08-05T02:47:09+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不……</summary><content type="html">&lt;h1 id="introduction">Introduction&lt;/h1>
+&lt;p>过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。&lt;/p>
+&lt;p>但实验发现，Optane DIMM的性能与DRAM相比，更依赖于&lt;/p>
+&lt;ul>
+&lt;li>access size&lt;/li>
+&lt;li>access method(read,write)&lt;/li>
+&lt;li>pattern&lt;/li>
+&lt;li>degree of concurrency&lt;/li>
+&lt;/ul>
+&lt;p>本文通过经过实验证明了之前的很多仿真方法都是不可靠的。&lt;/p>
+&lt;h1 id="background">Background&lt;/h1>
+&lt;p>Optane DIMM是第一款商用NVDIMM&lt;br>
+与SSD/HDD相比，它low latency、higher read bandwidth、byte-address&lt;br>
+与DRAM相比，它higher density、persistent&lt;/p>
+&lt;h2 id="optane-memory">Optane Memory&lt;/h2>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/optane-platform-model.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/optane-platform-model.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="optane-platform-model" />
+&lt;/div>
+&lt;p>Optane DIMM使用和DRAM相同的插槽，和处理器的集成内存控制器（iMC)相连接。Intel Cascade Lake处理器是第一个支持Optane DIMM的处理器，有一个或两个processor die，每个die支持两个iMC，每个iMC支持三个channel，因此一个die可以支持6个Optane DIMM&lt;/p>
+&lt;p>为了持久化，iMC维护一个asynchronous DRAM refresh(ADR)区域，写入这个区域内的数据都能保证其被持久化。ADR区域不保证处理器cache的持久化。&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/optane-dimm-overview.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/optane-dimm-overview.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="optane-dimm-overview" />
+&lt;/div>
+&lt;p>iMC按照缓存行粒度(64byte)和Optane DIMM通信。&lt;/p>
+&lt;p>3D-XPoint物理介质的访问粒度为256byte，因此会造成写放大，所以会在XPController中维护一个buffer来merge邻近的写操作。&lt;/p>
+&lt;h2 id="operation-model">Operation Model&lt;/h2>
+&lt;p>Optane DIMM有两种模式Memory和App Direct&lt;/p>
+&lt;ul>
+&lt;li>Memory Model&lt;br>
+该模式下直接将Optane DIMM作为普通的内存使用，将DRAM作为内存的Cache，DRAM是透明的，直接观察到的内存容量就是Optane DIMM的容量。&lt;br>
+该模式可以解决一些内存数据库内存容量不足的问题。&lt;/li>
+&lt;li>App Direct Model&lt;br>
+该模式将Optane DIMM作为持久化设备使用，直接通过CPU指令读写。文件系统和其他的管理层管理持久化内存的分配、回收和访问。&lt;/li>
+&lt;/ul>
+&lt;h1 id="best-practices-for-optane-dimm">Best Practices for Optane DIMM&lt;/h1>
+&lt;p>之前的仿真模拟根本无法捕捉到Optane行为的细节，优化disk和memory软件的传统经验不适用于Optane。&lt;/p>
+&lt;p>本文基于实验提出了使用于Optane DIMM的Best Practices&lt;/p>
+&lt;ul>
+&lt;li>Avoid random accesses smaller than &amp;lt; 256 B. 避免小于 256 字节的随机读写。&lt;/li>
+&lt;li>Use non-temporal stores when possible for large transfers, and control of cache evictions. 大内存操作时，使用 ntstore 指令绕过 CPU Cache。&lt;/li>
+&lt;li>Limit the number of concurrent threads accessing a 3D XPoint DIMM. 限制一个 Optane DIMMs 通道的并发数。&lt;/li>
+&lt;li>Avoid NUMA accesses (especially read-modify-write sequences). 避免 NUMA 访问。其实内存也一样，远端内存比本地内存要慢不少，这个问题在 Optane DIMMs 表现更突出，需要特别注意。&lt;/li>
+&lt;/ul>
+&lt;h2 id="aovid-small-random-access">Aovid small random access&lt;/h2>
+&lt;p>实验证明Optane DIMM中的cache大小大概为16KB，同时读的时候也会竞争这部分的空间。&lt;/p>
+&lt;p>避免小于256字节的随机读写。&lt;br>
+如果不可避免地话，应该限制工作集大小不应超过16KB，以充分利用locality。&lt;/p></content><category scheme="https://yuler.asia/categories/paper/" term="Paper" label="Paper"/></entry><entry><title type="text">Redesigning LSMs for nonvolatile memory with NoveLSM</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html"/><id>https://yuler.asia/topics/paper/redesigning-lsms-for-nonvolatile-memory-with-novelsm.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-08-03T07:58:56+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优……</summary><content type="html">&lt;h1 id="introduction">Introduction&lt;/h1>
+&lt;p>和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：&lt;/p>
+&lt;ul>
+&lt;li>对于持久存储的&lt;strong>随机访问&lt;/strong>的高性能&lt;/li>
+&lt;li>in-place update的低成本 (具体是?)&lt;/li>
+&lt;li>低时延、高带宽为application-level的并行化提供了机会&lt;/li>
+&lt;/ul>
+&lt;p>作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：&lt;/p>
+&lt;ul>
+&lt;li>未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。&lt;/li>
+&lt;li>redesign lsm能为现有的应用提供向后兼容&lt;/li>
+&lt;li>保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）&lt;/li>
+&lt;/ul>
+&lt;h1 id="motivation">Motivation&lt;/h1>
+&lt;p>单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍&lt;br>
+因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大&lt;/p>
+&lt;h2 id="insert-latency">Insert Latency&lt;/h2>
+&lt;p>insert latency来源有三个方面：&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>WAL&lt;/strong>&lt;/li>
+&lt;li>memtable insert&lt;/li>
+&lt;li>&lt;strong>compaction&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;blockquote>
+&lt;p>对于compaction&lt;br>
+内存中的mutable memtable在写满之后会刷新成immutable memtable，由后台进程将其压缩进磁盘，同时新开一个mutable memtable，来接管写入&lt;br>
+问题是新的mutable memtable写满之后，如果immutable memtable还没有刷到磁盘内，就会造成系统的停顿&lt;br>
+当进行大量的写入时，这会成为insert latency的主要来源。&lt;/p>
+&lt;/blockquote>
+&lt;p>可能会说，让memtable大一点不就可以解决，但这会带来一系列的问题：&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>增大memtable会带来双倍的内存占用，因为mutable memtable和immutable memtable需要同时增大&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>WAL的磁盘占用也会更大，因为他需要容纳更多的指令&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>LSM为了性能并不commit log。&lt;br>
+&amp;gt; Third, LSMs suchas LevelDB and RocksDB do not enforce commits (sync) when writing to a log; as a result, an application crash or power-failure could lead to data loss&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>log更大导致故障恢复的时间更慢&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;blockquote>
+&lt;p>Finally, the cost of checksumming and logging also increases&lt;/p>
+&lt;/blockquote>
+&lt;/li>
+&lt;/ol>
+&lt;h2 id="read-latency">Read Latency&lt;/h2>
+&lt;p>read latency来源有:&lt;/p>
+&lt;ol>
+&lt;li>memtable read&lt;/li>
+&lt;li>sstable index read (bloom filter加快搜索)&lt;/li>
+&lt;li>&lt;strong>sstable search (binary search, hierarchy)&lt;/strong>&lt;/li>
+&lt;li>sstable data copy (将data block从磁盘拷贝到内存)&lt;/li>
+&lt;li>&lt;strong>sstable deserialize (将硬盘中的数据反序列化为内存中的数据格式)&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;h1 id="design">Design&lt;/h1>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/novelsm.png'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/novelsm.png" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="" />
+&lt;/div>
+&lt;h2 id="novelsm-design-principles">NoveLSM Design Principles&lt;/h2>
+&lt;h3 id="原则1利用byte-addressability减少序列化和反序列化成本">原则1：利用byte-addressability，减少序列化和反序列化成本&lt;/h3>
+&lt;h3 id="原则2利用mutability和large-capacity减少compaction成本">原则2：利用mutability和large capacity，减少compaction成本&lt;/h3>
+&lt;p>磁盘中数据需要先读入内存，操作后再写入磁盘。&lt;br>
+NVM中可以直接操作。&lt;/p>
+&lt;h3 id="原则3利用in-place-mutability减少logging-overhead和recovery-cost">原则3：利用in-place mutability，减少logging overhead和recovery cost&lt;/h3>
+&lt;p>因为NVM的持久性，因此直接写入即可，不需要提前把日志持久化到磁盘&lt;/p>
+&lt;h3 id="原则4利用low-latency和high-bandwidth来并行化地读">原则4：利用low latency和high bandwidth，来并行化地读&lt;/h3>
+&lt;h2 id="addressing-deserialization-cost">Addressing (De)serialization Cost&lt;/h2>
+&lt;h3 id="immutable-nvm-skip-list-based-memtable">Immutable NVM skip list-based memtable.&lt;/h3>
+&lt;p>设计immutable NVM skip list-based memtable，替代DRAM中的immutable memtable&lt;/p>
+&lt;h2 id="reducing-compaction-cost">Reducing Compaction Cost&lt;/h2>
+&lt;h3 id="mutability-for-persistent-memtable">Mutability for persistent memtable&lt;/h3>
+&lt;p>如图5b,交叉写入DRAM mutable memtable和large NVM mutable memtable&lt;/p>
+&lt;ol>
+&lt;li>启动时首先初始化一个DRAM和NVM的mutable memtable&lt;/li>
+&lt;li>写入 DRAM mutable memtable，如果写满，冻结为immutable memtable，同时分配一个新的DRAM mutable memtable，同时将immutable memtable 进行compaction 刷入磁盘&lt;/li>
+&lt;li>写入 NVM mutable memtable，如果写满同上&lt;/li>
+&lt;/ol>
+&lt;p>也就是说&lt;br>
+留给每个compaction过程的时间为 = 写满一个DRAM mutable memtable + 写满一个NVM mutable memtable的时间&lt;/p>
+&lt;p>因此也就大大减少了系统停滞的可能性&lt;/p>
+&lt;h2 id="reducing-logging-cost">Reducing Logging Cost&lt;/h2>
+&lt;h3 id="logging">Logging&lt;/h3>
+&lt;p>写入DRAM的同时需要记录日志（带来了写放大）&lt;br>
+写入NVM的直接in-place更新&lt;/p>
+&lt;h3 id="recovery">Recovery&lt;/h3>
+&lt;p>故障时可能存在两种情况&lt;/p>
+&lt;ol>
+&lt;li>Vi写入DRAM memtable，但还没compaction&lt;br>
+Vi+1正在写入NVM memtable&lt;/li>
+&lt;li>Vi已经写入NVM memtable&lt;br>
+Vi+1正在写入DRAM memtable&lt;/li>
+&lt;/ol>
+&lt;p>为了保证Recovery时的正确性：&lt;/p>
+&lt;ol>
+&lt;li>对于每个DRAM memtable都有一个新的log file&lt;/li>
+&lt;li>正在写入NVM memtable时不需要log file，NVM memtable就可以被视作一个log file&lt;/li>
+&lt;li>NVM log file有递增的version number&lt;/li>
+&lt;/ol>
+&lt;p>Recovery时按照version number递增顺序恢复&lt;/p>
+&lt;p>发生故障时&lt;br>
+写入DRAM的需要从logging文件进行Recovery。&lt;br>
+写入NVM的memtable可以直接看作是一个日志文件，它同时需要一个存储跳表起始指针和其他元数据的额外文件从而在Recovery时定位数据。恢复时只需要进行内存映射即可。&lt;/p>
+&lt;h2 id="supporting-read-parallelism">Supporting Read Parallelism&lt;/h2>
+&lt;h3 id="reducing-read-latency">Reducing read latency&lt;/h3>
+&lt;p>常规的LSM中:&lt;br>
+使用一个线程自上向下mutable memtable -&amp;gt; immutable memtable -&amp;gt; SSTable&lt;br>
+在本设计中:&lt;br>
+DRAM memtable 和 NVM memtable使用一个线程&lt;br>
+DRAM immutable 和 NVM immutable使用一个线程&lt;br>
+SSTable使用一个线程&lt;/p>
+&lt;p>因此时间从&lt;br>
+$T_{read} ≈ T_{mem_{DRAM}} + T_{mem_{NVM}} + T_{imm} + T_{SST} $&lt;br>
+压缩为&lt;br>
+$T_{read_parallel} ≈ max(T_{mem_{DRAM}} + T_{mem_{NVM}}, T_{imm}, T_{SST}) + C$&lt;br>
+$C$是常量，代表了找到结果后停止其他线程所需的时间&lt;/p>
+&lt;h3 id="guaranteeing-version-correctness-for-reads">Guaranteeing version correctness for reads.&lt;/h3>
+&lt;p>更高层(memtable-&amp;gt;immu-&amp;gt;sstable)往往是最新的数据，版本号最新。&lt;/p>
+&lt;ul>
+&lt;li>负责更高层的thread找到结果后停止其他线程&lt;/li>
+&lt;li>负责更低层的thread找到结果后，先等待更高层的执行完&lt;/li>
+&lt;/ul>
+&lt;h3 id="optimistic-parallelism-and-management">Optimistic parallelism and management.&lt;/h3>
+&lt;p>多线程也带来了管理成本&lt;/p>
+&lt;ul>
+&lt;li>把多线程分配到不同的cpu上&lt;/li>
+&lt;li>为DRAM和NVM memtable添加bloom filter，只有bloom filter miss的时候，才开启多线程查询，否则就只使用单线程。&lt;/li>
+&lt;/ul></content><category scheme="https://yuler.asia/categories/paper/" term="Paper" label="Paper"/></entry><entry><title type="text">Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html"/><id>https://yuler.asia/topics/paper/zen-a-high-throughput-log-free-oltp-engine-for-non-volatile-main-memory.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-08-03T07:48:31+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">Design Overview Hybrid Table(HTable) tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers. Metadata in NVM Transaction and Indices in DRAM NVM heap 所有的tuple持久化到NVM中的t……</summary><content type="html">&lt;h2 id="design-overview">Design Overview&lt;/h2>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/zen-architecture.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/zen-architecture.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="zen-architecture" />
+&lt;/div>
+&lt;ul>
+&lt;li>Hybrid Table(HTable)
+&lt;ul>
+&lt;li>tuple heap in NVM&lt;/li>
+&lt;li>Met-Cache in DRAM&lt;/li>
+&lt;li>per-thread NVM-tuple managers.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Metadata in NVM&lt;/li>
+&lt;li>Transaction and Indices in DRAM&lt;/li>
+&lt;/ul>
+&lt;h3 id="nvm-heap">NVM heap&lt;/h3>
+&lt;p>所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成&lt;br>
+其中可能同时存在某个数据的多个版本&lt;br>
+(tupleId, Tx-CTS)唯一确定一个tuple&lt;/p>
+&lt;ul>
+&lt;li>LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1&lt;/li>
+&lt;li>Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。&lt;/li>
+&lt;li>Deleted: 被删除&lt;/li>
+&lt;/ul>
+&lt;h3 id="met-cache">Met-Cache&lt;/h3>
+&lt;p>NVM heap在DRAM中的缓存&lt;/p>
+&lt;ul>
+&lt;li>Clock bit: 用于Clock置换策略&lt;/li>
+&lt;li>Active bit: 事务正在使用该tuple&lt;/li>
+&lt;li>Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple&lt;/li>
+&lt;li>Copy bit: tuple被复制&lt;/li>
+&lt;li>CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。&lt;/li>
+&lt;/ul>
+&lt;h3 id="indices-in-dram">Indices in DRAM&lt;/h3>
+&lt;p>在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple&lt;/p>
+&lt;h3 id="transaction-private-data">Transaction-Private Data&lt;/h3>
+&lt;p>线程私有 用于事务并发访问 存储相应数据&lt;/p>
+&lt;h3 id="nvm-space-management">NVM Space Management&lt;/h3>
+&lt;p>二级NVM空间管理器&lt;/p>
+&lt;ul>
+&lt;li>page-level负责分配NVM page&lt;/li>
+&lt;li>tuple-level 线程本地的tuple管理器&lt;/li>
+&lt;/ul>
+&lt;h2 id="metadata-enhanced-tuple-cache">Metadata Enhanced Tuple Cache&lt;/h2>
+&lt;h2 id="log-free-persistent-transactions">Log-Free Persistent Transactions&lt;/h2>
+&lt;h3 id="normal-process">Normal Process&lt;/h3>
+&lt;p>Zen中的无锁事务处理包括三个阶段：&lt;/p>
+&lt;ul>
+&lt;li>Perform: 在DRAM中执行事务处理&lt;/li>
+&lt;li>Persist: 将最新的tuple持久化到NVM&lt;/li>
+&lt;li>Maintenance: 垃圾收集过时的tuple&lt;/li>
+&lt;/ul>
+&lt;p>初始时，X=500, Y=100, Z=100&lt;br>
+有事务：X账户转账给Y账户100，X账户转账给Z账户100&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/zen-log-free.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/zen-log-free.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="zen-log-free" />
+&lt;/div>
+&lt;h4 id="perform">Perform&lt;/h4>
+&lt;ul>
+&lt;li>事务首先通过primary key查询索引，将NVM中的读到DRAM中.&lt;br>
+如果DRAM满需要按照指定的置换策略进行置换，被置换项不需要写入到NVM中。原因如下：1.该项可能为只读。2. 如果该项被已commited的事务修改，它一定已经写入到NVM中。3. 如果该项被abort的事务修改，则直接丢弃&lt;/li>
+&lt;li>在DRAM下的Met-Cache中执行并发控制的事务。&lt;br>
+如果事务需要commit，则进行Persist阶段。&lt;br>
+如果事务被abort，则把Met-Cache中该事务修改的标记为dirty的项重新从NVM中读到Met-Cache中，以方便下一次的重试。&lt;/li>
+&lt;/ul>
+&lt;p>该过程主要的过程：&lt;/p>
+&lt;ul>
+&lt;li>将事务有关项从NVM加载到DRAM&lt;/li>
+&lt;li>修改索引&lt;/li>
+&lt;li>事务修改Met-Cache中的数据&lt;/li>
+&lt;li>Transaction跟踪读写集合&lt;/li>
+&lt;/ul>
+&lt;h4 id="persist">Persist&lt;/h4>
+&lt;p>在不记录日志的条件下，持久化Perform阶段修改过的tuples&lt;/p>
+&lt;ol>
+&lt;li>持久化tuples到新的slot中，原有的过时的tuples不改变&lt;/li>
+&lt;li>在持久化完成后，将该事务涉及的最后一个tuple的last persist标志位设置为1&lt;/li>
+&lt;/ol>
+&lt;p>如果持久化阶段发生crash，如果发现最后一个tuple的LP为1，则证明事务成功提交，如果没有，则丢弃上面被该事务写入的所有tuple。&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/zen-persist-process-algh.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/zen-persist-process-algh.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="zen-persist-process-algh" />
+&lt;/div>
+&lt;h4 id="maintenance">Maintenance&lt;/h4>
+&lt;p>垃圾收集的两个场景：&lt;/p>
+&lt;ol>
+&lt;li>提交事务时，对修改后的tuples进行了持久化，对之前版本的tuples进行垃圾收集。除非复制到DRAM中的tuples来源是其他线程，此时该线程NVM中肯定没有过时版本。&lt;/li>
+&lt;li>置换Met-Cache中的E时，如果E的copy标志位为1，则需要收集E在该线程NVM中的过时版本。&lt;/li>
+&lt;/ol>
+&lt;p>进入收集队列中不能直接free，需要根据CTS和全局最小的CTS进行判断&lt;/p>
+&lt;h3 id="flexible-support-for-concurrency-control-methods">Flexible Support for Concurrency Control Methods&lt;/h3>
+&lt;p>Zen使用Met-Cache中的CC-Meta字段来进行并发控制，它可以支持近10种并发控制方法，对于不同的方法，CC-Meta字段只需要存储需要设置的内容。&lt;/p>
+&lt;p>分为单版本和多版本的并发控制&lt;/p>
+&lt;h3 id="crash-recovery-without-logs">Crash Recovery without Logs&lt;/h3>
+&lt;p>Crash发生时，DRAM中的Index、Transaction、Met-Cache等全部被清除，只有NVM中已经被持久化的数据。&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/zen-scan-region-algh.png'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/zen-scan-region-algh.png" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="zen-scan-region-algh" />
+&lt;/div>
+&lt;p>该算法在recovery时扫描NVM-tuple heap region来重建index，并进行空间整理.&lt;/p>
+&lt;p>第一个循环先找当前有LP为1的最大CTS，当碰到小于该CTS的一定是已提交的，大于该CTS的不确定是否是可能absort的tuple&lt;/p>
+&lt;p>因此在第二个循环中进行第二次判断，此时的最大CTS一定是全局最大，如果还有大于它的，说明其对应的事务被absort。&lt;/p>
+&lt;p>该算法的正确性：&lt;/p>
+&lt;ul>
+&lt;li>线程内的CTS是单调递增的&lt;/li>
+&lt;li>使用第二个循环检查不确定的项&lt;/li>
+&lt;li>该算法重建了索引&lt;/li>
+&lt;li>该算法是幂等的，它不修改任何已提交的tuple，如果recovery过程中发生crash，再次执行该算法即可。&lt;/li>
+&lt;li>二次recovery时看不到第一次crash导致的uncommited tuple&lt;/li>
+&lt;/ul>
+&lt;h3 id="support-for-long-running-transactions">Support for Long Running Transactions&lt;/h3>
+&lt;p>对于长事务，它使用的空间可能超出Met-Cache容量，此时，Zen将切换为exclusive模式&lt;/p>
+&lt;p>长事务检测：&lt;/p>
+&lt;ol>
+&lt;li>Met-Cache空间用尽&lt;/li>
+&lt;li>垃圾回收队列超出阈值&lt;/li>
+&lt;/ol>
+&lt;p>Exclusive模式:&lt;br>
+当侦测到长事务，将设置全局标志位G-EX，此时所有线程absort所有的常规事务，然后使用所有资源来执行长事务，执行完毕后，回到常规模式。&lt;/p>
+&lt;h2 id="lightweight-nvm-space-management">Lightweight NVM Space Management&lt;/h2>
+&lt;p>二级NVM空间管理器&lt;/p>
+&lt;ul>
+&lt;li>page-level负责分配NVM page和page到HTable的映射，每个page为2MB，频率较低&lt;/li>
+&lt;li>tuple-level负责分配垃圾回收和NVM-tuple分配&lt;/li>
+&lt;/ul></content><category scheme="https://yuler.asia/categories/paper/" term="Paper" label="Paper"/></entry><entry><title type="text">复制带随机指针的链表</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html"/><id>https://yuler.asia/topics/leetcode/138-%E5%A4%8D%E5%88%B6%E5%B8%A6%E9%9A%8F%E6%9C%BA%E6%8C%87%E9%92%88%E7%9A%84%E9%93%BE%E8%A1%A8.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-22T00:53:46+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 两种解决思路： 使用哈希表存储每个原节点对于复制节点的映射 先通过链表A-&amp;g……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/copy-list-with-random-pointer/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>两种解决思路：&lt;/p>
+&lt;ol>
+&lt;li>使用哈希表存储每个原节点对于复制节点的映射&lt;/li>
+&lt;li>先通过链表&lt;code>A-&amp;gt;B-&amp;gt;C&lt;/code>构造&lt;code>A-&amp;gt;A&amp;amp;#039;-&amp;gt;B-&amp;gt;B&amp;amp;#039;-&amp;gt;C-&amp;gt;C&amp;amp;#039;&lt;/code>，然后再拆分成&lt;code>A-&amp;gt;B-&amp;gt;C&lt;/code>和&lt;code>A&amp;amp;#039;-&amp;gt;B&amp;amp;#039;-&amp;gt;C&amp;amp;#039;&lt;/code>&lt;/li>
+&lt;/ol>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="解法一">解法一&lt;/h3>
+&lt;pre>&lt;code class="language-go">/**
+* Definition for a Node.
+* type Node struct {
+* Val int
+* Next *Node
+* Random *Node
+* }
+*/
+func copyRandomList(head *Node) *Node {
+if head == nil {
+return nil
+}
+d := make(map[*Node]*Node)
+d[nil] = nil
+for p := head; p != nil; p = p.Next {
+d[p] = &amp;Node{Val: p.Val}
+}
+for p := head; p != nil; p = p.Next {
+d[p].Next = d[p.Next]
+d[p].Random = d[p.Random]
+}
+return d[head]
+}&lt;/code>&lt;/pre>
+&lt;h3 id="解法二">解法二&lt;/h3>
+&lt;pre>&lt;code class="language-go">/**
+* Definition for a Node.
+* type Node struct {
+* Val int
+* Next *Node
+* Random *Node
+* }
+*/
+func copyRandomList(head *Node) *Node {
+if head == nil {
+return nil
+}
+// A -&amp;gt; A&amp;#039; -&amp;gt; B -&amp;gt; B&amp;#039;
+for p := head; p != nil; p = p.Next.Next {
+new := &amp;Node{Val: p.Val}
+new.Next = p.Next
+p.Next = new
+}
+for p := head; p != nil; p = p.Next.Next {
+if p.Random != nil {
+p.Next.Random = p.Random.Next
+}
+}
+// 拆分
+newHead := head.Next
+for p := head; p != nil; {
+next := p.Next
+p.Next = p.Next.Next
+p = p.Next
+if p != nil {
+next.Next = p.Next
+}
+}
+return newHead
+}&lt;/code>&lt;/pre></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">Go | 内存分配</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html"/><id>https://yuler.asia/topics/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-17T12:14:57+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">设计原理 Go的内存分配参考了TCMalloc的核心思想。 每一个线程都可以获得一个用于……</summary><content type="html">&lt;h1 id="设计原理">设计原理&lt;/h1>
+&lt;p>Go的内存分配参考了&lt;code>TCMalloc&lt;/code>的核心思想。&lt;/p>
+&lt;ol>
+&lt;li>每一个线程都可以获得一个用于无锁分配小对象的缓存，这样可以让并行程序分配小对象（&amp;lt;=32KB）非常高效。&lt;/li>
+&lt;li>TCMalloc 管理的堆由一组页组成，一组连续的页面被表示为 span。当分配的对象大于 32KB，将使用页堆（Page Heap）进行内存分配。&lt;/li>
+&lt;/ol>
+&lt;h1 id="相关struct">相关struct&lt;/h1>
+&lt;h2 id="mspan">mspan&lt;/h2>
+&lt;p>&lt;code>mspan&lt;/code>是Go语言内存管理的基本单元。&lt;/p>
+&lt;pre>&lt;code class="language-go">type mspan struct {
+next *mspan // 链表指针
+prev *mspan // 链表指针
+startAddr uintptr // span 起始地址
+npages uintptr // page的数量
+spanclass spanClass // size class and noscan (uint8)
+state mSpanStateBox // span状态
+limit uintptr // end of data in span
+}&lt;/code>&lt;/pre>
+&lt;p>这里只列出了关心的主要字段。&lt;/p>
+&lt;ol>
+&lt;li>&lt;code>mspan&lt;/code>使用 &lt;code>next&lt;/code>和&lt;code>prev&lt;/code>指针构成双向链表&lt;/li>
+&lt;li>&lt;code>startAddr&lt;/code>确定了&lt;code>mspan&lt;/code>所在内存的地址，&lt;code>npages&lt;/code>确定了内存地址范围&lt;/li>
+&lt;li>每个&lt;code>mspan&lt;/code>都管理这&lt;code>npages&lt;/code>数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍）&lt;/li>
+&lt;li>&lt;code>state&lt;/code>为&lt;code>mspan&lt;/code>的状态，不细说。&lt;/li>
+&lt;/ol>
+&lt;h3 id="spanclass">spanClass&lt;/h3>
+&lt;p>这是&lt;code>mspan&lt;/code>中一个很核心的字段，&lt;code>spanClass&lt;/code>是跨度类，它决定了&lt;code>mspan&lt;/code>中管理的存储对象的大小和个数。&lt;/p>
+&lt;p>Go语言中一共有68种跨度类，每个跨度类会存储特定大小的对象并且需要分配指定数量的page。&lt;/p>
+&lt;p>&lt;code>class_to_size&lt;/code>表示每个跨度类的字节大小。&lt;br>
+&lt;code>class_to_allocnpages&lt;/code>表示每个跨度类需要分配page的数量。&lt;/p>
+&lt;p>ID为0的特殊跨度类，用于管理大对象。&lt;/p>
+&lt;p>跨度类的最后一个二进制位是&lt;code>nospan&lt;/code>标记，即表示对象是否包含指针，用于加快垃圾回收。&lt;/p>
+&lt;pre>&lt;code class="language-go">type spanClass uint8 // 前7位表示跨度类ID，最后一位标记是否包含指针
+_NumSizeClasses = 68
+var class_to_size = [_NumSizeClasses]uint16{0, 8, 16, 24, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 288, 320, 352, 384, 416, 448, 480, 512, 576, 640, 704, 768, 896, 1024, 1152, 1280, 1408, 1536, 1792, 2048, 2304, 2688, 3072, 3200, 3456, 4096, 4864, 5376, 6144, 6528, 6784, 6912, 8192, 9472, 9728, 10240, 10880, 12288, 13568, 14336, 16384, 18432, 19072, 20480, 21760, 24576, 27264, 28672, 32768}
+var class_to_allocnpages = [_NumSizeClasses]uint8{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 3, 2, 3, 1, 3, 2, 3, 4, 5, 6, 1, 7, 6, 5, 4, 3, 5, 7, 2, 9, 7, 5, 8, 3, 10, 7, 4}&lt;/code>&lt;/pre>
+&lt;p>每个&lt;code>mspan&lt;/code>的内存都用于指定跨度类的内存分配。在分配内存时，首先需要选择最适合的跨度类，从而避免内存浪费。&lt;/p>
+&lt;h2 id="mcache">mcache&lt;/h2>
+&lt;p>&lt;code>mcache&lt;/code>是线程缓存，它和GMP模型中的P绑定，主要用于为用户小于32KB的微、小对象分配内存。&lt;/p>
+&lt;p>每个&lt;code>mcache&lt;/code>有 $68 * 2$(&lt;code>_NumSizeClasses &amp;lt;&amp;lt; 1&lt;/code>) 个 &lt;code>mspan&lt;/code>。&lt;/p>
+&lt;pre>&lt;code class="language-Go">
+_NumSizeClasses = 68
+numSpanClasses = _NumSizeClasses &amp;lt;&amp;lt; 1
+type mcache struct {
+// 微为对象
+tiny uintptr
+tinyoffset uintptr
+tinyAllocs uintptr
+// 小对象
+alloc [numSpanClasses]*mspan // spans to allocate from, indexed by spanClass
+}&lt;/code>&lt;/pre>
+&lt;p>上面我们说过跨度类共有68种，这里每个跨度类又分为&lt;strong>有指针&lt;/strong>和&lt;strong>无指针&lt;/strong>两类。&lt;/p>
+&lt;p>对于&lt;strong>小对象&lt;/strong>，在&lt;code>mcache&lt;/code>中，为对象寻找&lt;code>mspan&lt;/code>的流程如下：&lt;/p>
+&lt;ol>
+&lt;li>计算对象所需内存大小&lt;code>size&lt;/code>&lt;/li>
+&lt;li>根据&lt;code>size&lt;/code>到&lt;code>size class&lt;/code>映射，计算出所需的&lt;code>size class&lt;/code>&lt;/li>
+&lt;li>根据&lt;code>size class&lt;/code>和对象是否包含指针计算出&lt;code>span class&lt;/code>&lt;/li>
+&lt;li>获取该&lt;code>span class&lt;/code>指向的&lt;code>span&lt;/code>。&lt;/li>
+&lt;/ol>
+&lt;p>但是如果对应的&lt;code>mspan&lt;/code>没有剩余空间可被分配时，&lt;code>mcache&lt;/code>就需要通过&lt;code>refill()&lt;/code>函数向&lt;code>mcentral&lt;/code>申请&lt;code>mspan&lt;/code>,&lt;code>mcache&lt;/code>拿到&lt;code>mspan&lt;/code>后继续分配内存。&lt;/p>
+&lt;h2 id="mcentral">mcentral&lt;/h2>
+&lt;pre>&lt;code class="language-go">type mcentral struct {
+spanclass spanClass
+partial [2]spanSet
+full [2]spanSet
+}&lt;/code>&lt;/pre>
+&lt;p>每个中心缓存都会管理某个跨度类的内存管理单元，它会同时持有两个 runtime.spanSet，分别存储包含空闲对象和不包含空闲对象的内存管理单元。&lt;/p>
+&lt;p>当&lt;code>mcentral&lt;/code>中的&lt;code>span&lt;/code>不够用时，会找到&lt;code>mheap&lt;/code>分配页数并获取新的&lt;code>mspan&lt;/code>结构。&lt;/p>
+&lt;h2 id="mheap">mheap&lt;/h2>
+&lt;p>&lt;code>mheap&lt;/code>是内存分配的核心结构体，每个Go语言程序有一个对应的全局变量。&lt;/p>
+&lt;pre>&lt;code class="language-go">type mheap struct {
+// lock must only be acquired on the system stack, otherwise a g
+// could self-deadlock if its stack grows with the lock held.
+lock mutex
+// arenas is the heap arena map. It points to the metadata for
+// the heap for every arena frame of the entire usable virtual
+// address space.
+//
+// Use arenaIndex to compute indexes into this array.
+//
+// For regions of the address space that are not backed by the
+// Go heap, the arena map contains nil.
+//
+// Modifications are protected by mheap_.lock. Reads can be
+// performed without locking; however, a given entry can
+// transition from nil to non-nil at any time when the lock
+// isn&amp;#039;t held. (Entries never transitions back to nil.)
+//
+// In general, this is a two-level mapping consisting of an L1
+// map and possibly many L2 maps. This saves space when there
+// are a huge number of arena frames. However, on many
+// platforms (even 64-bit), arenaL1Bits is 0, making this
+// effectively a single-level map. In this case, arenas[0]
+// will never be nil.
+arenas [1 &amp;lt;&amp;lt; arenaL1Bits]*[1 &amp;lt;&amp;lt; arenaL2Bits]*heapArena
+// central free lists for small size classes.
+// the padding makes sure that the mcentrals are
+// spaced CacheLinePadSize bytes apart, so that each mcentral.lock
+// gets its own cache line.
+// central is indexed by spanClass.
+central [numSpanClasses]struct {
+mcentral mcentral
+pad [cpu.CacheLinePadSize - unsafe.Sizeof(mcentral{})%cpu.CacheLinePadSize]byte
+}
+}&lt;/code>&lt;/pre>
+&lt;p>mheap包含两个重要部分，一个是&lt;code>mcentral&lt;/code>数组，它管理所有的跨度类内存。另一个是管理堆内存区域的&lt;code>arenas&lt;/code>。&lt;/p>
+&lt;p>Go 语言所有的内存空间都由如下所示的二维矩阵 &lt;code>heapArena&lt;/code> 管理，这个二维矩阵管理的内存可以是不连续的，每一个 &lt;code>heapArena&lt;/code> 都会管理 &lt;code>64MB&lt;/code> 的操作系统的内存空间。&lt;/p>
+&lt;h1 id="内存分配">内存分配&lt;/h1>
+&lt;ol>
+&lt;li>大于 32K 的大对象直接从 &lt;code>mheap&lt;/code> 分配。&lt;/li>
+&lt;li>小于 16B 的使用 &lt;code>mcache&lt;/code> 的微型分配器分配&lt;/li>
+&lt;li>对象大小在 16B ~ 32K 之间的的，首先通过计算使用的大小规格，然后使用 &lt;code>mcache&lt;/code> 中对应大小规格的块分配&lt;/li>
+&lt;li>如果对应的大小规格在 &lt;code>mcache&lt;/code> 中没有可用的块，则向 &lt;code>mcentral&lt;/code> 申请&lt;/li>
+&lt;li>如果 &lt;code>mcentral&lt;/code> 中没有可用的块，则向 &lt;code>mheap&lt;/code> 申请，并根据 &lt;code>BestFit&lt;/code> 算法找到最合适的 &lt;code>mspan&lt;/code>。如果申请到的 &lt;code>mspan&lt;/code> 超出申请大小，将会根据需求进行切分，以返回用户所需的页数。剩余的页构成一个新的 &lt;code>mspan&lt;/code> 放回 &lt;code>mheap&lt;/code> 的空闲列表。&lt;/li>
+&lt;li>如果 &lt;code>mheap&lt;/code> 中没有可用 &lt;code>span&lt;/code>，则向操作系统申请一系列新的页（最小 1MB）。 Go 会在操作系统分配超大的页（称作 &lt;code>arena&lt;/code>）。分配一大批页会减少和操作系统通信的成本&lt;/li>
+&lt;/ol>
+&lt;h1 id="references">References&lt;/h1>
+&lt;ol>
+&lt;li>&lt;a href="https://draveness.me/golang/docs/part3-runtime/ch07-memory/golang-memory-allocator">https://draveness.me/golang/docs/part3-runtime/ch07-memory/golang-memory-allocator&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://qiankunli.github.io/2020/11/22/go_mm.html">https://qiankunli.github.io/2020/11/22/go_mm.html&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://zhuanlan.zhihu.com/p/352133292">https://zhuanlan.zhihu.com/p/352133292&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.linuxzen.com/go-memory-allocator-visual-guide.html">https://www.linuxzen.com/go-memory-allocator-visual-guide.html&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://segmentfault.com/a/1190000039815122">https://segmentfault.com/a/1190000039815122&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://segmentfault.com/a/1190000023869256?utm_source=sf-similar-article">https://segmentfault.com/a/1190000023869256?utm_source=sf-similar-article&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/></entry><entry><title type="text">Go | context</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/go-context.html"/><id>https://yuler.asia/topics/golang/go-context.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-16T10:25:31+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号……</summary><content type="html">&lt;h2 id="什么是context">什么是context&lt;/h2>
+&lt;p>&lt;code>context&lt;/code> 主要用来在&lt;code>goroutine&lt;/code>之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。&lt;/p>
+&lt;p>可以通过以下个函数创建实现对应的功能:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>context.WithCancel()&lt;/code>: 创建带有取消函数的context，上层&lt;code>goroutine&lt;/code>调用&lt;code>cancelFunc&lt;/code>函数，向下层传递取消信号&lt;/li>
+&lt;li>&lt;code>context.WithTimeout()&lt;/code>: 创建带有超时的context，同时创建计时器，超时的时候调用&lt;code>context&lt;/code>的&lt;code>cancelFunc&lt;/code>；当然也可以主动调用&lt;code>cacelFunc&lt;/code>&lt;/li>
+&lt;li>&lt;code>context.WithDeadline()&lt;/code>: 和带超时的context类似，实际底层&lt;code>WithTimeout&lt;/code>就调用了&lt;code>WithDeadline&lt;/code>； &lt;code>return WithDeadline(parent, time.Now().Add(timeout))&lt;/code>&lt;/li>
+&lt;li>&lt;code>context.WithValue()&lt;/code>: 创建带值的context&lt;/li>
+&lt;/ul>
+&lt;h2 id="使用场景">使用场景&lt;/h2>
+&lt;h3 id="1-链路传值">1. 链路传值&lt;/h3>
+&lt;pre>&lt;code class="language-Go">func Test1() {
+ctx := context.WithValue(context.Background(), "key", "value")
+go handleChainA1(ctx)
+go handleChainA2(ctx)
+time.Sleep(2 * time.Second)
+}
+func handleChainA1(ctx context.Context) {
+log.Println("handleChainA1", ctx.Value("key"))
+go handleChainB(context.WithValue(ctx, "key2", "value2"))
+}
+func handleChainA2(ctx context.Context) {
+log.Println("handleChainA2", ctx.Value("key"))
+}
+func handleChainB(ctx context.Context) {
+log.Println("handleChainB", ctx.Value("key"))
+log.Println("handleChainB", ctx.Value("key2"))
+}
+func main() {
+Test1()
+}&lt;/code>&lt;/pre>
+&lt;ul>
+&lt;li>注意值的流向只能从上到下，上层&lt;code>context&lt;/code>是获取不到下层传入的值的&lt;/li>
+&lt;li>传入的&lt;code>context&lt;/code>不能为&lt;code>nil&lt;/code>，可以传&lt;code>context.Background()&lt;/code>或&lt;code>context.TODO()&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h3 id="2-链路并发控制">2. 链路并发控制&lt;/h3>
+&lt;p>&lt;code>context&lt;/code>最主要的作用是解决&lt;code>cancelation&lt;/code>问题，也就是通过上层&lt;code>goroutine&lt;/code>来释放下层&lt;code>goroutine&lt;/code>。&lt;br>
+可以把主要的并发模型归为两类，&lt;code>wait&lt;/code>和&lt;code>cancel&lt;/code>&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/context-wait.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/context-wait.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="Wait" />
+&lt;/div>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/context-cancel.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/context-cancel.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="Cancel" />
+&lt;/div>
+&lt;p>Wait主要通过&lt;code>sync.WaitGroup&lt;/code>实现，Cancel则需要通过&lt;code>context.Context&lt;/code>来实现&lt;/p>
+&lt;pre>&lt;code class="language-go">func Test2() {
+ctx, cancel := context.WithCancel(context.Background())
+go handle(ctx, 300*time.Millisecond)
+time.Sleep(1 * time.Second)
+cancel() // decide when to send cancel signal
+log.Println("main cancel", ctx.Err())
+}
+func handle(ctx context.Context, duration time.Duration) {
+i := 1
+for {
+select {
+case &amp;lt;-ctx.Done():
+log.Println("handle cancel", ctx.Err())
+return
+default:
+// do work
+log.Println("do work", i)
+i++
+time.Sleep(duration)
+}
+}
+}
+func main() {
+Test2()
+time.Sleep(1 * time.Second)
+}&lt;/code>&lt;/pre>
+&lt;p>这里只是用了带有cancel信号的context，当然也可以使用带有超时和截止时间的context&lt;/p>
+&lt;h2 id="使用原则">使用原则&lt;/h2>
+&lt;ul>
+&lt;li>不要将 &lt;code>Context&lt;/code> 塞到结构体里。直接将 &lt;code>Context&lt;/code> 类型作为函数的第一参数，而且一般都命名为 &lt;code>ctx&lt;/code>。&lt;/li>
+&lt;li>不要向函数传入一个 &lt;code>nil&lt;/code> 的 &lt;code>context&lt;/code>，如果你实在不知道传什么，标准库给你准备好了一个 &lt;code>context.TODO()&lt;/code>&lt;/li>
+&lt;li>不要把本应该作为函数参数的类型塞到 &lt;code>context&lt;/code> 中，&lt;code>context&lt;/code> 存储的应该是一些共同的数据。例如：登陆的 session、cookie 等。&lt;/li>
+&lt;li>同一个 &lt;code>context&lt;/code> 可能会被传递到多个 &lt;code>goroutine&lt;/code>，别担心，&lt;code>context&lt;/code> 是并发安全的。&lt;/li>
+&lt;/ul>
+&lt;h2 id="references">References&lt;/h2>
+&lt;ol>
+&lt;li>&lt;a href="https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context">https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.cnblogs.com/qcrao-2018/p/11007503.html">https://www.cnblogs.com/qcrao-2018/p/11007503.html&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://36kr.com/p/1721518997505">https://36kr.com/p/1721518997505&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://faiface.github.io/post/context-should-go-away-go2/">https://faiface.github.io/post/context-should-go-away-go2/&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://golang.org/pkg/context/#example_WithDeadline">https://golang.org/pkg/context/#example_WithDeadline&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8">https://xie.infoq.cn/article/3e18dd6d335d1a6ab552a88e8&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/></entry><entry><title type="text">Go | make和new</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/go-make%E5%92%8Cnew.html"/><id>https://yuler.asia/topics/golang/go-make%E5%92%8Cnew.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-11T07:17:49+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">区别 方法 作用对象 返回值 new 值类型和用户定义类型 指向对象的指针 make 内置引用类型slice,……</summary><content type="html">&lt;h2 id="区别">区别&lt;/h2>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>方法&lt;/th>
+&lt;th>作用对象&lt;/th>
+&lt;th>返回值&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>new&lt;/code>&lt;/td>
+&lt;td>值类型和用户定义类型&lt;/td>
+&lt;td>指向对象的指针&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>make&lt;/code>&lt;/td>
+&lt;td>内置引用类型&lt;code>slice&lt;/code>, &lt;code>map&lt;/code>, &lt;code>channel&lt;/code>&lt;/td>
+&lt;td>引用类型本身&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h2 id="new">new&lt;/h2>
+&lt;p>&lt;code>new&lt;/code>用于为值类型或用户自定义的类型&lt;strong>分配内存&lt;/strong>，并&lt;strong>初始化零值&lt;/strong>，&lt;strong>返回零值指针&lt;/strong>。&lt;/p>
+&lt;pre>&lt;code class="language-go">package main
+import (
+"fmt"
+)
+type Student struct {
+name string
+age int
+}
+func main() {
+var i *int
+// *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference
+fmt.Println(i)
+// fmt.Println(*i)
+num := new(int)
+fmt.Println(num)
+fmt.Println(*num)
+s := new(Student)
+fmt.Println(s) // &amp;Student{}
+fmt.Println(*s) // Student{}
+}&lt;/code>&lt;/pre>
+&lt;h2 id="make">make&lt;/h2>
+&lt;p>&lt;code>make&lt;/code>是为了初始化&lt;code>slice&lt;/code>，&lt;code>map&lt;/code>，&lt;code>channel&lt;/code>这三种引用类型的。&lt;br>
+针对这三种类型，分别调用&lt;code>runtime.makeslice&lt;/code>，&lt;code>runtime.makemap&lt;/code>，&lt;code>runtime.makechan&lt;/code>函数。&lt;/p>
+&lt;p>&lt;code>make&lt;/code> 相对于 &lt;code>new&lt;/code> 来说，做的事情更多，&lt;code>new&lt;/code> 只是开辟了内存空间， &lt;code>make&lt;/code> 为更加复杂的数据结构开辟内存空间并对一些字段进行初始化&lt;/p>
+&lt;h2 id="总结">总结&lt;/h2>
+&lt;ul>
+&lt;li>&lt;code>new&lt;/code>用于为值类型或用户自定义的类型&lt;/li>
+&lt;li>&lt;code>make&lt;/code>只能用于&lt;code>slice&lt;/code>,&lt;code>map&lt;/code>,&lt;code>channel&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>&lt;code>new&lt;/code>一般不常用，通常直接使用结构体字面量&lt;/p></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/></entry><entry><title type="text">点菜展示表</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html"/><id>https://yuler.asia/topics/leetcode/1418-%E7%82%B9%E8%8F%9C%E5%B1%95%E7%A4%BA%E8%A1%A8.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-06T06:54:35+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 重点是模拟整个流程。 golang中没有set，但可以使用map[int]s……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/display-table-of-food-orders-in-a-restaurant/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>重点是模拟整个流程。&lt;br>
+golang中没有set，但可以使用&lt;code>map[int]struct{}&lt;/code>来表示set，其中的value为&lt;code>struct{}&lt;/code>，不会占用内存&lt;/p>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="模拟">模拟&lt;/h3>
+&lt;pre>&lt;code class="language-go">import (
+"sort"
+"strconv"
+)
+func displayTable(orders [][]string) [][]string {
+all := make(map[int]map[string]int)
+allFoods := make(map[string]struct{})
+// construct adjacency list
+for _, order := range orders {
+id, _ := strconv.Atoi(order[1])
+allFoods[order[2]] = struct{}{}
+if all[id] == nil {
+all[id] = make(map[string]int)
+}
+all[id][order[2]]++
+}
+// get foods list, and sort it
+f := make([]string, 0, len(allFoods))
+for k, _ := range allFoods {
+f = append(f, k)
+}
+sort.Strings(f)
+// get table list, and sort it
+t := make([]int, 0, len(all))
+for k, _ := range all {
+t = append(t, k)
+}
+sort.Ints(t)
+m, n := len(all) + 1, len(f) + 1
+ans := make([][]string, m)
+ans[0] = append([]string{"Table"}, f...)
+for i, table := range t{
+ans[i+1] = make([]string, n)
+ans[i+1][0] = strconv.Itoa(table)
+for j, food := range f {
+ans[i+1][j + 1] = strconv.Itoa(all[table][food])
+}
+}
+return ans
+}&lt;/code>&lt;/pre>
+&lt;h2 id="references">References&lt;/h2>
+&lt;p>&lt;a href="https://emersion.fr/blog/2017/sets-in-go/">1. Sets in Go&lt;/a>&lt;/p></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">理解io多路复用</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html"/><id>https://yuler.asia/topics/misc/%E7%90%86%E8%A7%A3io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-03T03:02:56+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题……</summary><content type="html">&lt;p>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。&lt;/p>
+&lt;h2 id="为什么需要io多路复用模型">为什么需要io多路复用模型?&lt;/h2>
+&lt;p>当我们开启一个socket的时候，需要对发起的连接进行响应。&lt;/p>
+&lt;h3 id="阻塞io">阻塞io&lt;/h3>
+&lt;p>阻塞io流程如图&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/blocking.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/blocking.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="blocking io" />
+&lt;/div>
+&lt;p>如果使用&lt;strong>阻塞io&lt;/strong>，我们可能会有下面类似的代码框架。&lt;/p>
+&lt;pre>&lt;code class="language-c">listenfd = socket() // 创建socket
+bind(listenfd, addr) // 将socketfd和服务器地址绑定
+listend(listenfd) // 转换为监听套接字
+while(1) {
+connfd = accept(listenfd) // 阻塞建立连接
+new thread func(){
+int n = read(connfd, buf) // 阻塞读数据
+do_something() // 业务代码
+close(connfd) //关闭连接套接字
+}
+}&lt;/code>&lt;/pre>
+&lt;p>在&lt;code>accept()&lt;/code>建立起连接后，我们会使用多线程来接手连接套接字&lt;code>connfd&lt;/code>，阻塞的读取客户端发送来的内容。&lt;/p>
+&lt;ul>
+&lt;li>每个连接都要开启一个线程来阻塞读取数据，但大多数线程都处于阻塞状态，造成了严重的线程浪费&lt;/li>
+&lt;/ul>
+&lt;h3 id="非阻塞io">非阻塞io&lt;/h3>
+&lt;p>非阻塞io流程如图&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/nonblocking.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/nonblocking.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="nonblocking io" />
+&lt;/div>
+&lt;p>如果使用&lt;strong>非阻塞io&lt;/strong>，我们可能会有下面类似的代码框架&lt;/p>
+&lt;pre>&lt;code class="language-c">while(1) {
+connfd = accept(listenfd); // 阻塞建立连接
+append(fds, connfd)
+for fd in fds {
+fcntl(connfd, F_SETFL, O_NONBLOCK);
+int n = read(connfd, buffer);
+if n != -1 {
+new thread doSomeThing(buf); // 利用读到的数据做些什么
+}
+}
+}&lt;/code>&lt;/pre>
+&lt;p>将建立的连接放到数组中，然后进行轮询，当有能够读取到消息的时候，再开启新的线程进一步处理。&lt;/p>
+&lt;ul>
+&lt;li>轮询时使用系统调用read，导致用户态和内核态的频繁切换&lt;/li>
+&lt;/ul>
+&lt;h3 id="io多路复用">io多路复用&lt;/h3>
+&lt;p>考虑到上述两种io模型的缺点，提出了io多路复用，使用一个线程监听多个fd，同时又能减少系统调用的次数。&lt;/p>
+&lt;p>io多路复用包括三种模型select, poll和epoll。&lt;/p>
+&lt;h2 id="select">select&lt;/h2>
+&lt;p>selet流程如图&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/select.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/select.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="select流程" />
+&lt;/div>
+&lt;p>select的思路是，将监听的fd数组从用户空间拷贝到内核空间，由内核负责遍历fd数组，确定哪些fd是可读写的，然后再将可读写的fd进行标记，拷贝标记数组到用户空间，并返回总的可读写的数量。再由用户进行遍历标记数组，处理相应的fd。&lt;/p>
+&lt;p>select由以下的问题：&lt;/p>
+&lt;ul>
+&lt;li>fd数组的大小有限制，最大为1024&lt;/li>
+&lt;li>fd数组从用户空间到内核空间的频繁拷贝&lt;/li>
+&lt;li>用户还是需要根据返回的可读fd大小，对标记数组进行遍历，判断具体可操作的fd是哪个&lt;/li>
+&lt;/ul>
+&lt;h2 id="poll">poll&lt;/h2>
+&lt;p>poll使用链表代替了数组，解决了最大监听数1024的限制，但频繁拷贝和遍历问题仍未得到解决&lt;/p>
+&lt;h2 id="epoll">epoll&lt;/h2>
+&lt;p>针对select的三个问题，epoll进行了改进&lt;/p>
+&lt;ul>
+&lt;li>可监控的fd数量没有限制&lt;/li>
+&lt;li>数据结构位于内核中，无需用户每次从用户空间拷贝，只需要告诉内核需要修改的部分即可。&lt;/li>
+&lt;li>内核只会将有io事件的fd返回给用户，避免了多余的遍历操作。&lt;/li>
+&lt;/ul>
+&lt;p>用户把需要监听的io事件添加到内核空间的红黑树中，对于每一个事件都会通过回调函数与网卡驱动建立回调关系，当相应的事件发生时，就会调用回调函数，通过回调函数把发生的事件添加到&lt;strong>事件队列&lt;/strong>，当通过&lt;code>epoll_wait()&lt;/code>检查是否有事件发生时，只需要检查&lt;strong>队列&lt;/strong>是否为空即可，如果不为空，就把队列中的内容复制到用户态，同时将事件数量返回给用户。&lt;/p>
+&lt;p>epoll还是用了共享内存加速了用户空间和内核空间的消息传递。&lt;/p>
+&lt;p>epoll有LT(level trigger)和ET(edge trigger)两种模式：&lt;/p>
+&lt;ul>
+&lt;li>水平触发(LT)：只要fd的事件还未处理（比如数据还没有读），每次&lt;code>epoll_wait&lt;/code>都会返回该事件，提醒用户处理&lt;/li>
+&lt;li>边缘触发(ET): 当&lt;code>epoll_wait&lt;/code>检测到事件并通知用户时，用户必须立马处理，否则下次也不会通知该事件。&lt;/li>
+&lt;/ul>
+&lt;p>该术语使用了脉冲信号相关的属于，很形象的表达了它们的功能。水平触发就是水平信号，只要事件不处理，就会一直发送该信号。边缘触发就是上升沿和下降沿，事件只会通知一次。&lt;/p>
+&lt;h2 id="总结">总结&lt;/h2>
+&lt;table>
+&lt;tr>
+&lt;th>
+&lt;/th>
+&lt;pre>&lt;code>&amp;lt;th style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+select
+&amp;lt;/th&amp;gt;
+&amp;lt;th style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+poll
+&amp;lt;/th&amp;gt;
+&amp;lt;th style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+epoll
+&amp;lt;/th&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td>
+操作方式
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+遍历
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+遍历
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+回调
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td>
+数据结构
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+数组
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+链表
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+红黑树
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td>
+时间复杂度
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+O(n)
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+O(n)
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+O(1)
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td>
+最大fd数
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+1024
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+无上限
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+无上限
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td>
+fd拷贝
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+每次拷贝所有数据
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+每次拷贝所有数据
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+拷贝相应的增删改操作
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;/table>
+&lt;h2 id="references">References&lt;/h2>
+&lt;p>&lt;a href="https://www.jianshu.com/p/397449cadc9a">1. IO多路复用的三种机制Select，Poll，Epoll – 简书&lt;/a>&lt;br>
+&lt;a href="https://www.zhihu.com/question/28594409">2. I/O多路复用技术（multiplexing）是什么？ – 知乎&lt;/a>&lt;br>
+&lt;a href="https://juejin.cn/post/6882984260672847879#heading-23">3. 彻底理解 IO 多路复用实现机制&lt;/a>&lt;br>
+&lt;a href="https://www.toutiao.com/a6944906641779196424/">4. 图解 | 原来这就是 IO 多路复用&lt;/a>&lt;br>
+&lt;a href="https://zhuanlan.zhihu.com/p/130364795">5. 并发编程(IO多路复用) – 知乎&lt;/a>&lt;br>
+&lt;a href="https://www.cnblogs.com/Yunya-Cnblogs/p/13246517.html#_caption1">6. linux五种IO模型与事件驱动模型 – 云崖先生 – 博客园&lt;/a>&lt;br>
+&lt;a href="https://zhuanlan.zhihu.com/p/126278747">7. IO复用之select、poll、epoll模型 – 知乎&lt;/a>&lt;/p></content><category scheme="https://yuler.asia/categories/misc/" term="Misc" label="Misc"/><category scheme="https://yuler.asia/tags/io/" term="io" label="io"/></entry><entry><title type="text">Go调度 | 4. 调度策略</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html"/><id>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-4-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-01T16:45:55+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略……</summary><content type="html">&lt;p>前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。&lt;/p>
+&lt;p>有关调度策略的部分主要位于调度函数&lt;code>schedule()&lt;/code>中，本文将具体分析。&lt;/p>
+&lt;h2 id="schedule">schedule()&lt;/h2>
+&lt;pre>&lt;code class="language-go">func schedule() {
+_g_ := getg()
+top:
+var gp *g
+....
+// 全局队列
+if gp == nil {
+// 为了公平起见，每调度61次，就去全局队列优先获取goroutine
+// 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行
+if _g_.m.p.ptr().schedtick%61 == 0 &amp;&amp; sched.runqsize &amp;gt; 0 {
+lock(&amp;sched.lock)
+gp = globrunqget(_g_.m.p.ptr(), 1)
+unlock(&amp;sched.lock)
+}
+}
+// 本地队列
+if gp == nil {
+// 从本地队列优先获取goroutine
+gp, inheritTime = runqget(_g_.m.p.ptr())
+}
+// 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取
+// 如果偷取不到当前线程会block，知道返回可用的goroutine
+if gp == nil {
+gp, inheritTime = findrunnable() // blocks until work is available
+}
+....
+execute(gp, inheritTime)
+}&lt;/code>&lt;/pre>
+&lt;h2 id="从p的本地队列获取goroutine">从p的本地队列获取goroutine&lt;/h2>
+&lt;p>从源码上看，p的本地队列包括两部分，一个是&lt;code>runnext&lt;/code>所指向的goroutine，另一个就是由&lt;code>runq&lt;/code>,&lt;code>runhead&lt;/code>和&lt;code>runtail&lt;/code>组成的无锁队列。&lt;/p>
+&lt;p>具体实现的函数为&lt;code>runqget()&lt;/code>&lt;/p>
+&lt;pre>&lt;code class="language-go">
+func runqget(_p_ *p) (gp *g, inheritTime bool) {
+// 如果runnext不为空，则返回runnext指向的goroutine
+// 这里使用乐观锁CAS
+for {
+next := _p_.runnext
+if next == 0 {
+break
+}
+if _p_.runnext.cas(next, 0) {
+return next.ptr(), true
+}
+}
+// 从循环队列中获取goroutine
+for {
+h := atomic.LoadAcq(&amp;_p_.runqhead) // load-acquire, synchronize with other consumers
+t := _p_.runqtail
+if t == h {
+return nil, false
+}
+gp := _p_.runq[h%uint32(len(_p_.runq))].ptr()
+if atomic.CasRel(&amp;_p_.runqhead, h, h+1) { // cas-release, commits consume
+return gp, false
+}
+}
+}&lt;/code>&lt;/pre>
+&lt;h2 id="从schedt的全局队列获取goroutine">从schedt的全局队列获取goroutine&lt;/h2>
+&lt;blockquote>
+&lt;p>需要注意，每个工作线程每进行61次调度就需要优先从全局运行队列中获取&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">// 从全局队列中取最多max个G到p的本地队列中
+func globrunqget(_p_ *p, max int32) *g {
+assertLockHeld(&amp;sched.lock)
+if sched.runqsize == 0 {
+return nil
+}
+// 根据p的数量平分全局队列中的G
+n := sched.runqsize/gomaxprocs + 1
+if n &amp;gt; sched.runqsize {
+n = sched.runqsize
+}
+if max &amp;gt; 0 &amp;&amp; n &amp;gt; max {
+n = max
+}
+if n &amp;gt; int32(len(_p_.runq))/2 {
+n = int32(len(_p_.runq)) / 2
+}
+sched.runqsize -= n
+// 直接返回gp，其余的通过runqput放到p的本地队列中去
+gp := sched.runq.pop()
+n--
+for ; n &amp;gt; 0; n-- {
+gp1 := sched.runq.pop()
+runqput(_p_, gp1, false)
+}
+return gp
+}&lt;/code>&lt;/pre>
+&lt;h2 id="working-stealing策略">working-stealing策略&lt;/h2>
+&lt;blockquote>
+&lt;p>&lt;code>findrunnable&lt;/code>主要负责偷取G，代码十分繁杂，这里只分析我们主要关心的部分，忽略&lt;code>gc&lt;/code>和&lt;code>netpoll&lt;/code>相关的内容&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">// Finds a runnable goroutine to execute.
+// Tries to steal from other P&amp;#039;s, get g from local or global queue, poll network.
+func findrunnable() (gp *g, inheritTime bool) {
+_g_ := getg()
+// The conditions here and in handoffp must agree: if
+// findrunnable would return a G to run, handoffp must start
+// an M.
+top:
+_p_ := _g_.m.p.ptr()
+....
+// 再次检查本地队列
+if gp, inheritTime := runqget(_p_); gp != nil {
+return gp, inheritTime
+}
+// 再次检查全局队列
+if sched.runqsize != 0 {
+lock(&amp;sched.lock)
+gp := globrunqget(_p_, 0)
+unlock(&amp;sched.lock)
+if gp != nil {
+return gp, false
+}
+}
+....
+// 从其他工作的p偷取
+procs := uint32(gomaxprocs)
+ranTimer := false
+// 偷取的两个前提条件
+// 1. 状态为 非自旋
+// 2. 已经有很多工作线程在自旋偷取工作了，自己就先歇会
+if !_g_.m.spinning &amp;&amp; 2*atomic.Load(&amp;sched.nmspinning) &amp;gt;= procs-atomic.Load(&amp;sched.npidle) {
+goto stop
+}
+// 设置m状态为spinning
+if !_g_.m.spinning {
+_g_.m.spinning = true
+atomic.Xadd(&amp;sched.nmspinning, 1)
+}
+// 从其他p的本地队列偷取goroutine
+const stealTries = 4
+for i := 0; i &amp;lt; stealTries; i++ {
+stealTimersOrRunNextG := i == stealTries-1
+for enum := stealOrder.start(fastrand()); !enum.done(); enum.next() {
+if sched.gcwaiting != 0 {
+goto top
+}
+p2 := allp[enum.position()]
+if _p_ == p2 {
+continue
+}
+....
+if !idlepMask.read(enum.position()) {
+if gp := runqsteal(_p_, p2, stealTimersOrRunNextG); gp != nil {
+return gp, false
+}
+}
+}
+}
+if ranTimer {
+// Running a timer may have made some goroutine ready.
+goto top
+}
+stop:
+....
+// Before we drop our P, make a snapshot of the allp slice,
+// which can change underfoot once we no longer block
+// safe-points. We don&amp;#039;t need to snapshot the contents because
+// everything up to cap(allp) is immutable.
+allpSnapshot := allp
+....
+// return P and block
+lock(&amp;sched.lock)
+if sched.gcwaiting != 0 || _p_.runSafePointFn != 0 {
+unlock(&amp;sched.lock)
+goto top
+}
+if sched.runqsize != 0 {
+gp := globrunqget(_p_, 0)
+unlock(&amp;sched.lock)
+return gp, false
+}
+// 解除当前线程和P之间的绑定，准备休眠
+if releasep() != _p_ {
+throw("findrunnable: wrong p")
+}
+// 把p放入空闲队列
+pidleput(_p_)
+unlock(&amp;sched.lock)
+wasSpinning := _g_.m.spinning
+if _g_.m.spinning {
+// m即将睡眠
+_g_.m.spinning = false
+if int32(atomic.Xadd(&amp;sched.nmspinning, -1)) &amp;lt; 0 {
+throw("findrunnable: negative nmspinning")
+}
+}
+// check all runqueues once again
+for id, _p_ := range allpSnapshot {
+if !idlepMaskSnapshot.read(uint32(id)) &amp;&amp; !runqempty(_p_) {
+lock(&amp;sched.lock)
+_p_ = pidleget()
+unlock(&amp;sched.lock)
+if _p_ != nil {
+acquirep(_p_)
+if wasSpinning {
+_g_.m.spinning = true
+atomic.Xadd(&amp;sched.nmspinning, 1)
+}
+goto top
+}
+break
+}
+}
+....
+// 休眠
+stopm()
+goto top
+}&lt;/code>&lt;/pre>
+&lt;ol>
+&lt;li>正在偷取g的工作线程处于&lt;code>spinning&lt;/code>状态。&lt;/li>
+&lt;li>偷取时通过一种伪随机的方式遍历&lt;code>allp&lt;/code>，然后在内层循环中通过&lt;code>runqsteal&lt;/code>实现steal逻辑&lt;/li>
+&lt;/ol>
+&lt;pre>&lt;code class="language-go">// Steal half of elements from local runnable queue of p2
+// and put onto local runnable queue of p.
+// Returns one of the stolen elements (or nil if failed).
+func runqsteal(_p_, p2 *p, stealRunNextG bool) *g {
+t := _p_.runqtail
+n := runqgrab(p2, &amp;_p_.runq, t, stealRunNextG)
+if n == 0 {
+return nil
+}
+n--
+gp := _p_.runq[(t+n)%uint32(len(_p_.runq))].ptr()
+if n == 0 {
+return gp
+}
+h := atomic.LoadAcq(&amp;_p_.runqhead) // load-acquire, synchronize with consumers
+if t-h+n &amp;gt;= uint32(len(_p_.runq)) {
+throw("runqsteal: runq overflow")
+}
+atomic.StoreRel(&amp;_p_.runqtail, t+n) // store-release, makes the item available for consumption
+return gp
+}&lt;/code>&lt;/pre>
+&lt;p>从p2中偷取一半的g放到p中&lt;/p>
+&lt;p>如果无论如何都没有获取到可以运行的&lt;code>goroutine&lt;/code>，则调用&lt;code>stopm&lt;/code>进入睡眠状态，等待被其他的工作线程唤醒。&lt;/p>
+&lt;pre>&lt;code class="language-go">// Stops execution of the current m until new work is available.
+// Returns with acquired P.
+func stopm() {
+_g_ := getg()
+if _g_.m.locks != 0 {
+throw("stopm holding locks")
+}
+if _g_.m.p != 0 {
+throw("stopm holding p")
+}
+if _g_.m.spinning {
+throw("stopm spinning")
+}
+lock(&amp;sched.lock)
+mput(_g_.m)
+unlock(&amp;sched.lock)
+mPark()
+acquirep(_g_.m.nextp.ptr())
+_g_.m.nextp = 0
+}&lt;/code>&lt;/pre>
+&lt;blockquote>
+&lt;p>stopm的核心是调用mput把m结构体对象放入sched的midle空闲队列，然后通过notesleep(&amp;amp;m.park)函数让自己进入睡眠状态。&lt;br>
+note是go runtime实现的一次性睡眠和唤醒机制，一个线程可以通过调用notesleep(_note)进入睡眠状态，而另外一个线程则可以通过notewakeup(_note)把其唤醒。note的底层实现机制跟操作系统相关，不同系统使用不同的机制。&lt;br>
+回到stopm，当从notesleep函数返回后，需要再次绑定一个p，然后返回到findrunnable函数继续重新寻找可运行的goroutine，一旦找到可运行的goroutine就会返回到schedule函数，并把找到的goroutine调度起来运行，如何把goroutine调度起来运行的代码我们已经分析过了。现在继续看notesleep函数。&lt;/p>
+&lt;/blockquote></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/><category scheme="https://yuler.asia/tags/schedule/" term="schedule" label="schedule"/></entry><entry><title type="text">Go调度 | 3. goroutine的创建和执行</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html"/><id>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-3-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-07-01T04:36:30+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">参考[上篇文章]()对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析ma……</summary><content type="html">&lt;p>参考[上篇文章]()对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。&lt;/p>
+&lt;h2 id="go程序的启动">go程序的启动&lt;/h2>
+&lt;pre>&lt;code class="language-go">
+TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0
+....
+// 初始化系统核心, 获取CPU的核数并放在global变量ncpu中
+CALL runtime·osinit(SB)
+// 初始化schedule
+CALL runtime·schedinit(SB)
+MOVQ $runtime·mainPC(SB), AX // entry
+PUSHQ AX
+PUSHQ $0 // arg size
+// 创建新的goroutine来执行程序(main()函数)
+CALL runtime·newproc(SB)
+POPQ AX
+POPQ AX
+// 主线程进入调度循环，运行刚刚创建的 goroutine
+CALL runtime·mstart(SB)
+// mstart是不会返回的，如果返回，终止程序
+CALL runtime·abort(SB) // mstart should never return
+RET&lt;/code>&lt;/pre>
+&lt;h2 id="main-goroutine">main goroutine&lt;/h2>
+&lt;h3 id="newproc">newproc()&lt;/h3>
+&lt;p>该函数创建出main goroutine&lt;/p>
+&lt;pre>&lt;code class="language-go">func newproc(siz int32, fn *funcval) {
+argp := add(unsafe.Pointer(&amp;fn), sys.PtrSize)
+gp := getg()
+pc := getcallerpc()
+systemstack(func() {
+// 创建初始化好的newg
+newg := newproc1(fn, argp, siz, gp, pc)
+// 把newg放入_p_的运行队列，初始化的时候一定是p的本地运行队列，其它时候可能因为本地队列满了而放入全局队列
+_p_ := getg().m.p.ptr()
+runqput(_p_, newg, true)
+if mainStarted {
+wakep()
+}
+})
+}&lt;/code>&lt;/pre>
+&lt;p>&lt;code>newproc&lt;/code>主要是对&lt;code>newproc1&lt;/code>的封装。&lt;code>newproc&lt;/code>首先获取要执行函数&lt;code>fn&lt;/code>的参数地址&lt;code>argp&lt;/code>，然后通过&lt;code>systemstack&lt;/code>切换到&lt;code>g0&lt;/code>栈去执行&lt;code>newproc1&lt;/code>，然后把生成的&lt;code>g&lt;/code>放入到绑定的&lt;code>p&lt;/code>的本地队列中。&lt;/p>
+&lt;p>需要注意在这里由于我们当前已经是&lt;code>g0&lt;/code>，因此不需要切换，但由于&lt;code>newproc&lt;/code>函数是通用的，在用户的&lt;code>goroutine&lt;/code>中也会被调用，因此这里使用&lt;code>systemstack&lt;/code>进行栈切换是有必要的。&lt;/p>
+&lt;p>下面我们看一下&lt;code>newproc1&lt;/code>做了什么。&lt;/p>
+&lt;pre>&lt;code class="language-go">// 参数分别为函数fn,参数地址gp，参数以字节为单位的大小narg，调用者的g，调用者的pc
+func newproc1(fn *funcval, argp unsafe.Pointer, narg int32, callergp *g, callerpc uintptr) *g {
+_g_ := getg() // g0
+....
+_p_ := _g_.m.p.ptr() // 得到和当前线程绑定的p
+newg := gfget(_p_) //从p的本地缓冲里获取一个没有使用的g，初始化时没有，返回nil
+if newg == nil {
+//new一个g结构体对象，然后从堆上为其分配栈，栈大小为2k。_StackMin=2048
+newg = malg(_StackMin)
+// 设置g的状态为_Gdead
+casgstatus(newg, _Gidle, _Gdead)
+//放入全局变量allgs切片中
+allgadd(newg)
+}
+....
+// 调整newg的栈指针
+totalSize := 4*sys.RegSize + uintptr(siz) + sys.MinFrameSize
+totalSize += -totalSize &amp; (sys.SpAlign - 1)
+sp := newg.stack.hi - totalSize
+spArg := sp
+if usesLR {
+// caller&amp;#039;s LR
+*(*uintptr)(unsafe.Pointer(sp)) = 0
+prepGoExitFrame(sp)
+spArg += sys.MinFrameSize
+}
+// 如果有参数，将参数从g0栈拷贝到newg的栈
+if narg &amp;gt; 0 {
+memmove(unsafe.Pointer(spArg), argp, uintptr(narg))
+....
+}
+// 重置newg.sched
+memclrNoHeapPointers(unsafe.Pointer(&amp;newg.sched), unsafe.Sizeof(newg.sched))
+// 设置newg的参数
+newg.sched.sp = sp // sp
+newg.stktopsp = sp
+newg.sched.pc = funcPC(goexit) + sys.PCQuantum // pc
+newg.sched.g = guintptr(unsafe.Pointer(newg)) // go
+// 模拟goexit调用fn，同时调整sp和pc,使pc指向fn
+gostartcallfn(&amp;newg.sched, fn)
+newg.gopc = callerpc
+newg.ancestors = saveAncestors(callergp)
+newg.startpc = fn.fn
+if _g_.m.curg != nil {
+newg.labels = _g_.m.curg.labels
+}
+if isSystemGoroutine(newg, false) {
+atomic.Xadd(&amp;sched.ngsys, +1)
+}
+// 设置g的状态为_Grunnable
+casgstatus(newg, _Gdead, _Grunnable)
+....
+return newg
+}&lt;/code>&lt;/pre>
+&lt;p>到此时，我们已经完成main goroutine的创建，我们参考&lt;a href="https://www.cnblogs.com/abozhang/p/10825342.html">这篇文章&lt;/a>，给出当前的状态图。&lt;/p>
+&lt;blockquote>
+&lt;p>这个图看起来比较复杂，因为表示指针的箭头实在是太多了，这里对其稍作一下解释。&lt;/p>
+&lt;ul>
+&lt;li>首先，main goroutine对应的newg结构体对象的sched成员已经完成了初始化，图中只显示了pc和sp成员，pc成员指向了runtime.main函数的第一条指令，sp成员指向了newg的栈顶内存单元，该内存单元保存了runtime.main函数执行完成之后的返回地址，也就是runtime.goexit函数的第二条指令，预期runtime.main函数执行完返回之后就会去执行runtime.exit函数的CALL runtime.goexit1(SB)这条指令；&lt;/li>
+&lt;li>其次，newg已经放入与当前主线程绑定的p结构体对象的本地运行队列，因为它是第一个真正意义上的goroutine，还没有其它goroutine，所以它被放在了本地运行队列的头部；&lt;/li>
+&lt;li>最后，newg的m成员为nil，因为它还没有被调度起来运行，也就没有跟任何m进行绑定。&lt;/li>
+&lt;/ul>
+&lt;/blockquote>
+&lt;p>![图片来源：&lt;a href="https://www.cnblogs.com/abozhang/p/10825342.html%5D(https://cos.yuler.asia/img/post/main-goroutine.png">https://www.cnblogs.com/abozhang/p/10825342.html](https://cos.yuler.asia/img/post/main-goroutine.png&lt;/a>&lt;/p>
+&lt;h3 id="mstart">mstart()&lt;/h3>
+&lt;pre>&lt;code class="language-go">func mstart() {
+_g_ := getg()
+....
+mstart1()
+// Exit this thread.
+if mStackIsSystemAllocated() {
+// Windows, Solaris, illumos, Darwin, AIX and Plan 9 always system-allocate
+// the stack, but put it in _g_.stack before mstart,
+// so the logic above hasn&amp;#039;t set osStack yet.
+osStack = true
+}
+mexit(osStack)
+}&lt;/code>&lt;/pre>
+&lt;p>&lt;code>mstart&lt;/code>没有什么多说的，主要封装了&lt;code>mstart1&lt;/code>，我们下面分析&lt;code>mstart1&lt;/code>。&lt;/p>
+&lt;pre>&lt;code class="language-go">func mstart1() {
+_g_ := getg()
+if _g_ != _g_.m.g0 {
+throw("bad runtime·mstart")
+}
+// 保存调用者的pc和sp
+save(getcallerpc(), getcallersp())
+asminit()
+minit()
+....
+schedule()
+}&lt;/code>&lt;/pre>
+&lt;h4 id="schedule">schedule()&lt;/h4>
+&lt;pre>&lt;code class="language-go"> func schedule() {
+_g_ := getg()
+..... // 通过调度获取下一个可执行的gp，具体的调度过程我们将来会分析
+execute(gp, inheritTime)
+}&lt;/code>&lt;/pre>
+&lt;h4 id="execute">execute()&lt;/h4>
+&lt;pre>&lt;code class="language-go">func execute(gp *g, inheritTime bool) {
+_g_ := getg() // g0
+// 将gp和m绑定
+// 设置gp状态为_Grunning
+_g_.m.curg = gp
+gp.m = _g_.m
+casgstatus(gp, _Grunnable, _Grunning)
+gp.waitsince = 0
+gp.preempt = false
+gp.stackguard0 = gp.stack.lo + _StackGuard
+....
+// 实现了从g0到gp的切换
+gogo(&amp;gp.sched)
+}&lt;/code>&lt;/pre>
+&lt;p>此时还是在&lt;code>g0&lt;/code>的栈上运行，通过&lt;code>gogo&lt;/code>函数切换到&lt;code>gp&lt;/code>的栈上运行&lt;/p>
+&lt;h4 id="gogo">gogo()&lt;/h4>
+&lt;blockquote>
+&lt;p>gogo函数也是通过汇编语言编写的，这里之所以需要使用汇编，是因为goroutine的调度涉及不同执行流之间的切换，前面我们在讨论操作系统切换线程时已经看到过，执行流的切换从本质上来说就是CPU寄存器以及函数调用栈的切换，然而不管是go还是c这种高级语言都无法精确控制CPU寄存器的修改，因而高级语言在这里也就无能为力了，只能依靠汇编指令来达成目的。&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go"># restore state from Gobuf; longjmp
+TEXT runtime·gogo(SB), NOSPLIT, $16-8
+#buf = &amp;gp.sched
+MOVQ buf+0(FP), BX # BX = buf
+#gobuf-&amp;gt;g --&amp;gt; dx register
+MOVQ gobuf_g(BX), DX # DX = gp.sched.g
+#下面这行代码没有实质作用，检查gp.sched.g是否是nil，如果是nil进程会crash死掉
+MOVQ 0(DX), CX # make sure g != nil
+get_tls(CX)
+#把要运行的g的指针放入线程本地存储，这样后面的代码就可以通过线程本地存储
+#获取到当前正在执行的goroutine的g结构体对象，从而找到与之关联的m和p
+MOVQ DX, g(CX)
+#恢复调度上下文到CPU相关寄存器
+MOVQ gobuf_sp(BX), SP # restore SP #把CPU的SP寄存器设置为sched.sp，完成了栈的切换
+MOVQ gobuf_ret(BX), AX
+MOVQ gobuf_ctxt(BX), DX
+MOVQ gobuf_bp(BX), BP
+#清空sched的值，因为我们已把相关值放入CPU对应的寄存器了，不再需要，这样做可以少gc的工作量
+MOVQ $0, gobuf_sp(BX) # clear to help garbage collector
+MOVQ $0, gobuf_ret(BX)
+MOVQ $0, gobuf_ctxt(BX)
+MOVQ $0, gobuf_bp(BX)
+#把sched.pc值放入BX寄存器
+MOVQ gobuf_pc(BX), BX
+#JMP把BX寄存器的包含的地址值放入CPU的IP寄存器，于是，CPU跳转到该地址继续执行指令，
+JMP BX&lt;/code>&lt;/pre>
+&lt;p>gogo的作用为：&lt;/p>
+&lt;ol>
+&lt;li>把gp.sched的成员恢复到CPU的寄存器完成状态以及栈的切换；&lt;/li>
+&lt;li>跳转到gp.sched.pc所指的指令地址（runtime.main）处执行。&lt;/li>
+&lt;/ol>
+&lt;h4 id="runtimemain">runtime.main()&lt;/h4>
+&lt;pre>&lt;code class="language-go">// The main goroutine.
+func main() {
+g := getg()
+// Racectx of m0-&amp;gt;g0 is used only as the parent of the main goroutine.
+// It must not be used for anything else.
+g.m.g0.racectx = 0
+if sys.PtrSize == 8 {
+maxstacksize = 1000000000 // 64位栈最大为1G
+} else {
+maxstacksize = 250000000
+}
+// Allow newproc to start new Ms.
+mainStarted = true
+if GOARCH != "wasm" {
+// 切换到g0栈去运行监控线程sysmon
+atomic.Store(&amp;sched.sysmonStarting, 1)
+systemstack(func() {
+newm(sysmon, nil, -1)
+})
+}
+doInit(&amp;runtime_inittask) // runtime init
+gcenable() // 开启gc
+fn := main_main // 调用main.main函数
+fn()
+//进入系统调用，退出进程，可以看出main goroutine并未返回，而是直接进入系统调用退出进程了
+exit(0)
+for {
+var x *int32
+*x = 0
+}
+}&lt;/code>&lt;/pre>
+&lt;p>runtime.main函数主要工作流程如下：&lt;/p>
+&lt;ol>
+&lt;li>启动一个sysmon系统监控线程，该线程负责整个程序的gc、抢占调度以及netpoll等功能的监控，在抢占调度一章我们再继续分析sysmon是如何协助完成goroutine的抢占调度的；&lt;/li>
+&lt;li>执行runtime包的初始化；&lt;/li>
+&lt;li>执行main包以及main包import的所有包的初始化；&lt;/li>
+&lt;li>执行main.main函数；&lt;/li>
+&lt;li>从main.main函数返回后调用exit系统调用退出进程；&lt;/li>
+&lt;/ol>
+&lt;h2 id="非main-goroutine">非main goroutine&lt;/h2>
+&lt;p>&lt;code>main goroutine&lt;/code>结束时会执行&lt;code>exit(0)&lt;/code>直接结束进程，从而使得所有其余的&lt;code>goroutine&lt;/code>被终止。&lt;br>
+而&lt;code>非main goroutine&lt;/code>结束时则会执行&lt;code>goexit()&lt;/code>函数完成清理工作。&lt;/p>
+&lt;h3 id="goexit">goexit()&lt;/h3>
+&lt;pre>&lt;code class="language-go">TEXT runtime·goexit(SB),NOSPLIT,$0-0
+BYTE $0x90 // NOP
+CALL runtime·goexit1(SB) // does not return
+BYTE $0x90 // NOP&lt;/code>&lt;/pre>
+&lt;p>调用runtime.goexit1()函数&lt;/p>
+&lt;pre>&lt;code class="language-go">func goexit1() {
+if raceenabled { // 静态检查
+racegoend()
+}
+if trace.enabled { // trace检查
+traceGoEnd()
+}
+mcall(goexit0) // 执行goexit0
+}&lt;/code>&lt;/pre>
+&lt;p>&lt;code>goexit1&lt;/code>函数通过调用&lt;code>mcall&lt;/code>从当前运行的&lt;code>go goroutine&lt;/code>切换到&lt;code>g0&lt;/code>，然后在&lt;code>g0&lt;/code>栈上调用和执行&lt;code>goexit0&lt;/code>这个函数。&lt;/p>
+&lt;pre>&lt;code class="language-go">// goexit continuation on g0.
+func goexit0(gp *g) {
+_g_ := getg() //g0
+// 状态改为_Gdead
+casgstatus(gp, _Grunning, _Gdead)
+if isSystemGoroutine(gp, false) {
+atomic.Xadd(&amp;sched.ngsys, -1)
+}
+// 清理gp
+gp.m = nil
+locked := gp.lockedm != 0
+gp.lockedm = 0
+_g_.m.lockedg = 0
+gp.preemptStop = false
+gp.paniconfault = false
+gp._defer = nil // should be true already but just in case.
+gp._panic = nil // non-nil for Goexit during panic. points at stack-allocated data.
+gp.writebuf = nil
+gp.waitreason = 0
+gp.param = nil
+gp.labels = nil
+gp.timer = nil
+//g-&amp;gt;m = nil, m-&amp;gt;currg = nil 解绑g和m之关系
+dropg()
+// g放入p的freeg队列，方便下次重用，免得再去申请内存，提高效率
+gfput(_g_.m.p.ptr(), gp)
+// 再次回到调度函数
+schedule()
+}&lt;/code>&lt;/pre>
+&lt;p>下面开始在g0栈执行goexit0函数，该函数完成最后的清理工作：&lt;/p>
+&lt;ol>
+&lt;li>把g的状态从_Grunning变更为_Gdead；&lt;/li>
+&lt;li>然后把g的一些字段清空成0值；&lt;/li>
+&lt;li>调用dropg函数解除g和m之间的关系，其实就是设置g-&amp;gt;m = nil, m-&amp;gt;currg = nil；&lt;/li>
+&lt;li>把g放入p的freeg队列缓存起来供下次创建g时快速获取而不用从内存分配。freeg就是g的一个对象池；&lt;/li>
+&lt;li>调用schedule函数再次进行调度；&lt;/li>
+&lt;/ol>
+&lt;h2 id="总结">总结&lt;/h2>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/schedule.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/schedule.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="图片来源:https://www.cnblogs.com/abozhang/p/10856858.html" />
+&lt;/div>
+&lt;blockquote>
+&lt;p>我们用上图来总结一下工作线程的执行流程：&lt;/p>
+&lt;ol>
+&lt;li>初始化，调用mstart函数；&lt;/li>
+&lt;li>调用mstart1函数，在该函数中调用save函数设置g0.sched.sp和g0.sched.pc等调度信息，其中g0.sched.sp指向mstart函数栈帧的栈顶；&lt;/li>
+&lt;li>依次调用schedule-&amp;gt;execute-&amp;gt;gogo函数执行调度；&lt;/li>
+&lt;li>运行用户的goroutine代码；&lt;/li>
+&lt;li>用户goroutine代码执行过程中调用runtime中的某些函数，然后这些函数调用mcall切换到g0.sched.sp所指的栈并最终再次调用schedule函数进入新一轮调度，之后工作线程一直循环执行着3～5这一调度循环直到进程退出为止。&lt;/li>
+&lt;/ol>
+&lt;/blockquote></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/><category scheme="https://yuler.asia/tags/schedule/" term="schedule" label="schedule"/></entry><entry><title type="text">串联所有单词的子串</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html"/><id>https://yuler.asia/topics/leetcode/30-%E4%B8%B2%E8%81%94%E6%89%80%E6%9C%89%E5%8D%95%E8%AF%8D%E7%9A%84%E5%AD%90%E4%B8%B2.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-30T15:42:07+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 这题需要使用滑动窗口，需要通过words中的个数和实际窗口中的单词个数进行……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>这题需要使用滑动窗口，需要通过&lt;code>words&lt;/code>中的个数和实际窗口中的单词个数进行比较，当相同时，证明窗口字符串是由&lt;code>words&lt;/code>拼接而成。问题是，单纯的比较个数二者并不绝对相等，因此在窗口扩大时，如果新加进来的&lt;code>right_word&lt;/code>在窗口中的个数大于实际&lt;code>words&lt;/code>中的个数，我们需要对窗口进行左移，直到二者个数相同。&lt;br>
+因此在满足&lt;strong>每个对应单词个数分别相同&lt;/strong>的前提下，比较所有单词个数才是有效的。&lt;/p>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="哈希表滑动窗口">哈希表+滑动窗口&lt;/h3>
+&lt;pre>&lt;code class="language-go">func findSubstring(s string, words []string) []int {
+wn := len(words[0]) // length of each word in words
+n := len(words) // length of words
+target := make(map[string]int) // target counter
+for _, v := range words {
+target[v]++
+}
+var ans []int
+for i := 0; i &amp;lt; wn; i++ {
+l, r := i, i
+counter := make(map[string]int)
+cnt := 0
+for r + wn &amp;lt;= len(s) {
+rw := s[r:r+wn]
+r += wn
+if _, ok := target[rw]; !ok { // not in target, set l = r
+l = r
+cnt = 0
+counter = make(map[string]int)
+}else {
+counter[rw]++
+cnt++
+for counter[rw] &amp;gt; target[rw] { // slide the left
+lw := s[l:l+wn]
+l += wn
+counter[lw]--
+cnt--
+}
+if cnt == n { // each word meet the condition that counter[word] == target[word]
+ans = append(ans, l)
+}
+}
+}
+}
+return ans
+}&lt;/code>&lt;/pre>
+&lt;h2 id="reference">Reference&lt;/h2>
+&lt;ol>
+&lt;li>&lt;a href="https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/solution/chuan-lian-suo-you-dan-ci-de-zi-chuan-by-powcai/">https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/solution/chuan-lian-suo-you-dan-ci-de-zi-chuan-by-powcai/&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">Go调度 | 2. scheduler初始化</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html"/><id>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-2-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-30T10:51:39+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">上篇文章结尾告诉我们了几个重要的全局变量，本篇文章会用到 allm *m // 所有的m构成的一个链表……</summary><content type="html">&lt;p>&lt;a href="https://yuler.asia/topics/golang/%e3%80%90go%e8%b0%83%e5%ba%a6%e4%b8%80%e3%80%91gmp%e6%a8%a1%e5%9e%8b.html">上篇文章&lt;/a>结尾告诉我们了几个重要的全局变量，本篇文章会用到&lt;/p>
+&lt;pre>&lt;code class="language-go">allm *m // 所有的m构成的一个链表，包括下面的m0
+allp []*p // 保存所有的p，len(allp) == gomaxprocs
+ncpu int32 // 系统中cpu核的数量，程序启动时由runtime代码初始化
+gomaxprocs int32 // p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改
+m0 m // 代表进程的主线程
+g0 g // m0的g0，也就是m0.g0 = &amp;g0&lt;/code>&lt;/pre>
+&lt;h2 id="go程序的启动">go程序的启动&lt;/h2>
+&lt;p>当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。&lt;/p>
+&lt;p>对于linux下的程序来说，入口文件在&lt;code>runtime/rt0_linux_amd64.s&lt;/code>，&lt;/p>
+&lt;blockquote>
+&lt;p>具体我们是如何判断入口文件的，可以参考&lt;a href="https://www.cnblogs.com/abozhang/p/10813229.html">这篇文章&lt;/a>，文章简单易懂&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8
+JMP _rt0_amd64(SB)&lt;/code>&lt;/pre>
+&lt;p>跳转到&lt;code>runtime/asm_amd64.s&lt;/code>文件的&lt;code>_rt0_amd64(SB)&lt;/code>函数&lt;/p>
+&lt;pre>&lt;code class="language-go">// 操作系统内核传递过来的参数argc和argv数组的地址分别放在DI和SI寄存器中
+// 然后跳转到 rt0_go 去执行
+TEXT _rt0_amd64(SB),NOSPLIT,$-8
+MOVQ 0(SP), DI // argc
+LEAQ 8(SP), SI // argv
+JMP runtime·rt0_go(SB)&lt;/code>&lt;/pre>
+&lt;p>跳转到&lt;code>runtime·rt0_go&lt;/code>函数，我们保留该函数的主要流程&lt;/p>
+&lt;pre>&lt;code class="language-go">TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0
+// 拷贝argc和argv到指定位置
+MOVQ DI, AX // argc
+MOVQ SI, BX // argv
+SUBQ $(4*8+7), SP // 2args 2auto
+ANDQ $~15, SP
+MOVQ AX, 16(SP)
+MOVQ BX, 24(SP)
+// 为g0分配栈空间，g0的栈一般相对较大
+// 之后会专门写一篇分析g0的文章
+MOVQ $runtime·g0(SB), DI
+LEAQ (-64*1024+104)(SP), BX
+MOVQ BX, g_stackguard0(DI)
+MOVQ BX, g_stackguard1(DI)
+MOVQ BX, (g_stack+stack_lo)(DI)
+MOVQ SP, (g_stack+stack_hi)(DI)
+// ... 省略检验cpu信息的过程
+// 初始化tls
+// DI = &amp;m0.tls，取 m0 的 tls 成员的地址到 DI 寄存器
+// 调用 settls 设置线程本地存储，settls 函数的参数在 DI 寄存器中
+// 之后，直接调用get_tls(), 通过 fs 段寄存器找到 m.tls
+LEAQ runtime·m0+m_tls(SB), DI
+CALL runtime·settls(SB)
+// ... 省略验证tls是否能正常工作的过程
+// 把 g0 的地址保存在线程本地存储里面，也就是 m0.tls[0]=&amp;g0
+get_tls(BX)
+LEAQ runtime·g0(SB), CX
+MOVQ CX, g(BX)
+LEAQ runtime·m0(SB), AX
+// m-&amp;gt;g0 = g0
+MOVQ CX, m_g0(AX)
+// g0-&amp;gt;m = m0
+MOVQ AX, g_m(CX)
+CLD // convention is D is always left cleared
+CALL runtime·check(SB)
+MOVL 16(SP), AX // copy argc
+MOVL AX, 0(SP)
+MOVQ 24(SP), AX // copy argv
+MOVQ AX, 8(SP)
+CALL runtime·args(SB)
+// 初始化系统核心, 获取CPU的核数并放在global变量ncpu中，
+CALL runtime·osinit(SB)
+// 初始化scheduler，将是本文重点分析的内容
+CALL runtime·schedinit(SB)
+MOVQ $runtime·mainPC(SB), AX // entry
+PUSHQ AX
+PUSHQ $0 // arg size
+// 创建新的goroutine来执行程序(main()函数)
+CALL runtime·newproc(SB)
+POPQ AX
+POPQ AX
+// 主线程进入调度循环，运行刚刚创建的 goroutine
+CALL runtime·mstart(SB)
+// mstart是不会返回的，如果返回，终止程序
+CALL runtime·abort(SB) // mstart should never return
+RET&lt;/code>&lt;/pre>
+&lt;p>根据汇编代码，总结整个流程&lt;/p>
+&lt;ol>
+&lt;li>为&lt;code>g0&lt;/code>，并分配栈空间&lt;/li>
+&lt;li>&lt;code>g0&lt;/code>和&lt;code>m0&lt;/code>相互绑定 // &lt;code>m.g0 = g0; g0.m = m0&lt;/code>&lt;/li>
+&lt;li>&lt;code>osinit&lt;/code>() OS初始化&lt;/li>
+&lt;li>&lt;strong>&lt;code>schedinit&lt;/code>&lt;/strong>() 调度器初始化&lt;/li>
+&lt;li>&lt;code>newproc()&lt;/code> 将&lt;code>runtime.main&lt;/code>作为参数创建&lt;code>goroutine&lt;/code>&lt;/li>
+&lt;li>&lt;code>mstart()&lt;/code> 主线程进入调度循环&lt;/li>
+&lt;/ol>
+&lt;p>当初对tls的内容不了解，这里详细解释下&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;code>set_tls()&lt;/code>通过系统调用把&lt;code>m0.tls[1]&lt;/code>的地址设置成了fs段的段基址。CPU中有个叫&lt;code>fs&lt;/code>的段寄存器与之对应，而每个线程都有自己的一组CPU寄存器值，操作系统在把线程调离CPU运行时会帮我们把所有寄存器中的值保存在内存中，调度线程起来运行时又会从内存中把这些寄存器的值恢复到CPU。这样，在此之后，&lt;strong>工作线程代码就可以通过&lt;code>fs&lt;/code>寄存器来找到&lt;code>m.tls&lt;/code>&lt;/strong>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="scheinit">scheinit()&lt;/h2>
+&lt;p>省略我们暂时不关心的代码&lt;/p>
+&lt;pre>&lt;code class="language-go">// The bootstrap sequence is:
+//
+// call osinit
+// call schedinit
+// make &amp; queue new G
+// call runtime·mstart
+//
+// The new G calls runtime·main.
+///runtime/proc.go
+func schedinit() {
+...
+// 获取g0
+_g_ := getg()
+...
+// 设置最大 M 数量
+sched.maxmcount = 10000
+...
+// 栈和内存初始化
+stackinit()
+mallocinit()
+...
+// 初始化m0
+mcommoninit(_g_.m)
+...
+//参数和环境初始化
+goargs()
+goenvs()
+...
+// 设置 P 的数量
+procs := ncpu
+// 通过环境变量设置P的数量
+if n, ok := atoi32(gogetenv("GOMAXPROCS")); ok &amp;&amp; n &amp;gt; 0 {
+procs = n
+}
+if procresize(procs) != nil {//创建和初始化全局变量allp
+throw("unknown runnable goroutine during bootstrap")
+}
+...
+}&lt;/code>&lt;/pre>
+&lt;h3 id="mcommoninit-初始化m0">mcommoninit() ——初始化m0&lt;/h3>
+&lt;p>主要用来初始化mp，包括设置id、设置random、设置gsignal、挂载到全局m中&lt;/p>
+&lt;pre>&lt;code class="language-go">// 可以为m显式的传过来一个id，或者为-1
+func mcommoninit(mp *m, id int64) {
+_g_ := getg()
+// g0 stack won&amp;#039;t make sense for user (and is not necessary unwindable).
+if _g_ != _g_.m.g0 {
+callers(1, mp.createstack[:])
+}
+lock(&amp;sched.lock)
+// 检查id
+if id &amp;gt;= 0 {
+mp.id = id
+} else {
+mp.id = mReserveID() //当id为-1时，通过该函数获取一个可用id
+}
+// 设置random
+mp.fastrand[0] = uint32(int64Hash(uint64(mp.id), fastrandseed))
+mp.fastrand[1] = uint32(int64Hash(uint64(cputicks()), ^fastrandseed))
+if mp.fastrand[0]|mp.fastrand[1] == 0 {
+mp.fastrand[1] = 1
+}
+//创建用于信号处理的gsignal，只是简单的从堆上分配一个g结构体对象,然后把栈设置好就返了
+mpreinit(mp)
+if mp.gsignal != nil {
+mp.gsignal.stackguard1 = mp.gsignal.stack.lo + _StackGuard
+}
+// 将 m 挂到全局变量 allm 上，allm 是一个指向 m 的的指针。
+mp.alllink = allm
+atomicstorep(unsafe.Pointer(&amp;allm), unsafe.Pointer(mp))
+unlock(&amp;sched.lock)
+if iscgo || GOOS == "solaris" || GOOS == "illumos" || GOOS == "windows" {
+mp.cgoCallers = new(cgoCallers)
+}
+}&lt;/code>&lt;/pre>
+&lt;h3 id="procresize-初始化allp">procresize() ——初始化allp&lt;/h3>
+&lt;blockquote>
+&lt;p>procresize()通过GOMAXPROC可以动态的调整p的总个数，但其中涉及的问题比较复杂。&lt;br>
+在这里我们只考虑初始化时的代码&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">func procresize(nprocsint32) *p {
+old := gomaxprocs//系统初始化时 gomaxprocs = 0
+......
+// Grow allp if necessary.
+if nprocs &amp;gt; int32(len(allp)) { //初始化时 len(allp) == 0
+// Synchronize with retake, which could be running
+// concurrently since it doesn&amp;#039;t run on a P.
+lock(&amp;allpLock)
+if nprocs &amp;lt;= int32(cap(allp)) {
+allp = allp[:nprocs]
+} else { //初始化时进入此分支，创建allp 切片
+nallp:=make([]*p, nprocs)
+// Copy everything up to allp&amp;#039;s cap so we
+// never lose old allocated Ps.
+copy(nallp, allp[:cap(allp)])
+allp=nallp
+}
+unlock(&amp;allpLock)
+}
+// initialize new P&amp;#039;s
+//循环创建nprocs个p并完成基本初始化
+for i := int32(0); i&amp;lt;nprocs; i++{
+pp := allp[i]
+if pp == nil{
+pp=new(p)//调用内存分配器从堆上分配一个struct p
+pp.id=i
+pp.status=_Pgcstop
+......
+atomicstorep(unsafe.Pointer(&amp;allp[i]), unsafe.Pointer(pp))
+}
+......
+}
+......
+_g_:=getg() // _g_ = g0
+if _g_.m.p != 0 &amp;&amp; _g_.m.p.ptr().id &amp;lt; nprocs {//初始化时m0-&amp;gt;p还未初始化，所以不会执行这个分支
+// continue to use the current P
+_g_.m.p.ptr().status=_Prunning
+_g_.m.p.ptr().mcache.prepareForSweep()
+} else {//初始化时执行这个分支
+// release the current P and acquire allp[0]
+if _g_.m.p != 0 {//初始化时这里不执行
+_g_.m.p.ptr().m=0
+}
+_g_.m.p=0
+_g_.m.mcache = nil
+p := allp[0]
+p.m = 0
+p.status = _Pidle
+acquirep(p) //把p和m0关联起来，其实是这两个strct的成员相互赋值
+if trace.enabled {
+traceGoStart()
+}
+}
+//下面这个for 循环把所有空闲的p放入空闲链表
+var runnablePs *p
+for i := nprocs-1; i &amp;gt;= 0; i-- {
+p := allp[i]
+if _g_.m.p.ptr() == p {//allp[0]跟m0关联了，所以是不能放任
+continue
+}
+p.status = _Pidle
+if runqempty(p) {//初始化时除了allp[0]其它p全部执行这个分支，放入空闲链表
+pidleput(p)
+} else {
+......
+}
+}
+......
+return runnablePs
+}&lt;/code>&lt;/pre>
+&lt;blockquote>
+&lt;p>通过启动时候的schedinit调用procresize生成对应个数的P。因为可以通过runtime.GOMAXPROCS来动态修改P的个数，所以在procresize中会对P数组进行调整，或新增P或减少P。被减少的P会将自身的runable、runnext、gfree移到全局去。&lt;/p>
+&lt;ul>
+&lt;li>如果当前P不在多余的P中，则状态为running&lt;/li>
+&lt;li>如果当前P在多余的P中，则将当前M和P解绑，再将M和P数组的第一P绑定，并设为running&lt;/li>
+&lt;li>除了当前P外；所有P都设为idle，如果P中没有runnable,则将P加入全局空闲P,否则获取全局空闲M和P绑定。&lt;/li>
+&lt;/ul>
+&lt;/blockquote>
+&lt;h1 id="references">References&lt;/h1>
+&lt;ol>
+&lt;li>&lt;a href="https://www.jianshu.com/p/665aca7af949">golang 源码学习之GMP (goroutine) – 简书&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://mp.weixin.qq.com/s/3xXU_O8-ZiA1Tk1nCnkODA">开天辟地 —— Go scheduler 初始化（二）&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.cnblogs.com/abozhang/p/10813229.html">Go语言goroutine调度器初始化(12)&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/><category scheme="https://yuler.asia/tags/schedule/" term="schedule" label="schedule"/></entry><entry><title type="text">Go调度 | 1. GMP模型</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html"/><id>https://yuler.asia/topics/golang/go%E8%B0%83%E5%BA%A6-gmp%E6%A8%A1%E5%9E%8B.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-30T08:56:43+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。 线程和协程 协程是用户态……</summary><content type="html">&lt;p>本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。&lt;/p>
+&lt;h2 id="线程和协程">线程和协程&lt;/h2>
+&lt;p>协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：&lt;/p>
+&lt;ol>
+&lt;li>内存占用&lt;br>
+线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。&lt;br>
+线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。&lt;/li>
+&lt;li>创建和切换&lt;br>
+线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。&lt;br>
+而协程的创建和切换都是用户态的，并且线程保护的内容相对较少&lt;/li>
+&lt;/ol>
+&lt;h2 id="gmp模型">GMP模型&lt;/h2>
+&lt;blockquote>
+&lt;p>G: goroutine协程,即我们定义的 go func(){}&lt;br>
+P: processor处理器，是一种抽象的、用于G执行的局部资源&lt;br>
+M: machine，也即thread，对应实际的内核线程&lt;/p>
+&lt;/blockquote>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/gmp.webp'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/gmp.webp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="来源:https://www.kancloud.cn/aceld/golang/1958305" />
+&lt;/div>
+&lt;h2 id="gmp结构">GMP结构&lt;/h2>
+&lt;p>这部分主要从源码层面分析GMP的结构&lt;/p>
+&lt;h3 id="g结构">G结构&lt;/h3>
+&lt;p>我们暂时忽略一些对我们分析没有影响的字段。&lt;/p>
+&lt;pre>&lt;code class="language-go">type g struct {
+stack stack // goroutine 使用的栈[stack.lo, stack.hi]
+stackguard0 uintptr
+stackguard1 uintptr // 用于栈空间的动态变化
+m *m // 与当前g绑定的m
+sched gobuf // goroutine的运行线程，主要为寄存器信息
+param unsafe.Pointer // warkup 唤醒时传递的参数
+atomicstatus uint32 // goroutine的状态
+goid int64 // goroutine id
+schedlink guintptr // 指向全局goroutine队列中的的下一个
+// go阻塞的时间和原因
+waitsince int64 // approx time when the g become blocked
+waitreason waitReason // if status==Gwaiting
+// 抢占调度相关
+preempt bool // preemption signal, duplicates stackguard0 = stackpreempt
+preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule
+preemptShrink bool // shrink stack at synchronous safe point
+}&lt;/code>&lt;/pre>
+&lt;p>其中&lt;code>atomicstatus&lt;/code>存储了goroutine的状态，这里列举一些重要的状态&lt;/p>
+&lt;ul>
+&lt;li>_Gidle: 刚刚被分配并且还没有被初始化&lt;/li>
+&lt;li>_Grunnable: 没有执行代码，没有栈的所有权，存储在运行队列中&lt;/li>
+&lt;li>_Grunning: 可以执行代码，拥有栈的所有权，被赋予了内核线程 M 和处理器 P&lt;/li>
+&lt;li>_Gsyscall: 正在执行系统调用，拥有栈的所有权，没有执行用户代码，被赋予了内核线程 但是不在运行队列上&lt;/li>
+&lt;li>_Gwaiting: 由于运行时而被阻塞，没有执行用户代码并且不在运行队列上，但是可能存在Channel 的等待队列上&lt;/li>
+&lt;li>_Gdead: 没有被使用，没有执行代码，可能有分配的栈&lt;/li>
+&lt;li>_Gcopystack: 栈正在被拷贝，没有执行代码，不在运行队列上&lt;/li>
+&lt;li>_Gpreempted: 由于抢占而被阻塞，没有执行用户代码并且不在运行队列上，等待唤醒&lt;/li>
+&lt;li>_Gscan: GC 正在扫描栈空间，没有执行代码，可以与其他状态同时存在&lt;/li>
+&lt;/ul>
+&lt;h3 id="m-结构">M 结构&lt;/h3>
+&lt;p>M代表操作系统的内核线程，他最多能创建10000个，但最多只有&lt;code>GOMAXPROCS&lt;/code>个线程同时执行。如果不显式的指定，&lt;code>GOMAXPROCS&lt;/code>默认为cpu的核心数。&lt;/p>
+&lt;p>golang使用&lt;code>runtime.m&lt;/code>来表示操作系统线程。&lt;/p>
+&lt;pre>&lt;code class="language-go">type m struct {
+g0 *g // 用于执行调度指令的 goroutine,g0是特殊的goroutine
+gsignal *g // 处理 signal 的 g
+tls [6]uintptr // 线程本地存储,主要为了实现m和工作线程的一一对应
+curg *g // 当前运行的用户 goroutine
+p puintptr // 执行go代码时持有的 p (如果没有执行则为 nil)
+spinning bool // m 当前没有运行 work 且正处于寻找 work 的活跃状态
+alllink *m // 所有的m都在allm 上
+mcache *mcache // 持有当前线程上进行内存分配的本地缓存
+...
+}&lt;/code>&lt;/pre>
+&lt;blockquote>
+&lt;p>g0 是一个运行时中比较特殊的 Goroutine，它会深度参与运行时的调度过程，包括 Goroutine 的创建、大内存分配和 CGO 函数的执行。在后面的小节中，我们会经常看到 g0 的身影。&lt;br>
+M 其实就是 OS 线程，它只有两个状态：自旋、非自旋&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="p-结构">P 结构&lt;/h3>
+&lt;p>P是goroutine和实际工作线程之间的中间层，它持有一个G的本地队列。&lt;/p>
+&lt;p>我们重点关注以下字段&lt;/p>
+&lt;pre>&lt;code class="language-go">type p struct {
+m muintptr //与当前p绑定的m
+runqhead uint32 // 本地队列，无锁访问
+runqtail uint32
+runq [256]guintptr
+runnext guintptr
+...
+}&lt;/code>&lt;/pre>
+&lt;p>runtime.p 结构体中的状态 status 字段会是以下五种中的一种：&lt;/p>
+&lt;ul>
+&lt;li>_Pidle: 处理器没有运行用户代码或者调度器，被空闲队列或者改变其状态的结构持有，运行队列为空&lt;/li>
+&lt;li>_Prunning: 被线程 M 持有，并且正在执行用户代码或者调度器&lt;/li>
+&lt;li>_Psyscall: 没有执行用户代码，当前线程陷入系统调用&lt;/li>
+&lt;li>_Pgcstop: 被线程 M 持有，当前处理器由于垃圾回收被停止&lt;/li>
+&lt;li>_Pdead: 当前处理器已经不被使用&lt;/li>
+&lt;/ul>
+&lt;h3 id="调度器sched的结构">调度器sched的结构&lt;/h3>
+&lt;pre>&lt;code class="language-go">type schedt struct {
+lock mutex
+pidle puintptr // 空闲 p 链表
+npidle uint32 // 空闲 p 数量
+nmspinning uint32 // 自旋状态的 M 的数量
+runq gQueue // 全局 runnable G 队列
+runqsize int32
+gFree struct { // 有效 dead G 的全局缓存.
+lock mutex
+stack gList // 包含栈的 Gs
+noStack gList // 没有栈的 Gs
+n int32
+}
+sudoglock mutex // sudog 结构的集中缓存
+sudogcache *sudog
+deferlock mutex // 不同大小的有效的 defer 结构的池
+deferpool [5]*_defer
+...
+}&lt;/code>&lt;/pre>
+&lt;h3 id="一些重要的全局信息">一些重要的全局信息&lt;/h3>
+&lt;pre>&lt;code class="language-go">allgs []*g // 保存所有的g
+allm *m // 所有的m构成的一个链表，包括下面的m0
+allp []*p // 保存所有的p，len(allp) == gomaxprocs
+ncpu int32 // 系统中cpu核的数量，程序启动时由runtime代码初始化
+gomaxprocs int32 // p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改
+m0 m // 代表进程的主线程
+g0 g // m0的g0，也就是m0.g0 = &amp;g0&lt;/code>&lt;/pre>
+&lt;h2 id="references">References&lt;/h2>
+&lt;ol>
+&lt;li>&lt;a href="https://github.com/golang/go/blob/master/src/runtime/runtime2.go">go/runtime2.go at master · golang/go&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-goroutine/#g">Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://www.kancloud.cn/aceld/golang/1958305#4Gogoroutine_120">Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://johng.cn/goroutine1-pmg/">Goroutine调度器(一)：P、M、G关系&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/><category scheme="https://yuler.asia/tags/schedule/" term="schedule" label="schedule"/></entry><entry><title type="text"> 单词接龙</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html"/><id>https://yuler.asia/topics/leetcode/126-127-%E5%8D%95%E8%AF%8D%E6%8E%A5%E9%BE%99.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-30T07:25:33+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">126 题目地址 127 题目地址 Solution 两道题目很类似，127题要求计算最短路径大小，126题要求给出……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/word-ladder-ii/">126 题目地址&lt;/a>&lt;br>
+&lt;a href="https://leetcode-cn.com/problems/word-ladder/">127 题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>两道题目很类似，127题要求计算最短路径大小，126题要求给出所有的最短路径&lt;br>
+对于127题，只需要使用BFS即可，根据测试数据，&lt;code>1 &amp;lt;= beginWord.length &amp;lt;= 7, endWord.length == beginWord.length, 1 &amp;lt;= wordList.length &amp;lt;= 5000&lt;/code>，我们选择遍历邻近词的个数，每次最多遍历$26\times7$次，而如果遍历&lt;code>wordList&lt;/code>，则每次最多会遍历$5000\times7$次。&lt;/p>
+&lt;p>对于126题，需要先按照127题的思路，通过BFS构造图，然后使用DFS回溯得出最短路径&lt;br>
+其中还有一些细节需要注意&lt;/p>
+&lt;ol>
+&lt;li>bfs中，在我们计算下一层的word时，当前层word对应的邻接word是可以重复的，因此我们使用了&lt;code>curVisited&lt;/code>记录当前层访问过的word，当本层遍历完毕后再并到&lt;code>visited&lt;/code>中&lt;/li>
+&lt;li>bfs中，当第一次遍历到&lt;code>endWord&lt;/code>时，可以使用&lt;code>flag&lt;/code>标记提前终止流程&lt;/li>
+&lt;/ol>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="127-单词接龙i-bfs">127 单词接龙i BFS&lt;/h3>
+&lt;pre>&lt;code class="language-go">func ladderLength(beginWord string, endWord string, wordList []string) int {
+words := make(map[string]bool)
+for _, word := range wordList {
+words[word] = true
+}
+if !words[endWord] {
+return 0
+}
+getNext := func(s string) (ans []string) {
+arr := []byte(s)
+for i := 0; i &amp;lt; len(arr); i++ {
+tmp := arr[i]
+for j := byte(&amp;#039;a&amp;#039;); j &amp;lt;= byte(&amp;#039;z&amp;#039;); j++ {
+arr[i] = j
+if words[string(arr)] {
+ans = append(ans, string(arr))
+}
+}
+arr[i] = tmp
+}
+return ans
+}
+q1, q2 := []string{beginWord}, []string{}
+visited := make(map[string]bool)
+visited[beginWord] = true
+step := 1
+for len(q1) &amp;gt; 0 {
+step++
+for _, cur := range q1 {
+next := getNext(cur)
+for _, v := range next {
+if v == endWord {
+return step
+}
+if !visited[v] {
+visited[v] = true
+q2 = append(q2, v)
+}
+}
+}
+q1 = q2
+q2 = nil
+}
+return 0
+}&lt;/code>&lt;/pre>
+&lt;h3 id="126题-单词接龙ii-bfsdfs">126题 单词接龙ii BFS+DFS&lt;/h3>
+&lt;pre>&lt;code class="language-go">func findLadders(beginWord string, endWord string, wordList []string) [][]string {
+// 思路：先bfs建图，再dfs找路径
+words := make(map[string]bool)
+for _, w := range wordList {
+words[w] = true
+}
+if !words[endWord] {
+return [][]string{}
+}
+visited := make(map[string]bool)
+visited[beginWord] = true
+edges := make(map[string]map[string]bool)
+var ans [][]string
+// bfs
+bfs := func() bool {
+var flag bool
+q1, q2 := []string{beginWord}, []string{}
+for len(q1) &amp;gt; 0 {
+curVisited := make(map[string]bool)
+for _, cur := range q1 {
+cs := []byte(cur)
+for i := 0; i &amp;lt; len(cs); i++ {
+tmp := cs[i]
+for j := byte(&amp;#039;a&amp;#039;); j &amp;lt;= &amp;#039;z&amp;#039;; j++ {
+cs[i] = j
+s := string(cs)
+if words[s] &amp;&amp; !visited[s] {
+if s == endWord {
+flag = true
+}
+curVisited[s] = true
+if edges[cur] == nil {
+edges[cur] = make(map[string]bool)
+}
+edges[cur][s] = true
+q2 = append(q2, s)
+}
+}
+cs[i] = tmp
+}
+}
+if flag {
+return flag
+}
+for k, _ := range curVisited {
+visited[k] = true
+}
+q1 = q2
+q2 = nil
+}
+return flag
+}
+if !bfs() {
+return ans
+}
+var dfs func(string, []string)
+dfs = func(cur string, path []string) {
+if cur == endWord {
+tmp := append(make([]string, 0, len(path)), path...)
+ans = append(ans, tmp)
+return
+}
+for v, _ := range edges[cur] {
+path = append(path, v)
+dfs(v, path)
+path = path[:len(path)-1]
+}
+}
+dfs(beginWord, []string{beginWord})
+return ans
+}&lt;/code>&lt;/pre>
+&lt;h2 id="reference">Reference&lt;/h2>
+&lt;ol>
+&lt;li>&lt;a href="https://leetcode-cn.com/problems/word-ladder-ii/solution/dan-ci-jie-long-ii-by-leetcode-solution/">https://leetcode-cn.com/problems/word-ladder-ii/solution/dan-ci-jie-long-ii-by-leetcode-solution/&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">二叉树的序列化与反序列化</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html"/><id>https://yuler.asia/topics/leetcode/297-%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-30T02:28:46+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 层序遍历 对于空节点，设置&amp;quot;#&amp;quot;标记 strconv.At……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/serialize-and-deserialize-binary-tree/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;ol>
+&lt;li>层序遍历&lt;/li>
+&lt;li>对于空节点，设置&lt;code>&amp;quot;#&amp;quot;&lt;/code>标记&lt;/li>
+&lt;li>strconv.Atoi返回值类型为(int,error)&lt;/li>
+&lt;/ol>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="层序遍历">层序遍历&lt;/h3>
+&lt;pre>&lt;code class="language-go">/**
+* Definition for a binary tree node.
+* type TreeNode struct {
+* Val int
+* Left *TreeNode
+* Right *TreeNode
+* }
+*/
+type Codec struct {
+}
+func Constructor() Codec {
+return Codec{}
+}
+// Serializes a tree to a single string.
+func (c *Codec) serialize(root *TreeNode) string {
+q := []*TreeNode{root}
+ans := []string{}
+for len(q) &amp;gt; 0 {
+cur := q[0]
+q = q[1:]
+if cur == nil {
+ans = append(ans, "#")
+}else{
+ans = append(ans, strconv.Itoa(cur.Val))
+q = append(q, cur.Left)
+q = append(q, cur.Right)
+}
+}
+return strings.Join(ans, ",")
+}
+// Deserializes your encoded data to tree.
+func (this *Codec) deserialize(data string) *TreeNode {
+if data == "#" {
+return nil
+}
+tree := strings.Split(data, ",")
+val, _ := strconv.Atoi(tree[0])
+root := &amp;TreeNode{Val:val}
+q := []*TreeNode{root}
+i := 1
+for len(q) &amp;gt; 0 {
+cur := q[0]
+q = q[1:]
+if tree[i] != "#" {
+val, _ = strconv.Atoi(tree[i])
+cur.Left = &amp;TreeNode{Val:val}
+q = append(q, cur.Left)
+}
+if tree[i+1] != "#" {
+val, _ = strconv.Atoi(tree[i + 1])
+cur.Right = &amp;TreeNode{Val:val}
+q = append(q, cur.Right)
+}
+i += 2
+}
+return root
+}
+/**
+* Your Codec object will be instantiated and called as such:
+* ser := Constructor();
+* deser := Constructor();
+* data := ser.serialize(root);
+* ans := deser.deserialize(data);
+*/&lt;/code>&lt;/pre>
+&lt;p>很久没写python，手生了&lt;/p>
+&lt;pre>&lt;code class="language-python"># Definition for a binary tree node.
+# class TreeNode(object):
+# def __init__(self, x):
+# self.val = x
+# self.left = None
+# self.right = None
+class Codec:
+def serialize(self, root):
+"""Encodes a tree to a single string.
+:type root: TreeNode
+:rtype: str
+"""
+q = collections.deque([root])
+ans = []
+while q:
+cur = q.popleft()
+if cur:
+ans.append(str(cur.val))
+q.append(cur.left)
+q.append(cur.right)
+else:
+ans.append(&amp;#039;#&amp;#039;)
+return &amp;#039;,&amp;#039;.join(ans)
+def deserialize(self, data):
+"""Decodes your encoded data to tree.
+:type data: str
+:rtype: TreeNode
+"""
+if data == &amp;#039;#&amp;#039;:
+return None
+tree = data.split(&amp;#039;,&amp;#039;)
+root = TreeNode(int(tree[0]))
+q = collections.deque([root])
+i = 1
+while q:
+cur = q.popleft()
+if tree[i] != &amp;#039;#&amp;#039;:
+cur.left = TreeNode(int(tree[i]))
+q.append(cur.left)
+if tree[i + 1] != &amp;#039;#&amp;#039; :
+cur.right = TreeNode(int(tree[i+1]))
+q.append(cur.right)
+i += 2
+return root
+# Your Codec object will be instantiated and called as such:
+# codec = Codec()
+# codec.deserialize(codec.serialize(root))&lt;/code>&lt;/pre></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">Go | SliceTricks</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html"/><id>https://yuler.asia/topics/golang/%E3%80%90%E8%AF%91%E3%80%91slicetricks.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-29T03:57:10+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">原文地址: https://github.com/golang/go/wiki/SliceTricks go官方给出了许多slice操作的tricks，这里记录一下，并在最后给……</summary><content type="html">&lt;blockquote>
+&lt;p>原文地址: &lt;a href="https://github.com/golang/go/wiki/SliceTricks">https://github.com/golang/go/wiki/SliceTricks&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;p>go官方给出了许多slice操作的tricks，这里记录一下，并在最后给出Examples&lt;/p>
+&lt;h2 id="appendvector">AppendVector&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a, b...)&lt;/code>&lt;/pre>
+&lt;h2 id="copy">Copy&lt;/h2>
+&lt;pre>&lt;code class="language-go">// 正常拷贝
+b := make([]int, len(a))
+copy(b, a)
+// 正常拷贝的one-line实现，但实际上边速度要慢一点
+b = append(make([]int, 0, len(a)), a...)
+// 如果拷贝后还需要添加更多的元素，可以使用这种方式
+// 但通常来说上面的方式更快
+append([]int(nil), a...)
+// or
+append(a[:0:0], a...)&lt;/code>&lt;/pre>
+&lt;h2 id="cut">Cut&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a[:i], a[j:]...)&lt;/code>&lt;/pre>
+&lt;h2 id="delete">Delete&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a[:i], a[i:]...)&lt;/code>&lt;/pre>
+&lt;h2 id="delete-without-preserving-order">Delete without preserving order&lt;/h2>
+&lt;pre>&lt;code class="language-go">a[i] = a[len(a) - 1]
+a = a[:len(a) - 1]&lt;/code>&lt;/pre>
+&lt;div class='admonition shadow-sm admonition-primary'>
+&lt;div class='admonition-body'>
+如果数组类型为&lt;strong>指针&lt;/strong>，或者时&lt;strong>带有指针的结构体&lt;/strong>,那么上述的操作很可能会导致内存泄露的发生:一些元素仍然被&lt;code>a&lt;/code>引用，但没有被垃圾回收器回收。可以使用以下的方式避免内存泄漏
+&lt;/div>
+&lt;/div>
+&lt;blockquote>
+&lt;p>Cut&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">copy(a[i:], a[j:])
+for k, n := len(a)-j+i, len(a); k &amp;lt; n; k++ {
+a[k] = nil // or the zero value of T
+}
+a = a[:len(a)-j+i]&lt;/code>&lt;/pre>
+&lt;blockquote>
+&lt;p>Delete&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">copy(a[i:], a[i+1:])
+a[len(a)-1] = nil // or the zero value of T
+a = a[:len(a)-1]&lt;/code>&lt;/pre>
+&lt;blockquote>
+&lt;p>Delete without preserving order&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">a[i] = a[len(a)-1]
+a[len(a)-1] = nil
+a = a[:len(a)-1]&lt;/code>&lt;/pre>
+&lt;h2 id="expand">Expand&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a[:i], append(make([]T, j), a[i:]...)...)&lt;/code>&lt;/pre>
+&lt;h2 id="extend">Extend&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a, make([]T, j)...)&lt;/code>&lt;/pre>
+&lt;h2 id="filterin-place">Filter(in place)&lt;/h2>
+&lt;pre>&lt;code class="language-go">n := 0
+for _, x := range a {
+if keep(x) {
+a[n] = x
+n++
+}
+}
+a = a[:n]&lt;/code>&lt;/pre>
+&lt;h2 id="insert">Insert&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a[:i], append([]T{x}, a[i:]...)...)&lt;/code>&lt;/pre>
+&lt;div class='admonition shadow-sm admonition-primary'>
+&lt;div class='admonition-body'>
+此种方式会创建一个新的slice，我们可以通过以下方式避免
+&lt;/div>
+&lt;/div>
+&lt;pre>&lt;code class="language-go">a = append(a, 0)
+copy(a[i+1:] ,a[i:])
+a[i] = value&lt;/code>&lt;/pre>
+&lt;h2 id="insertvector">InsertVector&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a[:i], append(b, a[i:]...)...)&lt;/code>&lt;/pre>
+&lt;h2 id="push">Push&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append(a, x)&lt;/code>&lt;/pre>
+&lt;h2 id="pop">Pop&lt;/h2>
+&lt;pre>&lt;code class="language-go">x, a = a[len(a) - 1], a[:len(a) - 1]&lt;/code>&lt;/pre>
+&lt;h2 id="push-frontunshift">Push Front/Unshift&lt;/h2>
+&lt;pre>&lt;code class="language-go">a = append([]T{x}, a...)&lt;/code>&lt;/pre>
+&lt;h2 id="pop-frontshift">Pop Front/Shift&lt;/h2>
+&lt;pre>&lt;code class="language-go">x, a = a[0], a[1:]&lt;/code>&lt;/pre>
+&lt;h2 id="additional-tricks">Additional Tricks&lt;/h2>
+&lt;h3 id="filtering-without-allocating">Filtering without allocating&lt;/h3>
+&lt;p>slice使用相同的底层数组，因此可以重用该数组来进行filter操作。当然，原始的内容会被修改。&lt;/p>
+&lt;pre>&lt;code class="language-go">b := a[:0]
+for _, x := range a {
+if f(x) {
+b = append(b, x)
+}
+}&lt;/code>&lt;/pre>
+&lt;p>对于必须进行垃圾回收的元素，可以在上述代码后添加以下代码，进行元素的垃圾回收。&lt;/p>
+&lt;pre>&lt;code class="language-go">for i := len(b); i &amp;lt; len(a); i++ {
+a[i] = nil
+}&lt;/code>&lt;/pre>
+&lt;h3 id="reversing">Reversing&lt;/h3>
+&lt;pre>&lt;code class="language-go">for i := len(a)/2-1; i &amp;gt;= 0; i-- {
+opp := len(a)-1-i
+a[i], a[opp] = a[opp], a[i]
+}&lt;/code>&lt;/pre>
+&lt;p>也可以使用以下方式。（个人比较喜欢以下这种，更直观）&lt;/p>
+&lt;pre>&lt;code class="language-go">for left, right := 0, len(a)-1; left &amp;lt; right; left, right = left+1, right-1 {
+a[left], a[right] = a[right], a[left]
+}&lt;/code>&lt;/pre>
+&lt;h3 id="shuffling">Shuffling&lt;/h3>
+&lt;p>Fisher–Yates 算法&lt;/p>
+&lt;blockquote>
+&lt;p>从go 1.10，可以使用 &lt;a href="https://golang.org/pkg/math/rand/#Shuffle">math/rand.Shuffle&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">for i := len(a) - 1; i &amp;gt; 0; i-- {
+j := rand.Intn(i + 1)
+a[i], a[j] = a[j], a[i]
+}&lt;/code>&lt;/pre>
+&lt;h3 id="batching-with-minimal-allocation">Batching with minimal allocation&lt;/h3>
+&lt;p>如果想在一个超大的slice做批处理，这是很有用的&lt;/p>
+&lt;pre>&lt;code class="language-go">actions := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+batchSize := 3
+batches := make([][]int, 0, (len(actions) + batchSize - 1) / batchSize)
+for batchSize &amp;lt; len(actions) {
+actions, batches = actions[batchSize:], append(batches, actions[0:batchSize:batchSize])
+}
+batches = append(batches, actions) // [[0 1 2] [3 4 5] [6 7 8] [9]]&lt;/code>&lt;/pre>
+&lt;h3 id="in-place-deduplicate-comparable">In-place deduplicate (comparable)&lt;/h3>
+&lt;blockquote>
+&lt;p>in-place 去重&lt;/p>
+&lt;/blockquote>
+&lt;pre>&lt;code class="language-go">import "sort"
+in := []int{3,2,1,4,3,2,1,4,1}
+sort.Ints(in)
+j := 0
+for i := 1; i &amp;lt; len(in); i++ {
+if in[j] == in[i] {
+continue
+}
+j++
+in[j] = in[i]
+}
+result := in[:j+1]
+fmt.Println(result) // [1 2 3 4]&lt;/code>&lt;/pre>
+&lt;h3 id="move-to-front-or-prepend-if-not-present-in-place-if-possible">Move to front, or prepend if not present, in place if possible.&lt;/h3>
+&lt;pre>&lt;code class="language-go">func moveToFront(needle string, haystack []string) []string {
+if len(haystack) != 0 &amp;&amp; haystack[0] == needle {
+return haystack
+}
+prev := needle
+for i, elem := range haystack {
+switch {
+case i == 0:
+haystack[0] = needle
+prev = elem
+case elem == needle:
+haystack[i] = prev
+return haystack
+default:
+haystack[i] = prev
+prev = elem
+}
+}
+return append(haystack, prev)
+}
+haystack := []string{"a", "b", "c", "d", "e"} // [a b c d e]
+haystack = moveToFront("c", haystack) // [c a b d e]
+haystack = moveToFront("f", haystack) // [f c a b d e]&lt;/code>&lt;/pre>
+&lt;h3 id="sliding-window">Sliding window&lt;/h3>
+&lt;pre>&lt;code class="language-go">func slidingWindow(size int, input []int) [][]int {
+if len(input) &amp;lt;= size {
+return [][]int{input}
+}
+r := make([][]int, 0, len(input)-size+1)
+for i, j := 0, size; j &amp;lt;= len(input); i, j = i+1, j+1 {
+r = append(r, input[i:j])
+}
+return r
+}&lt;/code>&lt;/pre>
+&lt;h2 id="examples">Examples&lt;/h2>
+&lt;pre>&lt;code class="language-go">package main
+import (
+"fmt"
+"math/rand"
+)
+func main() {
+var a, b []int
+fmt.Println("1. AppendVector")
+a, b = []int{1, 2, 3, 4}, []int{5, 6, 7}
+a = append(a, b...)
+// a: [1 2 3 4 5 6 7]
+fmt.Println("2. Copy")
+a = []int{1, 2, 3, 4}
+// 1.make + copy
+b = make([]int, len(a))
+copy(b, a)
+// 2. one-line implementation
+b = append(make([]int, 0, len(a)), a...)
+// 3. another one
+b = append([]int(nil), a...)
+// a: [1 2 3 4], b: [1 2 3 4]
+fmt.Println("3. Cut")
+a = []int{1, 2, 3, 4}
+a = append(a[:1], a[2:]...)
+// a: [1 3 4]
+fmt.Println("4. Delete")
+a = []int{1, 2, 3, 4}
+a = append(a[:2], a[2:]...)
+// a: [1 2 3 4]
+fmt.Println("5. Delete without preserving order")
+a = []int{1, 2, 3, 4}
+a[0] = a[len(a)-1]
+a = a[:len(a)-1]
+// a: [4 2 3]
+fmt.Println("6. Expand")
+a = []int{1, 2, 3, 4}
+a = append(a[:2], append(make([]int, 10), a[2:]...)...)
+// a: [1 2 0 0 0 0 0 0 0 0 0 0 3 4]
+fmt.Println("7. Extend")
+a = []int{1, 2, 3, 4}
+a = append(a, make([]int, 10)...)
+// a: [1 2 3 4 0 0 0 0 0 0 0 0 0 0]
+fmt.Println("8. Filter")
+a = []int{1, 2, 3, 4}
+keep := func(x int) bool {
+return x%2 == 0
+}
+n := 0
+for _, x := range a {
+if keep(x) {
+a[n] = x
+n++
+}
+}
+a = a[:n]
+// a: [2 4]
+fmt.Println("9. Insert")
+a = []int{1, 2, 3, 4}
+a = append(a[:1], append([]int{10}, a[1:]...)...)
+// a: [1 10 2 3 4]
+fmt.Println("10. Insert Vector")
+a, b = []int{1, 2, 3, 4}, []int{5, 6, 7}
+a = append(a[:1], append(b, a[1:]...)...)
+// a: [1 5 6 7 2 3 4]
+fmt.Println("11. Push")
+a = []int{1,2,3,4}
+a = append(a, 10)
+// a: [1 2 3 4 10]
+fmt.Println("12. Pop")
+var x int
+a = []int{1,2,3,4}
+x, a = a[len(a) - 1], a[:len(a) - 1]
+// x: 4, a: [1 2 3]
+fmt.Println("13. Push Front")
+a = []int{1,2,3,4}
+a = append([]int{10}, a...)
+// a: [10 1 2 3 4]
+fmt.Println("14. Pop Front")
+a = []int{1,2,3,4}
+x, a = a[0], a[1:]
+// x: 1, a: [2 3 4]
+fmt.Println("15. Filtering without allocation")
+a = []int{1,2,3,4}
+b = a[:0]
+for _, v := range a {
+if keep(v) {
+b = append(b, v)
+}
+}
+for i := len(b); i &amp;lt; len(a); i++ {
+a[i] = 0
+}
+// a: [2 4 0 0], b: [2 4]
+fmt.Println("16. Reversing")
+a = []int{1,2,3,4}
+for l, r := 0, len(a) - 1; l &amp;lt; r; l, r = l + 1, r - 1 {
+a[l], a[r] = a[r], a[l]
+}
+// a: [4 3 2 1]
+fmt.Println("17. Shuffling")
+a = []int{1,2,3,4}
+rand.Shuffle(len(a), func(i, j int) {
+a[i], a[j] = a[j], a[i]
+})
+// a: [1 2 4 3]
+}&lt;/code>&lt;/pre>
+&lt;h2 id="references">References&lt;/h2>
+&lt;ol>
+&lt;li>&lt;a href="https://github.com/golang/go/wiki/SliceTricks">https://github.com/golang/go/wiki/SliceTricks&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/golang/" term="Golang" label="Golang"/></entry><entry><title type="text">第247场周赛</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html"/><id>https://yuler.asia/topics/leetcode/%E7%AC%AC247%E5%9C%BA%E5%91%A8%E8%B5%9B.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-27T08:07:17+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">1. 两个数对之间的最大乘积差 题目地址 排序 时间复杂度：O(nlogn) 空间复杂度：O(1……</summary><content type="html">&lt;h2 id="1-两个数对之间的最大乘积差">1. 两个数对之间的最大乘积差&lt;/h2>
+&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/maximum-product-difference-between-two-pairs/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="排序">排序&lt;/h3>
+&lt;ul>
+&lt;li>时间复杂度：&lt;code>O(nlogn)&lt;/code>&lt;/li>
+&lt;li>空间复杂度：&lt;code>O(1)&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;pre>&lt;code class="language-go">import "sort"
+func maxProductDifference(s []int) int {
+n := len(s)
+sort.Ints(s)
+return s[n-1] * s[n-2] - s[0] * s[1]
+}&lt;/code>&lt;/pre>
+&lt;h2 id="2-循环轮转矩阵">2. 循环轮转矩阵&lt;/h2>
+&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/cyclically-rotating-a-grid/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="模拟">模拟&lt;/h3>
+&lt;p>next函数获的下一个坐标&lt;br>
+注意用k对每一轮的总数进行取余&lt;/p>
+&lt;ul>
+&lt;li>时间复杂度：$O(MN)$&lt;/li>
+&lt;li>空间复杂度：$O(MN)$&lt;/li>
+&lt;/ul>
+&lt;pre>&lt;code class="language-go">func rotateGrid(grid [][]int, k int) [][]int {
+m, n := len(grid), len(grid[0])
+M, N := m, n
+ans := make([][]int, m)
+for i := range ans {
+ans[i] = make([]int, n)
+}
+var next func(a,b,level int) (int, int)
+next = func(a, b,level int) (int, int){
+if a == level {
+// 右
+if b != N - 1 - level {
+b++
+return a, b
+}
+}
+if b == N - 1 - level {
+// 下
+if a != M - 1 - level {
+a++
+return a, b
+}
+}
+if a == M - 1 - level {
+// 左
+if b != level {
+b--
+return a, b
+}
+}
+if b == level {
+// 上
+if a != level {
+a--
+return a, b
+}
+}
+return a, b
+}
+level := 0
+a, b := 0, 0
+for m &amp;gt; 0 &amp;&amp; n &amp;gt; 0 {
+sum := 2 * m + 2 * n - 4
+x, y, p, q := a, b, a, b
+t := k % sum
+for i := 0; i &amp;lt; sum - t; i++ {
+x, y = next(x, y,level)
+}
+for i := 0; i &amp;lt; sum; i++ {
+ans[x][y] = grid[p][q]
+x, y = next(x, y,level)
+p, q = next(p, q,level)
+}
+level++
+m, n = m - 2, n - 2
+a, b = a + 1, b + 1
+}
+return ans
+}&lt;/code>&lt;/pre>
+&lt;h2 id="3-最美子字符串的数目">3. 最美子字符串的数目&lt;/h2>
+&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/number-of-wonderful-substrings/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="我的解法tle">我的解法(TLE)&lt;/h3>
+&lt;p>看到的第一眼还以为是动态规划，后面发现是前缀和，不过思路还是有问题。想来对于$10^5$的数据$O(n^2)$的时间复杂度还是不够的。&lt;br>
+使用&lt;code>int&lt;/code>类型的前缀和数组维护字符状态，同时使用&lt;code>bitcount&lt;/code>函数(&lt;a href="https://leetcode-cn.com/problems/number-of-1-bits/">参考题目&lt;/a>)快速判断1的个数&lt;/p>
+&lt;ul>
+&lt;li>时间复杂度: $O(n^2)$&lt;/li>
+&lt;li>空间复杂度: $O(n)$&lt;/li>
+&lt;/ul>
+&lt;pre>&lt;code class="language-go">func wonderfulSubstrings(word string) int64 {
+n := len(word)
+if n == 1{
+return 1
+}
+prefix := make([]int, n + 1)
+prefix[0] = 0
+for i := 0; i &amp;lt; n; i++ {
+prefix[i + 1] = prefix[i] ^ (1 &amp;lt;&amp;lt; (word[i] - &amp;#039;a&amp;#039;))
+}
+var ans int64
+for i := 0; i &amp;lt; n; i++ {
+for j := i + 1; j &amp;lt;= n; j++ {
+ans += check(prefix[i]^prefix[j])
+}
+}
+return ans
+}
+func check(n int) int64 {
+ans := 0
+for n &amp;gt; 0 {
+ans++
+if ans &amp;gt; 1 {
+return 0
+}
+n = n &amp; (n - 1)
+}
+return 1
+}&lt;/code>&lt;/pre>
+&lt;h3 id="前缀和状态压缩">前缀和+状态压缩&lt;/h3>
+&lt;p>关于状态压缩与上面的思路相同，使用一个$10$位数字表示字符$’a’$到$’j’$的奇偶性。&lt;br>
+对于前缀和A和前缀和B，只有其中一位的奇偶性不同或者奇偶性完全相同时，B – A之间对应的字符串才是满足要求的&lt;br>
+对于「至多一个字母出现奇数次」，我们可以翻转当前前缀和的每个比特，然后去$cnt$数组中查找该前缀和的出现次数。&lt;br>
+此时内循环就从$O(N)$降到了$O(K)$&lt;/p>
+&lt;ul>
+&lt;li>时间复杂度：$O(NK)$&lt;/li>
+&lt;li>空间复杂度: $O(2^K)$
+&lt;pre>&lt;code class="language-go">func wonderfulSubstrings(word string) int65 {
+&lt;/li>
+&lt;/ul>
+&lt;p>cnt := [1 &amp;lt;&amp;lt; 10]int{0: 1}
+prefix, ans := 0, 0
+for i := 0; i &amp;lt; len(word); i++ {
+prefix ^= 1 &amp;lt;&amp;lt; (word[i] - �a�)
+ans += cnt[prefix]
+for j := 0; j &amp;lt; 10; j++{
+ans += cnt[prefix ^ (1 &amp;lt;&amp;lt; j)]
+}
+cnt[prefix]++
+}
+return int64(ans)
+}&lt;/code>&lt;/pre>&lt;/p>
+&lt;h2 id="4-统计为蚁群构筑房间的不同顺序">4. 统计为蚁群构筑房间的不同顺序&lt;/h2>
+&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/count-ways-to-build-rooms-in-an-ant-colony/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;p>TODO&lt;/p>
+&lt;h2 id="reference">Reference&lt;/h2>
+&lt;ol>
+&lt;li>&lt;a href="https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/247/c/c.go">https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/247/c/c.go&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://leetcode-cn.com/problems/number-of-wonderful-substrings/solution/zui-mei-zi-zi-fu-chuan-de-shu-mu-by-leet-2j7g/">https://leetcode-cn.com/problems/number-of-wonderful-substrings/solution/zui-mei-zi-zi-fu-chuan-de-shu-mu-by-leet-2j7g/&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://cp-algorithms.com/combinatorics/binomial-coefficients.html#toc-tgt-7">https://cp-algorithms.com/combinatorics/binomial-coefficients.html#toc-tgt-7&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://github.com/EndlessCheng/codeforces-go/edit/master/leetcode/247/d/d.go">https://github.com/EndlessCheng/codeforces-go/edit/master/leetcode/247/d/d.go&lt;/a>&lt;/li>
+&lt;/ol></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">《人民币汇率与人民币国际化》——翟东升</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html"/><id>https://yuler.asia/topics/thinking/%E3%80%8A%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96%E3%80%8B-%E7%BF%9F%E4%B8%9C%E5%8D%87.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-27T06:18:43+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点 1. 对人民币汇率的……</summary><content type="html">&lt;p>总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点&lt;/p>
+&lt;h2 id="1-对人民币汇率的错误预测">1. 对人民币汇率的错误预测&lt;/h2>
+&lt;h3 id="看空人民币的五个错误理由">看空人民币的五个错误理由&lt;/h3>
+&lt;h3 id="看空人民的观点错在哪">看空人民的观点错在哪&lt;/h3>
+&lt;h3 id="人民币是强势货币">人民币是强势货币&lt;/h3>
+&lt;h2 id="2-汇率的影响因素">2. 汇率的影响因素&lt;/h2>
+&lt;blockquote>
+&lt;p>短期看市场情绪，中期看政府调控，长期看市场&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="影响长期汇率的直接因素">影响长期汇率的直接因素&lt;/h3>
+&lt;p>长期来看影响汇率最直接最有效的因素就是一个国家可贸易品的价格水平。可贸易品的加权平均价决定了汇率。&lt;/p>
+&lt;blockquote>
+&lt;p>两国之间的可贸易品价格如果差距太大，就会进行倒买倒卖，最终实现抛补平衡&lt;/p>
+&lt;/blockquote>
+&lt;p>&lt;strong>技术水平&lt;/strong> 和 &lt;strong>人口老龄化&lt;/strong> 决定了可贸易品的价格，从而影响了汇率 (参考日本)&lt;/p>
+&lt;h3 id="影响汇率的六个深层因素">影响汇率的六个深层因素&lt;/h3>
+&lt;ol>
+&lt;li>
+&lt;p>国家能力&lt;br>
+政府财政开支占国家GDP的比例越高，汇率往往越坚挺。&lt;br>
+政府需要提供各种有效的公共产品(医疗、市场、教育、基础设施、贸易协定、治安秩序、商业秩序)。各种企业的成功离不开政府提供的公共产品。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>贸易开放度&lt;br>
+出口所占比例。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;pre>&lt;code>&amp;gt; 凡是想做空日元的都没有什么好下场
+&lt;/code>&lt;/pre>
+&lt;ol start="3">
+&lt;li>
+&lt;p>要素特征&lt;br>
+出口贸易品类型。&lt;br>
+出口以能源、原材料、大宗商品、矿石等为主，汇率呈顺周期。&lt;br>
+出口制成品为主，汇率呈逆周期。(汇率下跌，出口工业制成品获得价格优势，贸易顺差扩大，汇率获得上涨动能)&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>文明类型&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>汇率最坚挺的两大文明：&lt;strong>新教文明&lt;/strong>和&lt;strong>东亚文明&lt;/strong>&lt;br>
+&lt;strong>&lt;em>鼓励生产，不鼓励消费&lt;/em>&lt;/strong>&lt;/p>
+&lt;blockquote>
+&lt;p>新教文明：西欧、北欧、北美洲、大洋洲&lt;br>
+东亚文明：日本、朝鲜半岛、中国大陆、中国台湾、中国香港、新加坡、越南&lt;/p>
+&lt;/blockquote>
+&lt;/li>
+&lt;li>
+&lt;p>比较软的货币所属文明：小乘佛教&lt;br>
+&lt;strong>&lt;em>不鼓励生产，不鼓励消费&lt;/em>&lt;/strong>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>贬值很厉害的货币所属文明：罗马天主教、东正教和伊斯兰教&lt;br>
+&lt;strong>&lt;em>不鼓励生产，鼓励消费&lt;/em>&lt;/strong>&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>人均智商&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>宗教严肃度&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="海外投资的汇率风险">海外投资的汇率风险&lt;/h3>
+&lt;p>中国企业和资本出海需要重点防范：&lt;strong>目标国的汇率风险&lt;/strong>&lt;br>
+(结合上面所讲的因素进行思考)&lt;/p></content><category scheme="https://yuler.asia/categories/thinking/" term="Thinking" label="Thinking"/></entry><entry><title type="text">752.打开转盘锁</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html"/><id>https://yuler.asia/topics/leetcode/752-%E6%89%93%E5%BC%80%E8%BD%AC%E7%9B%98%E9%94%81.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-26T15:39:07+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution BFS，每次将相邻的可能出现的情况放在队列中，同时维护visited数组，……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/open-the-lock/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>BFS，每次将相邻的可能出现的情况放在队列中，同时维护visited数组，注意使用两个队列&lt;br>
+参考了题解，将时间从200ms降到20ms，关键的优化点：&lt;/p>
+&lt;ol>
+&lt;li>使用int数组替代map作为dead和visited&lt;/li>
+&lt;li>在放入队列前进行判断，而不是放到队列后&lt;/li>
+&lt;li>维护的数字使用int类型而非string&lt;/li>
+&lt;/ol>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="优化前bfs">优化前BFS&lt;/h3>
+&lt;pre>&lt;code class="language-go">func openLock(deadends []string, target string) int {
+d := make(map[string]bool)
+for _, v := range deadends {
+d[v] = true
+}
+visited := make(map[string]bool)
+visited["0000"] = true
+if d["0000"] {
+return -1
+}
+var q1, q2 []string
+var step int
+q1 = append(q1, "0000")
+for len(q1) != 0 {
+cur := q1[0]
+q1 = q1[1:]
+if cur == target {
+return step
+}
+next := getNext(cur)
+for _, v := range next {
+if !visited[v] &amp;&amp; !d[v] {
+visited[v] = true
+q2 = append(q2, v)
+}
+}
+if len(q1) == 0 {
+q1 = q2
+q2 = []string{}
+step += 1
+}
+}
+return -1
+}
+func getNext(s string) []string {
+var ans []string
+for i := 0; i &amp;lt; 4; i++ {
+t := []byte(s)
+t[i] = (t[i] - &amp;#039;0&amp;#039; + 1) % 10 + &amp;#039;0&amp;#039;
+ans = append(ans, string(t))
+t = []byte(s)
+t[i] = byte(((int(t[i] - &amp;#039;0&amp;#039;) - 1) % 10 + 10) % 10 + &amp;#039;0&amp;#039;)
+ans = append(ans, string(t))
+}
+return ans
+}
+&lt;/code>&lt;/pre>
+&lt;h3 id="优化后bfs">优化后BFS&lt;/h3>
+&lt;pre>&lt;code class="language-go">import (
+"fmt"
+"math"
+)
+func openLock(deadends []string, target string) int {
+if target == "0000" {
+return 0
+}
+var dead,visited [10000]bool
+for _, v := range deadends {
+i, _ := strconv.Atoi(v)
+dead[i] = true
+}
+visited[0] = true
+if dead[0] {
+return -1
+}
+q1, q2 := []int{0}, []int{}
+step := 0
+t, _ := strconv.Atoi(target)
+for len(q1) != 0 {
+step++
+n := len(q1)
+for i := 0; i &amp;lt; n ;i++ {
+cur := q1[i]
+next := getNext(cur)
+for _, v := range next {
+if v == t {
+return step
+}
+if !visited[v] &amp;&amp; !dead[v] {
+visited[v] = true
+q2 = append(q2, v)
+}
+}
+}
+q1, q2 = q2, q1
+q2 = nil
+}
+return -1
+}
+func getNext(s int) [8]int{
+var ans [8]int
+for i := 0; i &amp;lt; 4; i++ {
+k := int(math.Pow(10, float64(i)))
+idx := 2 * i
+if m := (s / k) % 10; m == 0 {
+ans[idx] = s + k
+ans[idx + 1] = s + 9 * k
+}else if m == 9 {
+ans[idx] = s - 9 * k
+ans[idx + 1] = s - k
+}else {
+ans[idx] = s + k
+ans[idx + 1] = s - k
+}
+}
+return ans
+}&lt;/code>&lt;/pre></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">滑动谜题</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html"/><id>https://yuler.asia/topics/leetcode/773-%E6%BB%91%E5%8A%A8%E8%B0%9C%E9%A2%98.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-26T15:38:20+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 与752. 打开转盘锁解题思路相同 转化为字符串 判断bfs搜索下层路径生成的内……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/sliding-puzzle/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>与&lt;a href="https://yuler.asia/topics/leetcode/752-%e6%89%93%e5%bc%80%e8%bd%ac%e7%9b%98%e9%94%81.html">752. 打开转盘锁&lt;/a>解题思路相同&lt;/p>
+&lt;ol>
+&lt;li>转化为字符串&lt;/li>
+&lt;li>判断bfs搜索下层路径生成的内容&lt;/li>
+&lt;li>进行bfs搜索&lt;/li>
+&lt;/ol>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="解法一">解法一&lt;/h3>
+&lt;pre>&lt;code class="language-go">func slidingPuzzle(board [][]int) int {
+const END string = "123450"
+line := make([]byte, 6)
+for i := 0; i &amp;lt; 2; i++ {
+for j := 0; j &amp;lt; 3; j++ {
+line[i * 3 + j] = byte(board[i][j] + &amp;#039;0&amp;#039;)
+}
+}
+start := string(line)
+if start == END {
+return 0
+}
+visited := make(map[string]bool)
+var q1, q2 []string
+var step int
+q1 = append(q1, start)
+for len(q1) != 0 {
+step++
+n := len(q1)
+for i := 0; i &amp;lt; n; i++ {
+cur := q1[i]
+next := getNext(cur)
+for _, s := range next {
+if s == END {
+return step
+}
+if !visited[s] {
+visited[s] = true
+q2 = append(q2, s)
+}
+}
+}
+q1 = q2
+q2 = []string{}
+}
+return -1
+}
+func getNext(s string) []string {
+const NEXT [][]int = [][]int{{1, 3}, {0,2,4},{1,5},{0,4},{1,3,5},{2,4}}
+var ans []string
+x := strings.IndexByte(s, &amp;#039;0&amp;#039;)
+arr := []byte(s)
+for _, y := range NEXT[x] {
+arr[x], arr[y] = arr[y], arr[x]
+ans = append(ans, string(arr))
+arr[y], arr[x] = arr[x], arr[y]
+}
+return ans
+}&lt;/code>&lt;/pre></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">有效数字</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html"/><id>https://yuler.asia/topics/leetcode/65-%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-17T08:26:30+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 真真正正的见证了这道题的进化历史————从最开始的题意含糊不清到现在的有条……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/valid-number/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>真真正正的见证了这道题的进化历史————从最开始的题意含糊不清到现在的有条有理。&lt;br>
+暴力模拟的方法非常繁琐，且很容易出错，因此往往选择使用&lt;strong>有限状态自动机&lt;/strong>。&lt;/p>
+&lt;h2 id="code">Code&lt;/h2>
+&lt;h3 id="优化前的dfa">优化前的DFA&lt;/h3>
+&lt;pre>&lt;code class="language-go">func isNumber(s string) bool {
+/*
+state:
+0 start
+1 +/-
+2 小数点前数字
+3 直接跟小数点
+4 数字后小数点
+5 小数点后数字
+6 e/E
+7 e后+/-
+8 e后数字
+100 end
+char:
+0 +,-
+1 0-9
+2 .
+3 e,E
+4 EOF
+*/
+t := map[int]map[int]int{
+0: {0:1, 1:2, 2:3,},
+1: {1:2, 2:3,},
+2: {1:2, 2:4, 3:6, 4:100,}, // end
+3: {1:5},
+4: {1:5, 3:6, 4:100,}, // end
+5: {1:5, 3:6, 4:100,}, // end
+6: {0:7, 1:8},
+7: {1:8},
+8: {1:8, 4:100}, // end
+}
+cur := 0
+for i := 0; i &amp;lt; len(s); i++ {
+c := help(s[i])
+if v, ok := t[cur][c]; ok {
+cur = v
+}else {
+return false
+}
+}
+_, ok := t[cur][4]
+return ok
+}
+func help(b byte) int {
+if b == &amp;#039;+&amp;#039; || b == &amp;#039;-&amp;#039; {
+return 0
+}else if b &amp;gt;= &amp;#039;0&amp;#039; &amp;&amp; b &amp;lt;= &amp;#039;9&amp;#039; {
+return 1
+}else if b == &amp;#039;.&amp;#039; {
+return 2
+}else if b == &amp;#039;e&amp;#039; || b == &amp;#039;E&amp;#039; {
+return 3
+}
+return -1
+}&lt;/code>&lt;/pre>
+&lt;ul>
+&lt;li>时间复杂度：&lt;code>O(n)&lt;/code>&lt;/li>
+&lt;li>空间复杂度：&lt;code>O(1)&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h3 id="优化后的dfa">优化后的DFA&lt;/h3>
+&lt;p>参考&lt;a href="https://leetcode-cn.com/problems/valid-number/solution/biao-qu-dong-fa-by-user8973/">题解&lt;/a>对自动机进行了优化，减少了一个不必要的状态，状态机如图&lt;/p>
+&lt;div class='fancybox-wrapper' data-fancybox='post-images' href='https://cos.yuler.asia/img/post/65-DFA.jpg'>
+&lt;img class="lazyload lazyload-style-1" src="data:image/svg+xml;base64,PCEtLUFyZ29uTG9hZGluZy0tPgo8c3ZnIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjZmZmZmZmMDAiPjxnPjwvZz4KPC9zdmc+" data-original="https://cos.yuler.asia/img/post/65-DFA.jpg" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" alt="DFA" />
+&lt;/div>
+&lt;pre>&lt;code class="language-go">func isNumber(s string) bool {
+/*
+char:
+0 +,-
+1 0-9
+2 .
+3 e,E
+4 EOF
+*/
+t := map[int]map[int]int{
+0: {0:1, 1:6, 2:2,},
+1: {1:6, 2:2,},
+2: {1:3,},
+3: {1:3, 3:4, 4:100}, //end
+4: {0:7, 1:5},
+5: {1:5, 4:100}, //end
+6: {1:6, 2:3, 3:4, 4:100}, // end
+7: {1:5},
+}
+cur := 0
+for i := 0; i &amp;lt; len(s); i++ {
+c := help(s[i])
+if v, ok := t[cur][c]; ok {
+cur = v
+}else {
+return false
+}
+}
+_, ok := t[cur][4]
+return ok
+}
+func help(b byte) int {
+if b == &amp;#039;+&amp;#039; || b == &amp;#039;-&amp;#039; {
+return 0
+}else if b &amp;gt;= &amp;#039;0&amp;#039; &amp;&amp; b &amp;lt;= &amp;#039;9&amp;#039; {
+return 1
+}else if b == &amp;#039;.&amp;#039; {
+return 2
+}else if b == &amp;#039;e&amp;#039; || b == &amp;#039;E&amp;#039; {
+return 3
+}
+return -1
+}&lt;/code>&lt;/pre>
+&lt;ul>
+&lt;li>时间复杂度：&lt;code>O(n)&lt;/code>&lt;/li>
+&lt;li>空间复杂度：&lt;code>O(1)&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2 id="references">References&lt;/h2>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/valid-number/solution/biao-qu-dong-fa-by-user8973/">1. 表驱动法&lt;/a>&lt;/p></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">预测赢家</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html"/><id>https://yuler.asia/topics/leetcode/486-%E9%A2%84%E6%B5%8B%E8%B5%A2%E5%AE%B6-2.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-17T06:46:45+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 数组长度为偶数时 此时奇数序列以及偶数序列两个序列中肯定有一个最大序列，而先……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/predict-the-winner/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;ul>
+&lt;li>数组长度为偶数时&lt;br>
+此时奇数序列以及偶数序列两个序列中肯定有一个最大序列，而先进行选择的人能够决定选择哪一个序列，因此他是必胜的，直接返回true即可&lt;br>
+参考问题&lt;a href="https://leetcode-cn.com/problems/stone-game/">877. 石子游戏&lt;/a>&lt;/li>
+&lt;li>数组长度为奇数时&lt;br>
+回归正常讨论。可以使用dfs自顶向下，也可以使用dp自底向上解决问题&lt;/li>
+&lt;/ul>
+&lt;h2 id="解法一带mem的dfs">解法一：带mem的DFS&lt;/h2>
+&lt;pre>&lt;code class="language-go">func PredictTheWinner(nums []int) bool {
+n := len(nums)
+mem := make([][]int, n)
+for i := range mem {
+mem[i] = make([]int, n)
+for j := range mem[i] {
+mem[i][j] = math.MinInt64
+}
+}
+return dfs(nums, 0, n - 1, mem) &amp;gt;= 0
+}
+func dfs(nums []int, a, b int, mem [][]int) int {
+if a == b {
+return nums[a]
+}
+if mem[a][b] != math.MinInt64 {
+return mem[a][b]
+}
+sa := nums[a] - dfs(nums, a + 1, b, mem)
+sb := nums[b] - dfs(nums, a, b - 1, mem)
+mem[a][b] = max(sa, sb)
+return mem[a][b]
+}
+func max(a, b int) int {
+if a &amp;gt; b {
+return a
+}
+return b
+}&lt;/code>&lt;/pre>
+&lt;ul>
+&lt;li>时间复杂度：&lt;code>O(2^n)&lt;/code>，每次都有头尾两个选择&lt;/li>
+&lt;li>空间复杂度：&lt;code>O(n^2)&lt;/code>，词典空间&lt;/li>
+&lt;/ul>
+&lt;h2 id="解法二-dp">解法二: DP&lt;/h2>
+&lt;ol>
+&lt;li>
+&lt;p>状态定义&lt;br>
+&lt;code>dp[i][j]&lt;/code>表示，当前选手的净胜分数，无论选手是A和B，我们都让&lt;code>dp[i][j]&lt;/code>尽可能地大&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>递推序列&lt;br>
+也可以参考dfs中的思路&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;pre>&lt;code>&amp;gt; &amp;lt;pre&amp;gt;&amp;lt;code class=&amp;quot;language-go&amp;quot;&amp;gt;sa := nums[a] - dfs(nums, a + 1, b, mem)
+&lt;/code>&lt;/pre>
+&lt;p>sb := nums[b] - dfs(nums, a, b - 1, mem)
+mem[a][b] = max(sa, sb)&lt;/code>&lt;/pre>
+&amp;gt;
+&amp;gt; &lt;code>dp[i][j] = max(nums[i] - dp[i+1][j], nums[j] - dp[i][j-1])&lt;/code>&lt;/p>
+&lt;ol start="3">
+&lt;li>填表方向(需要满足i &amp;lt; j)&lt;/li>
+&lt;/ol>
+&lt;table>
+&lt;tr>
+&lt;th style="text-align: center;">
+i\j
+&lt;/th>
+&lt;pre>&lt;code>&amp;lt;th style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/th&amp;gt;
+&amp;lt;th style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+1
+&amp;lt;/th&amp;gt;
+&amp;lt;th style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+2
+&amp;lt;/th&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center;">
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+→↑
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center;">
+1
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center;">
+2
+&lt;/td>
+&lt;pre>&lt;code>&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&amp;lt;td style=&amp;quot;text-align: center;&amp;quot;&amp;gt;
+&amp;lt;/td&amp;gt;
+&lt;/code>&lt;/pre>
+&lt;/tr>
+&lt;/table>
+&lt;p>从下至上，从左至右，&lt;br>
+也可以，先从左至右，再从下至上&lt;/p>
+&lt;pre>&lt;code class="language-go">func PredictTheWinner(nums []int) bool {
+n := len(nums)
+dp := make([][]int, n)
+for i := range dp {
+dp[i] = make([]int, n)
+dp[i][i] = nums[i]
+}
+// dp[i][j] = max(nums[i] - dp[i+1][j], nums[j] - dp[i][j-1])
+for j := 1; j &amp;lt; n ; j++ {
+for i := j - 1; i &amp;gt;= 0; i-- {
+dp[i][j] = max(nums[i] - dp[i+1][j], nums[j] - dp[i][j-1])
+}
+}
+return dp[0][n-1] &amp;gt;= 0
+}
+func max(a, b int) int {
+if a &amp;gt; b {
+return a
+}
+return b
+}&lt;/code>&lt;/pre></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">山脉数组的峰顶索引</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html"/><id>https://yuler.asia/topics/leetcode/852-%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84%E7%9A%84%E5%B3%B0%E9%A1%B6%E7%B4%A2%E5%BC%95.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-15T02:05:20+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 使用二分法来加速查找，以达到O(n)的时间复杂度。判断的条件是arr[mi……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/peak-index-in-a-mountain-array/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>使用二分法来加速查找，以达到&lt;code>O(n)&lt;/code>的时间复杂度。判断的条件是&lt;code>arr[mid] &amp;gt; arr[mid + 1]&lt;/code>，需要注意边界控制。&lt;/p>
+&lt;h2 id="code">code&lt;/h2>
+&lt;pre>&lt;code class="language-go">func peakIndexInMountainArray(arr []int) int {
+l, r := 1, len(arr) - 2
+ans := 0
+for l &amp;lt;= r {
+m := (r - l) &amp;lt;&amp;lt; l + l
+if arr[m] &amp;gt; arr[m + 1] {
+ans = m
+r = m - 1
+}else {
+l = m + 1
+}
+}
+return ans
+&lt;/code>&lt;/pre>
+&lt;ul>
+&lt;li>时间复杂度：&lt;code>O(log(n))&lt;/code>&lt;/li>
+&lt;li>空间复杂度：&lt;code>O(1)&lt;/code>&lt;/li>
+&lt;/ul></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry><entry><title type="text">猜数字大小</title><link rel="alternate" type="text/html" href="https://yuler.asia/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html"/><id>https://yuler.asia/topics/leetcode/374-%E7%8C%9C%E6%95%B0%E5%AD%97%E5%A4%A7%E5%B0%8F.html</id><updated>2021-09-17T09:53:38+00:00</updated><published>2021-06-14T15:05:29+00:00</published><author><name>reuixiy</name><uri>https://io-oi.me/</uri><email>reuixiy@gmail.com</email></author><rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">题目地址 Solution 很简单的二分法，直接上代码 code func guessNumber(n int) int { l, r := 1, n for l &amp;lt;= r { m := (r - l) / 2 +……</summary><content type="html">&lt;blockquote>
+&lt;p>&lt;a href="https://leetcode-cn.com/problems/guess-number-higher-or-lower/">题目地址&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>很简单的二分法，直接上代码&lt;/p>
+&lt;h2 id="code">code&lt;/h2>
+&lt;pre>&lt;code class="language-go">func guessNumber(n int) int {
+l, r := 1, n
+for l &amp;lt;= r {
+m := (r - l) / 2 + l
+switch guess(m) {
+case -1: r = m - 2
+case 1: l = m + 1
+case 0: return m
+}
+}
+return 0
+}&lt;/code>&lt;/pre></content><category scheme="https://yuler.asia/categories/leetcode/" term="Leetcode" label="Leetcode"/></entry></feed>
