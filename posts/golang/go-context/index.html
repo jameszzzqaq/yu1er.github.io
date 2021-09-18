@@ -14,7 +14,6 @@
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.9f1d947375927e9847272b1f4e9be81336f539e513bf04d52cade31f81cad1af.css integrity="sha256-nx2Uc3WSfphHJysfTpvoEzb1OeUTvwTVLK3jH4HK0a8=" rel="preload stylesheet" as=style>
-<link rel=preload href=/jiaran.webp as=image>
 <script defer crossorigin=anonymous src=/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5+kdJvBz5iKbt6B5PJI=" onload=hljs.initHighlightingOnLoad()></script>
 <link rel=icon href=https://zhangyh.me/jiaran16.ico>
 <link rel=icon type=image/png sizes=16x16 href=https://zhangyh.me/jiaran16.ico>
@@ -50,8 +49,7 @@
 <header class=header>
 <nav class=nav>
 <div class=logo>
-<a href=https://zhangyh.me/ accesskey=h title="Home (Alt + H)">
-<img src=/jiaran.webp alt=logo aria-label=logo height=35>Home</a>
+<a href=https://zhangyh.me/ accesskey=h title="Home (Alt + H)">Home</a>
 <span class=logo-switches>
 <button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
 </button>
@@ -162,8 +160,8 @@ Go | context
 <h3 id=2-链路并发控制释放资源>2. 链路并发控制，释放资源<a hidden class=anchor aria-hidden=true href=#2-链路并发控制释放资源>#</a></h3>
 <p><code>context</code>最主要的作用是解决<code>cancelation</code>问题，也就是通过上层<code>goroutine</code>来释放下层<code>goroutine</code>。
 可以把主要的并发模型归为两类，<code>wait</code>和<code>cancel</code>
-<img loading=lazy src=https://cos.yuler.asia/img/post/context-wait.webp alt=Wait>
-<img loading=lazy src=https://cos.yuler.asia/img/post/context-cancel.webp alt=Cancel>
+<img loading=lazy src=/static/context-wait.webp alt=Wait>
+<img loading=lazy src=/static/context-cancel.webp alt=Cancel>
 </p>
 <p>Wait主要通过<code>sync.WaitGroup</code>实现，Cancel则需要通过<code>context.Context</code>来实现</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>Test2</span>() {
