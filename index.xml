@@ -9,7 +9,27 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Fri, 13 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 20 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>weekly-contest-259</title>
+      <link>https://zhangyh.me/posts/leetcode/weekly-contest-259/</link>
+      <pubDate>Mon, 20 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/leetcode/weekly-contest-259/</guid>
+      <description>第259次周赛 A. 执行操作后的变量值  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  class Solution { public: int finalValueAfterOperations(vector&amp;lt;string&amp;gt;&amp;amp; operations) { int X = 0; for (auto &amp;amp; s: operations) { if (s[1] == &amp;#39;+&amp;#39;) X++; else X--; } return X; } }; B. 数组美丽值求和 通过正反两次遍历记录每个值左边的最大值和右边的最小值.
+ 时间复杂度: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: int sumOfBeauties(vector&amp;lt;int&amp;gt;&amp;amp; nums) { int n = nums.size(); vector&amp;lt;int&amp;gt; left(n, INT_MIN), right(n, INT_MAX); int ans = 0; left[0] = nums[0]; right[n - 1] = nums[n - 1]; for (int i = 1; i &amp;lt; n; i++) left[i] = max(left[i-1], nums[i]); for (int i = n - 2; i &amp;gt;= 0; i--) right[i] = min(right[i + 1], nums[i]); for (int i = 1; i &amp;lt; n - 1; i++) { if (left[i - 1] &amp;lt; nums[i] &amp;amp;&amp;amp; nums[i] &amp;lt; right[i + 1]) ans +=2; else if (nums[i - 1] &amp;lt; nums[i] &amp;amp;&amp;amp; nums[i] &amp;lt; nums[i + 1]) ans++; } return ans; } }; C.</description>
+    </item>
+    
+    <item>
+      <title>biweekly-contest-61</title>
+      <link>https://zhangyh.me/posts/leetcode/biweekly-contest-61/</link>
+      <pubDate>Sun, 19 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/leetcode/biweekly-contest-61/</guid>
+      <description>第61次双周赛 A: 差的绝对值为 K 的数对数目  时间复杂度: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: int countKDifference(vector&amp;lt;int&amp;gt;&amp;amp; nums, int k) { map&amp;lt;int, int&amp;gt; m; int ans; for (auto &amp;amp;&amp;amp; x : nums) { ans += (m[x + k] + m[x - k]); m[x]++; } return ans; } }; B: 从双倍数组中还原原数组 两个关键点: 1. 元素个数一定为偶数 2. 结果数组元素个数一定是原数组二分之一
+ 时间复杂度: 排序: $O(nlgn)$ 遍历: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: vector&amp;lt;int&amp;gt; findOriginalArray(vector&amp;lt;int&amp;gt;&amp;amp; changed) { auto n = changed.</description>
+    </item>
+    
     <item>
       <title>聊聊内存对齐</title>
       <link>https://zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/</link>

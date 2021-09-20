@@ -9,7 +9,16 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Fri, 13 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 20 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Leetcode</title>
+      <link>https://zhangyh.me/categories/leetcode/</link>
+      <pubDate>Mon, 20 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/categories/leetcode/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>Misc</title>
       <link>https://zhangyh.me/categories/misc/</link>
