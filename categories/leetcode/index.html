@@ -11,7 +11,7 @@
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
-<link crossorigin=anonymous href=/assets/css/stylesheet.min.9f1d947375927e9847272b1f4e9be81336f539e513bf04d52cade31f81cad1af.css integrity="sha256-nx2Uc3WSfphHJysfTpvoEzb1OeUTvwTVLK3jH4HK0a8=" rel="preload stylesheet" as=style>
+<link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
 <link rel=icon href=https://zhangyh.me/icon/jiaran16.ico>
 <link rel=icon type=image/png sizes=16x16 href=https://zhangyh.me/icon/jiaran16.ico>
 <link rel=icon type=image/png sizes=32x32 href=https://zhangyh.me/icon/jiaran32.ico>
@@ -91,7 +91,7 @@
 </h2>
 </header>
 <section class=entry-content>
-<p>第61次双周赛 A: 差的绝对值为 K 的数对数目 时间复杂度: $O(n)$ 空间复杂度: $O(n)$ class Solution { public: int countKDifference(vector&lt;int>& nums, int k) { map&lt;int, int> m; int ans; for (auto && x : nums) { ans += (m[x + k] + m[x - k]); m[x]++; } return ans; } }; B: 从双倍数组中还原原数组 两个关键点: 1. 元素个数一定为偶数 2. 结果数组元素个数一定是原数组二分之一
+<p>第61次双周赛 A: 差的绝对值为 K 的数对数目 时间复杂度:$O(n)$ 空间复杂度:$O(n)$ class Solution { public: int countKDifference(vector&lt;int>& nums, int k) { map&lt;int, int> m; int ans; for (auto && x : nums) { ans += (m[x + k] + m[x - k]); m[x]++; } return ans; } }; B: 从双倍数组中还原原数组 两个关键点: 1. 元素个数一定为偶数 2. 结果数组元素个数一定是原数组二分之一
 时间复杂度: 排序: $O(nlgn)$ 遍历: $O(n)$ 空间复杂度: $O(n)$ class Solution { public: vector&lt;int> findOriginalArray(vector&lt;int>& changed) { auto n = changed....</p>
 </section>
 <footer class=entry-footer>9-19&nbsp;·&nbsp;yuler</footer>

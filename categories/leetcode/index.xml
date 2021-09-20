@@ -26,7 +26,7 @@
       <pubDate>Sun, 19 Sep 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/posts/leetcode/biweekly-contest-61/</guid>
-      <description>第61次双周赛 A: 差的绝对值为 K 的数对数目  时间复杂度: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: int countKDifference(vector&amp;lt;int&amp;gt;&amp;amp; nums, int k) { map&amp;lt;int, int&amp;gt; m; int ans; for (auto &amp;amp;&amp;amp; x : nums) { ans += (m[x + k] + m[x - k]); m[x]++; } return ans; } }; B: 从双倍数组中还原原数组 两个关键点: 1. 元素个数一定为偶数 2. 结果数组元素个数一定是原数组二分之一
+      <description>第61次双周赛 A: 差的绝对值为 K 的数对数目  时间复杂度:$O(n)$ 空间复杂度:$O(n)$  class Solution { public: int countKDifference(vector&amp;lt;int&amp;gt;&amp;amp; nums, int k) { map&amp;lt;int, int&amp;gt; m; int ans; for (auto &amp;amp;&amp;amp; x : nums) { ans += (m[x + k] + m[x - k]); m[x]++; } return ans; } }; B: 从双倍数组中还原原数组 两个关键点: 1. 元素个数一定为偶数 2. 结果数组元素个数一定是原数组二分之一
  时间复杂度: 排序: $O(nlgn)$ 遍历: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: vector&amp;lt;int&amp;gt; findOriginalArray(vector&amp;lt;int&amp;gt;&amp;amp; changed) { auto n = changed.</description>
     </item>
     

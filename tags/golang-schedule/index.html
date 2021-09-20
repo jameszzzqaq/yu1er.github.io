@@ -3,11 +3,11 @@
 <meta http-equiv=x-ua-compatible content="IE=edge">
 <meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
 <meta name=robots content="index, follow">
-<title>Posts | yuler's blog</title>
+<title>Golang schedule | yuler's blog</title>
 <meta name=keywords content>
-<meta name=description content="Posts - yuler's blog">
+<meta name=description content="yuler's blog">
 <meta name=author content="yuler">
-<link rel=canonical href=https://zhangyh.me/posts/>
+<link rel=canonical href=https://zhangyh.me/tags/golang-schedule/>
 <meta name=google-site-verification content="XYZabc">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
@@ -20,20 +20,19 @@
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
 <meta name=generator content="Hugo 0.88.1">
-<link rel=alternate type=application/rss+xml href=https://zhangyh.me/posts/index.xml>
+<link rel=alternate type=application/rss+xml href=https://zhangyh.me/tags/golang-schedule/index.xml>
 <noscript>
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Posts">
+<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Golang schedule">
 <meta property="og:description" content="yuler's blog">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://zhangyh.me/posts/"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="og:site_name" content="yuler's blog">
+<meta property="og:url" content="https://zhangyh.me/tags/golang-schedule/"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="og:site_name" content="yuler's blog">
 <meta name=twitter:card content="summary_large_image">
 <meta name=twitter:image content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E">
-<meta name=twitter:title content="Posts">
+<meta name=twitter:title content="Golang schedule">
 <meta name=twitter:description content="yuler's blog">
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"}]}</script>
 </head>
 <body class=list id=top>
 <script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
@@ -71,10 +70,36 @@
 </nav>
 </header>
 <main class=main>
-<header class=page-header><div class=breadcrumbs><a href=https://zhangyh.me/>Home</a></div>
-<h1>Posts</h1>
+<header class=page-header><div class=breadcrumbs><a href=https://zhangyh.me/>Home</a>&nbsp;»&nbsp;<a href=https://zhangyh.me/tags/>Tags</a></div>
+<h1>Golang schedule</h1>
 </header>
-<article class=post-entry>
+<article class="post-entry tag-entry">
+<header class=entry-header>
+<h2>Go调度 | 3. goroutine的创建和执行
+</h2>
+</header>
+<section class=entry-content>
+<p>【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
+go程序的启动 TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中 CALL runtime·osinit(SB) // 初始化schedule CALL runtime·schedinit(SB) MOVQ $runtime·mainPC(SB), AX // entry PUSHQ AX PUSHQ $0 // arg size // 创建新的goroutine来执行程序(main()函数) CALL runtime·newproc(SB) POPQ AX POPQ AX // 主线程进入调度循环，运行刚刚创建的 goroutine CALL runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序 CALL runtime·abort(SB) // mstart should never return RET main goroutine newproc() 该函数创建出main goroutine
+func newproc(siz int32, fn *funcval) { argp := add(unsafe....</p>
+</section>
+<footer class=entry-footer>7-1&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Go调度 | 3. goroutine的创建和执行" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
+<h2>Go调度 | 4. 调度策略
+</h2>
+</header>
+<section class=entry-content>
+<p>【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列 if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行 if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列 if gp == nil { // 从本地队列优先获取goroutine gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取 // 如果偷取不到当前线程会block，知道返回可用的goroutine if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available } ....</p>
+</section>
+<footer class=entry-footer>7-1&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Go调度 | 4. 调度策略" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/></a>
+</article>
+<article class="post-entry tag-entry">
 <header class=entry-header>
 <h2>GMP源码分析
 </h2>
@@ -99,7 +124,7 @@ op5->end
 <footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to GMP源码分析" href=https://zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/></a>
 </article>
-<article class=post-entry>
+<article class="post-entry tag-entry">
 <header class=entry-header>
 <h2>Go调度 | 1. GMP模型
 </h2>
@@ -115,7 +140,7 @@ type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] stackg
 <footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 1. GMP模型" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/></a>
 </article>
-<article class=post-entry>
+<article class="post-entry tag-entry">
 <header class=entry-header>
 <h2>Go调度 | 2. scheduler初始化
 </h2>
@@ -132,51 +157,6 @@ TEXT runtime·rt0_go&lt;ABIInternal>(SB),NOSPLIT,$0 // 拷贝argc和argv到指�
 <footer class=entry-footer>6-30&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go调度 | 2. scheduler初始化" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/></a>
 </article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>Go | SliceTricks
-</h2>
-</header>
-<section class=entry-content>
-<p>【译】SliceTricks 原文链接: https://github.com/golang/go/wiki/SliceTricks
-go官方给出了许多slice操作的tricks，这里记录一下，并在最后给出examples
-AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) copy(b, a) // 正常拷贝的one-line实现，但实际上边速度要慢一点 b = append(make([]int, 0, len(a)), a...) // 如果拷贝后还需要添加更多的元素，可以使用这种方式 // 但通常来说上面的方式更快 append([]int(nil), a...) // or append(a[:0:0], a...) Cut a = append(a[:i], a[j:]...) Delete a = append(a[:i], a[i:]...) Delete without preserving order a[i] = a[len(a) - 1] a = a[:len(a) - 1] [admonition color=“red”]如果数组类型为指针，或者时带有指针的结构体,那么上述的操作很可能会导致内存泄露的发生:一些元素仍然被a引用，但没有被垃圾回收器回收。可以使用以下的方式避免内存泄漏[/admonition]
-Cut
-copy(a[i:], a[j:]) for k, n := len(a)-j+i, len(a); k &lt; n; k++ { a[k] = nil // or the zero value of T } a = a[:len(a)-j+i] Delete...</p>
-</section>
-<footer class=entry-footer>6-29&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Go | SliceTricks" href=https://zhangyh.me/posts/golang/slicetricks/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>人民币汇率与人民币国际化—翟东升
-</h2>
-</header>
-<section class=entry-content>
-<p>《人民币汇率与人民币国际化》-翟东升 总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点
-1. 对人民币汇率的错误预测 看空人民币的五个错误理由 看空人民的观点错在哪 人民币是强势货币 2. 汇率的影响因素 短期看市场情绪，中期看政府调控，长期看市场
-影响长期汇率的直接因素 长期来看影响汇率最直接最有效的因素就是一个国家可贸易品的价格水平。可贸易品的加权平均价决定了汇率。
-两国之间的可贸易品价格如果差距太大，就会进行倒买倒卖，最终实现抛补平衡
-技术水平 和 人口老龄化 决定了可贸易品的价格，从而影响了汇率 (参考日本)
-影响汇率的六个深层因素 国家能力 政府财政开支占国家GDP的比例越高，汇率往往越坚挺。
-政府需要提供各种有效的公共产品(医疗、市场、教育、基础设施、贸易协定、治安秩序、商业秩序)。各种企业的成功离不开政府提供的公共产品。
-贸易开放度 出口所占比例。
-凡是想做空日元的都没有什么好下场
-要素特征 出口贸易品类型。 出口以能源、原材料、大宗商品、矿石等为主，汇率呈顺周期。 出口制成品为主，汇率呈逆周期。(汇率下跌，出口工业制成品获得价格优势，贸易顺差扩大，汇率获得上涨动能)
-文明类型 汇率最坚挺的两大文明：新教文明和东亚文明 鼓励生产，不鼓励消费
-新教文明：西欧、北欧、北美洲、大洋洲 东亚文明：日本、朝鲜半岛、中国大陆、中国台湾、中国香港、新加坡、越南
-比较软的货币所属文明：小乘佛教 不鼓励生产，不鼓励消费
-贬值很厉害的货币所属文明：罗马天主教、东正教和伊斯兰教 不鼓励生产，鼓励消费
-人均智商 宗教严肃度 海外投资的汇率风险 中国企业和资本出海需要重点防范：目标国的汇率风险 (结合上面所讲的因素进行思考)</p>
-</section>
-<footer class=entry-footer>6-27&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to 人民币汇率与人民币国际化—翟东升" href=https://zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/></a>
-</article>
-<footer class=page-footer>
-<nav class=pagination>
-<a class=prev href=https://zhangyh.me/posts/page/2/>« Prev Page</a>
-</nav>
-</footer>
 </main>
 <footer class=footer>
 <span>&copy; 2021 <a href=https://zhangyh.me/>yuler's blog</a></span>
