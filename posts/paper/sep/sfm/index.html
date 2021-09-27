@@ -32,6 +32,10 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
+<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.css integrity=sha384-zTROYFVGOfTw7JV7KUu8udsvW2fx4lWOsCEDqhBreBwlHI4ioVRtmIvEThzJHGET crossorigin=anonymous>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.js integrity=sha384-GxNFqL3r9uRJQhR+47eDxuPoNE7yLftQM8LcxzgS4HT73tp970WS/wV5p8UzCOmb crossorigin=anonymous></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/contrib/auto-render.min.js integrity=sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl crossorigin=anonymous></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:!0},{left:'$',right:'$',display:!1},{left:'\\(',right:'\\)',display:!1},{left:'\\[',right:'\\]',display:!1}],throwOnError:!1})})</script>
 <script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores">
 <meta property="og:description" content="Movitation  传统的merge policy  Level Merge Policy和Tiered Merge Policy在读写放大方面各有优势. 前者相当于单层的Tiered,保证了单层数据的有序性,减少了读放大,但要维护这种有序性,就需要频繁的merge,因此造成了严重的写放大. 后者对有序性的要求并不严格,它只要求每个group的key range互不交叉,允许sstable之间的key交叉.
 工作负载的空间局部性  作者对ZippyDB(facebook)的工作负载分析发现,少部分的key被读写多次,大部分的key被读写的次数很少.
@@ -103,7 +107,7 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
 <h1 class=post-title>
 SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores
 </h1>
-<div class=post-meta>9-24&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/posts/paper/sep/SFM.md rel="noopener noreferrer" target=_blank>Suggest Changes</a>
+<div class=post-meta>9-24&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/content/tree/main/posts/paper/sep/SFM.md rel="noopener noreferrer" target=_blank>Edit</a>
 </div>
 </header> <div class=toc>
 <details>
