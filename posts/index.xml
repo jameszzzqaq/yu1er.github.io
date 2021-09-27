@@ -88,7 +88,7 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
     </item>
     
     <item>
-      <title>Wiskey</title>
+      <title>Wisckey: Separating keys from values in ssd-conscious storage</title>
       <link>https://zhangyh.me/posts/paper/aug/wisckey/</link>
       <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
