@@ -76,6 +76,19 @@
 </header>
 <article class=post-entry>
 <header class=entry-header>
+<h2>Go调度 | 4. 调度策略
+</h2>
+</header>
+<section class=entry-content>
+<p>【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
+有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
+schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列 if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行 if _g_.m.p.ptr().schedtick%61 == 0 && sched.runqsize > 0 { lock(&sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&sched.lock) } } // 本地队列 if gp == nil { // 从本地队列优先获取goroutine gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取 // 如果偷取不到当前线程会block，知道返回可用的goroutine if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available } ....</p>
+</section>
+<footer class=entry-footer>7-1&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Go调度 | 4. 调度策略" href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>GMP源码分析
 </h2>
 </header>

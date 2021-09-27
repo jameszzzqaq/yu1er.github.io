@@ -76,6 +76,25 @@
 </header>
 <article class=post-entry>
 <header class=entry-header>
+<h2>SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>Movitation 传统的merge policy Level Merge Policy和Tiered Merge Policy在读写放大方面各有优势. 前者相当于单层的Tiered,保证了单层数据的有序性,减少了读放大,但要维护这种有序性,就需要频繁的merge,因此造成了严重的写放大. 后者对有序性的要求并不严格,它只要求每个group的key range互不交叉,允许sstable之间的key交叉.
+工作负载的空间局部性 作者对ZippyDB(facebook)的工作负载分析发现,少部分的key被读写多次,大部分的key被读写的次数很少.
+Design 作者提出了疑问:
+How to resolve the read amplification problem induced by the tiering merge policy while maintaining its low write amplification?
+根据key-space的不同access pattern,有选择的采用Tiering和Leveling Merge policy. 通过追踪每层中的key-space的访问强度,来决定设置T的值为1还是configured threshold.
+Spatially Fragmented LSM-TREE (SFM) 每层通过随机的边界分为不同的key-space.边界的选取方式类似于PebblesDB. 如果一个栈的key-range被认为是读密集的,则设置T为1,否则,按照原有的配置设置.
+合并策略如上图
+读超过stack阈值的文件到内存 在内存中进行merge 按照下层的key边界进行切片 新SSTable被刷新到下层 添加到key对应的栈 B. Read Intensity Identification 如何判断读的强度呢? 统计每个段的读写次数.对于读操作,即使读取的key不存在,也是要计入读取次数的. 对于写操作,统计每次merge后的sstable中的kv对的数量. 通过对比每个stack的r/w和整体平均的r/w来判断其为hot还是cold. 根据每个stack的hot还是cold属性,来决定key-space的访问强度.
+Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元信息....</p>
+</section>
+<footer class=entry-footer>9-24&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/sfm/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>weekly-contest-259
 </h2>
 </header>
@@ -193,29 +212,6 @@ Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata �
 </section>
 <footer class=entry-footer>8-6&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/aug/lwc-tree/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory
-</h2>
-</header>
-<section class=entry-content>
-<p>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
-但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
-access size access method(read,write) pattern degree of concurrency 本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
-Background Optane DIMM是第一款商用NVDIMM 与SSD/HDD相比，它low latency、higher read bandwidth、byte-address 与DRAM相比，它higher density、persistent
-Optane Memory Optane DIMM使用和DRAM相同的插槽，和处理器的集成内存控制器（iMC)相连接。Intel Cascade Lake处理器是第一个支持Optane DIMM的处理器，有一个或两个processor die，每个die支持两个iMC，每个iMC支持三个channel，因此一个die可以支持6个Optane DIMM
-为了持久化，iMC维护一个asynchronous DRAM refresh(ADR)区域，写入这个区域内的数据都能保证其被持久化。ADR区域不保证处理器cache的持久化。
-iMC按照缓存行粒度(64byte)和Optane DIMM通信。
-Optane DIMM中
-3D-XPoint物理介质的访问粒度为256byte，因此会造成写放大，所以会在XPController中有controller负责将小于256B的操作变成256B的访问，同时内部有Buffer用来合并临近的访问。
-为了磨损均匀、坏块的管理，AIT用于进行内部地址转换。
-Operation Model Optane DIMM有两种模式Memory和App Direct
-Memory Model 该模式下直接将Optane DIMM作为普通的内存使用，将DRAM作为内存的Cache，DRAM是透明的，直接观察到的内存容量就是Optane DIMM的容量。 该模式可以解决一些内存数据库内存容量不足的问题。 App Direct Model 该模式将Optane DIMM作为持久化设备使用，直接通过CPU指令读写。文件系统和其他的管理层管理持久化内存的分配、回收和访问。 支持交错访问，最小的单位是4KB，保证一个page一定是从一个DIMM中读取出来的
-ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内存。一般用于写完就不管的情况，可以防止污染cache。 clflush: 把cache line刷回内存，并且让cache line失效。只能串行执行。 clflushopt: 功能同clflush，但是不同缓存行可以并发执行。 clwb: 除了写回后不让cache line失效，其他同clflushopt。 sfence：写屏障，在sfence指令前的写操作当必须在sfence指令后的写操作前完成...</p>
-</section>
-<footer class=entry-footer>8-5&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to An Empirical Guide to the Behavior and Use of Scalable Persistent Memory" href=https://zhangyh.me/posts/paper/aug/optane/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>
