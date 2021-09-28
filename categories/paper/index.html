@@ -94,6 +94,19 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
+<h2>The Google File System
+</h2>
+</header>
+<section class=entry-content>
+<p>1 Introduction 本文是《The Google File System》的学习笔记
+2 Design Overview 2.1 Assumptions GFS基于以下基本假设作为设计原则。
+廉价商用机器出故障是常态 主要存储大文件，通常大于100MB，没有针对小文件的优化 读操作：大规模的流式读、小规模的随机读 写操作：大规模的append写操作、小规模的随机写效率低 支持多个客户端并行 append 到同一个文件 持续的高带宽比低时延重要 2.2 Interface 未实现POSIX API 支持常见文件操作，包括create, delete, open, close, read, write. 包括 snapshot 和 record append 2.3 Architecture 集群通常包括一个 master、多个 chunkserver 和多个访问的 client 文件使用固定大小(64 MB)的 chunk 存储，使用globally unique、immutable的 64bit chunk handle表示 master 维护整个集群所有的 metadata ，通过 heartbeat 与 chunkserve 进行 instruct、state-collect client 以 lib 的形式嵌入到应用中，以供 application 调用 client 和 chunkserver 都不 cache file data，但 client 会 cache metadata 2....</p>
+</section>
+<footer class=entry-footer>8-28&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to The Google File System" href=https://zhangyh.me/posts/paper/aug/gfs/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
 <h2>LSM-based storage techniques: a survey
 </h2>
 </header>
@@ -205,20 +218,11 @@ WAL memtable insert compaction 对于compaction 内存中的mutable memtable在�
 <footer class=entry-footer>8-3&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Redesigning LSMs for nonvolatile memory with NoveLSM" href=https://zhangyh.me/topics/paper/novelsm.html></a>
 </article>
-<article class="post-entry tag-entry">
-<header class=entry-header>
-<h2>Zen: a high-throughput log-free OLTP engine for non-volatile main memory
-</h2>
-</header>
-<section class=entry-content>
-<p>Design Overview Hybrid Table(HTable) tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers. Metadata in NVM Transaction and Indices in DRAM NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成 其中可能同时存在某个数据的多个版本 (tupleId, Tx-CTS)唯一确定一个tuple
-LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除 Met-Cache NVM heap在DRAM中的缓存
-Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。 Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple
-Transaction-Private Data 线程私有 用于事务并发访问 存储相应数据...</p>
-</section>
-<footer class=entry-footer>8-3&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Zen: a high-throughput log-free OLTP engine for non-volatile main memory" href=https://zhangyh.me/posts/paper/aug/zen/></a>
-</article>
+<footer class=page-footer>
+<nav class=pagination>
+<a class=next href=https://zhangyh.me/categories/paper/page/2/>Next Page »</a>
+</nav>
+</footer>
 </main>
 <footer class=footer>
 <span>&copy; 2021 <a href=https://zhangyh.me/>yuler's blog</a></span>
