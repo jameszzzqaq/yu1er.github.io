@@ -9,7 +9,7 @@
  时间复杂度: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: int sumOfBeauties(vector<int>& nums) { int n = nums.size(); vector<int> left(n, INT_MIN), right(n, INT_MAX); int ans = 0; left[0] = nums[0]; right[n - 1] = nums[n - 1]; for (int i = 1; i < n; i++) left[i] = max(left[i-1], nums[i]); for (int i = n - 2; i >= 0; i--) right[i] = min(right[i + 1], nums[i]); for (int i = 1; i < n - 1; i++) { if (left[i - 1] < nums[i] && nums[i] < right[i + 1]) ans +=2; else if (nums[i - 1] < nums[i] && nums[i] < nums[i + 1]) ans++; } return ans; } }; C.">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/posts/leetcode/weekly-contest-259/>
-<meta name=google-site-verification content="XYZabc">
+<meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
@@ -29,7 +29,9 @@
 <script defer src=https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.js integrity=sha384-GxNFqL3r9uRJQhR+47eDxuPoNE7yLftQM8LcxzgS4HT73tp970WS/wV5p8UzCOmb crossorigin=anonymous></script>
 <script defer src=https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/contrib/auto-render.min.js integrity=sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl crossorigin=anonymous></script>
 <script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:!0},{left:'$',right:'$',display:!1},{left:'\\(',right:'\\)',display:!1},{left:'\\[',right:'\\]',display:!1}],throwOnError:!1})})</script>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="weekly-contest-259">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JP3WQ36T5K"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date),gtag('config','G-JP3WQ36T5K',{anonymize_ip:!1})}</script>
+<meta property="og:title" content="weekly-contest-259">
 <meta property="og:description" content="第259次周赛 A. 执行操作后的变量值  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  class Solution { public: int finalValueAfterOperations(vector<string>& operations) { int X = 0; for (auto & s: operations) { if (s[1] == '+') X++; else X--; } return X; } }; B. 数组美丽值求和 通过正反两次遍历记录每个值左边的最大值和右边的最小值.
  时间复杂度: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: int sumOfBeauties(vector<int>& nums) { int n = nums.size(); vector<int> left(n, INT_MIN), right(n, INT_MAX); int ans = 0; left[0] = nums[0]; right[n - 1] = nums[n - 1]; for (int i = 1; i < n; i++) left[i] = max(left[i-1], nums[i]); for (int i = n - 2; i >= 0; i--) right[i] = min(right[i + 1], nums[i]); for (int i = 1; i < n - 1; i++) { if (left[i - 1] < nums[i] && nums[i] < right[i + 1]) ans +=2; else if (nums[i - 1] < nums[i] && nums[i] < nums[i + 1]) ans++; } return ans; } }; C.">
 <meta property="og:type" content="article">

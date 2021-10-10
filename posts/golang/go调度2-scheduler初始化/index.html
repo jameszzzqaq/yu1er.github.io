@@ -14,7 +14,7 @@ allm *m // 所有的m构成的一个链表，包括下面的m0 allp []*p // 保�
 TEXT runtime·rt0_go<ABIInternal>(SB),NOSPLIT,$0 // 拷贝argc和argv到指定位置  MOVQ	DI, AX	// argc  MOVQ	SI, BX	// argv  SUBQ	$(4*8+7), SP	// 2args 2auto  ANDQ	$~15, SP MOVQ	AX, 16(SP) MOVQ	BX, 24(SP) // 为g0分配栈空间，g0的栈一般相对较大  // 之后会专门写一篇分析g0的文章  MOVQ	$runtime·g0(SB), DI LEAQ	(-64*1024+104)(SP), BX MOVQ	BX, g_stackguard0(DI) MOVQ	BX, g_stackguard1(DI) MOVQ	BX, (g_stack+stack_lo)(DI) MOVQ	SP, (g_stack+stack_hi)(DI) // .">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/>
-<meta name=google-site-verification content="XYZabc">
+<meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
@@ -30,7 +30,9 @@ TEXT runtime·rt0_go<ABIInternal>(SB),NOSPLIT,$0 // 拷贝argc和argv到指定�
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go调度 | 2. scheduler初始化">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JP3WQ36T5K"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date),gtag('config','G-JP3WQ36T5K',{anonymize_ip:!1})}</script>
+<meta property="og:title" content="Go调度 | 2. scheduler初始化">
 <meta property="og:description" content="上篇文章结尾告诉我们了几个重要的全局变量，本篇文章会用到
 allm *m // 所有的m构成的一个链表，包括下面的m0 allp []*p // 保存所有的p，len(allp) == gomaxprocs  ncpu int32 // 系统中cpu核的数量，程序启动时由runtime代码初始化 gomaxprocs int32 // p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改  m0 m // 代表进程的主线程 g0 g // m0的g0，也就是m0.g0 = &g0 go程序的启动 当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。
 对于linux下的程序来说，入口文件在runtime/rt0_linux_amd64.s，

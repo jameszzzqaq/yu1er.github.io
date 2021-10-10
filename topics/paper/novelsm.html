@@ -14,7 +14,7 @@ Insert Latency insert latency来源有三个方面：
  增大memtable会带来双倍的内存占用，因为mutable memtable和immutable memtable需要同时增大 WAL的磁盘占用也会更大，因为他需要容纳更多的指令 LSM为了性能并不commit log。   Third, LSMs suchas LevelDB and RocksDB do not enforce commits (sync) when writing to a log; as a result, an application crash or power-failure could lead to data loss">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/topics/paper/novelsm.html>
-<meta name=google-site-verification content="XYZabc">
+<meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
@@ -30,7 +30,9 @@ Insert Latency insert latency来源有三个方面：
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Redesigning LSMs for nonvolatile memory with NoveLSM">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JP3WQ36T5K"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date),gtag('config','G-JP3WQ36T5K',{anonymize_ip:!1})}</script>
+<meta property="og:title" content="Redesigning LSMs for nonvolatile memory with NoveLSM">
 <meta property="og:description" content="Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
  对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
  未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍 因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大

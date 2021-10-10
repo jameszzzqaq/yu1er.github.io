@@ -11,7 +11,7 @@ type mspan struct { next *mspan // 链表指针 	prev *mspan // 链表指针  st
  mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内存的地址，npages确定了内存地址范围 每个mspan都管理这npages数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍） state为mspan的状态，不细说。  spanClass 这是mspan中一个很核心的字段，spanClass是跨度类，它决定了mspan中管理的存储对象的大小和个数。">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/>
-<meta name=google-site-verification content="XYZabc">
+<meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
@@ -27,7 +27,9 @@ type mspan struct { next *mspan // 链表指针 	prev *mspan // 链表指针  st
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go | 内存分配">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JP3WQ36T5K"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date),gtag('config','G-JP3WQ36T5K',{anonymize_ip:!1})}</script>
+<meta property="og:title" content="Go | 内存分配">
 <meta property="og:description" content="Go | 内存分配 设计原理 Go的内存分配参考了TCMalloc的核心思想。
  每一个线程都可以获得一个用于无锁分配小对象的缓存，这样可以让并行程序分配小对象（<=32KB）非常高效。 TCMalloc 管理的堆由一组页组成，一组连续的页面被表示为 span。当分配的对象大于 32KB，将使用页堆（Page Heap）进行内存分配。  相关struct mspan mspan是Go语言内存管理的基本单元。
 type mspan struct { next *mspan // 链表指针 	prev *mspan // 链表指针  startAddr uintptr // span 起始地址 	npages uintptr // page的数量  spanclass spanClass // size class and noscan (uint8) 	state mSpanStateBox // span状态 	limit uintptr // end of data in span } 这里只列出了关心的主要字段。

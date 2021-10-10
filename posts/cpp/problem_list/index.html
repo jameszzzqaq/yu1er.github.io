@@ -10,7 +10,7 @@
  test函数是A的,test内部调用func实际上是this->func,func是个虚函数而且在B中被重写了,所以有动态绑定. 这里的this运行时类型是B,所以调用B的func,但是缺省参数实际上是静态绑定的,所以输出的val是A中的那个val.">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/posts/cpp/problem_list/>
-<meta name=google-site-verification content="XYZabc">
+<meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
@@ -26,7 +26,9 @@
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="cpp问题清单">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JP3WQ36T5K"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date),gtag('config','G-JP3WQ36T5K',{anonymize_ip:!1})}</script>
+<meta property="og:title" content="cpp问题清单">
 <meta property="og:description" content="问题1 #include <iostream> class A { public: virtual void func(int val = 1) {std::cout << &#34;A->&#34; << val << std::endl; } virtual void test(){func();} }; class B : public A { public: void func(int val = 0) {std::cout << &#34;B->&#34; << val << std::endl;} }; int main () { B* b = new B; b->test(); return 0; } 输出  B->1
  解释 参考《Effective c++》条款37: 绝不重新定义继承而来的缺省默认值. 因为虚函数是动态绑定,因此b实际指向的就是b.而默认参数是静态绑定,是由编译器决定的.
  test函数是A的,test内部调用func实际上是this->func,func是个虚函数而且在B中被重写了,所以有动态绑定. 这里的this运行时类型是B,所以调用B的func,但是缺省参数实际上是静态绑定的,所以输出的val是A中的那个val.">

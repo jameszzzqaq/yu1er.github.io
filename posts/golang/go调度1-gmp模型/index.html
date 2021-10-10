@@ -13,7 +13,7 @@ G结构 我们暂时忽略一些对我们分析没有影响的字段。
 type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting  // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/>
-<meta name=google-site-verification content="XYZabc">
+<meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
@@ -29,7 +29,9 @@ type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stack
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go调度 | 1. GMP模型">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JP3WQ36T5K"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date),gtag('config','G-JP3WQ36T5K',{anonymize_ip:!1})}</script>
+<meta property="og:title" content="Go调度 | 1. GMP模型">
 <meta property="og:description" content="本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
 线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
  内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程

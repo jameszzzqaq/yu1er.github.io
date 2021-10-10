@@ -12,7 +12,7 @@ AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) c
  copy(a[i:], a[j:]) for k, n := len(a)-j+i, len(a); k < n; k++ { a[k] = nil // or the zero value of T } a = a[:len(a)-j+i]  Delete">
 <meta name=author content="yuler">
 <link rel=canonical href=https://zhangyh.me/posts/golang/slicetricks/>
-<meta name=google-site-verification content="XYZabc">
+<meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabc">
 <link crossorigin=anonymous href=/assets/css/stylesheet.min.css rel="preload stylesheet" as=style>
@@ -28,7 +28,9 @@ AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) c
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:#1d1e20;--entry:#2e2e33;--primary:rgba(255, 255, 255, 0.84);--secondary:rgba(255, 255, 255, 0.56);--tertiary:rgba(255, 255, 255, 0.16);--content:rgba(255, 255, 255, 0.74);--hljs-bg:#2e2e33;--code-bg:#37383e;--border:#333}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
 </noscript>
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b,a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)},a[b].l=1*new Date,c=e.createElement(f),d=e.getElementsByTagName(f)[0],c.async=1,c.src=g,d.parentNode.insertBefore(c,d)}(window,document,'script','https://www.google-analytics.com/analytics.js','ga'),ga('create','UA-123-45','auto'),ga('send','pageview'))</script><meta property="og:title" content="Go | SliceTricks">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JP3WQ36T5K"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date),gtag('config','G-JP3WQ36T5K',{anonymize_ip:!1})}</script>
+<meta property="og:title" content="Go | SliceTricks">
 <meta property="og:description" content="【译】SliceTricks  原文链接: https://github.com/golang/go/wiki/SliceTricks
  go官方给出了许多slice操作的tricks，这里记录一下，并在最后给出examples
 AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) copy(b, a) // 正常拷贝的one-line实现，但实际上边速度要慢一点 b = append(make([]int, 0, len(a)), a...) // 如果拷贝后还需要添加更多的元素，可以使用这种方式 // 但通常来说上面的方式更快 append([]int(nil), a...) // or append(a[:0:0], a...) Cut a = append(a[:i], a[j:]...) Delete a = append(a[:i], a[i:]...) Delete without preserving order a[i] = a[len(a) - 1] a = a[:len(a) - 1] [admonition color=&ldquo;red&rdquo;]如果数组类型为指针，或者时带有指针的结构体,那么上述的操作很可能会导致内存泄露的发生:一些元素仍然被a引用，但没有被垃圾回收器回收。可以使用以下的方式避免内存泄漏[/admonition]
