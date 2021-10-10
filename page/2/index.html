@@ -74,6 +74,20 @@
 <main class=main>
 <article class=post-entry>
 <header class=entry-header>
+<h2>Wisckey: Separating keys from values in ssd-conscious storage
+</h2>
+</header>
+<section class=entry-content>
+<p>WiscKey Design Goals Low写放大 Low读放大 SSD优化 Feature-rich API (scan、snapshot) Realistic k-v size (value的size通常比key的大很多) K-V Separation LSM tree的主要性能成本在于Compaction，但它维护了key的有序性，对于加速读也是十分有必要的。 Compaction只需要对key排序，因此考虑将k-v分开存储。只把value的地址和key放在一起。 LSM tree的size将大大变小，减少了写放大。 读操作虽然需要一次额外的寻址操作，但更小的LSM tree加快了检索同时更容易缓存到大内存中。 Challenge Parallel Range Query 在levelDB中，范围查询通过iterator的顺序读实现，但是现在由于和key一同存储的只有value的地址，范围查询变为了随机io。 我们在读取所有的地址后，写入一个队列，通过多线程并发读取，来加快范围查询的性能。
+Garbage Collection 由于把所有的数据都存到了vLog里，最朴素的垃圾回收的方法当然是扫描一遍LSM-tree，但开销太大了，只适用于离线环境。 WiscKey在vlog中存储(ksize, vsize, key, value)，并维护head和tail指针。 数据在head处添加 垃圾回收线程从tail处扫描，每次扫描一定量的数据（几MB），然后在LSM-tree中查找，如果kv对有效的话，则再把它添加到head处。 因此，只有tail和head之间的数据是有效的。
+Crash Consistency Optimizations Value-Log Write Buffer 对于写密集的数据集，频繁的大量的小size的value写入，会导致较大的系统开销。 因此考虑在内存中维护Buffer。 当读数据的时候，先到vlog write buffer中查找，如果没有，再查vlog。 crash-consistency的维护类似于levelDB，使用WAL。
+Optimizing the LSM-tree Log 在写LSM-tree之前需要先写vlog，因为这里我们加了vlog write buffer，所以我们直接用vlog的日志作为WAL。</p>
+</section>
+<footer class=entry-footer>8-10&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Wisckey: Separating keys from values in ssd-conscious storage" href=https://zhangyh.me/posts/paper/aug/wisckey/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>Hashkv: Enabling efficient updates in KV storage via hashing
 </h2>
 </header>
@@ -190,19 +204,6 @@ context.WithCancel(): 创建带有取消函数的context，上层goroutine调用
 </section>
 <footer class=entry-footer>7-16&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | context" href=https://zhangyh.me/posts/golang/go-context/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>Go | make和new
-</h2>
-</header>
-<section class=entry-content>
-<p>区别 方法 作用对象 返回值 new 值类型和用户定义类型 指向对象的指针 make 内置引用类型slice, map, channel 引用类型本身 值类型: 引用类型：
-new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
-package main import ( "fmt" ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference fmt.Println(i) // fmt.Println(*i) num := new(int) fmt....</p>
-</section>
-<footer class=entry-footer>7-11&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Go | make和new" href=https://zhangyh.me/posts/golang/go-make%E5%92%8Cnew/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>
