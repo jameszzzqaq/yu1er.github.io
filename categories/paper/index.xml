@@ -9,7 +9,23 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 26 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/paper/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 12 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/paper/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores</title>
+      <link>https://zhangyh.me/posts/paper/oct/triad/</link>
+      <pubDate>Tue, 12 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/paper/oct/triad/</guid>
+      <description>Introduction 本文通过解决LSM-Tree的写放大问题,从而整体上提高其吞吐量. 在真是的生产环境中,作者观察到compaction最高可占据45%的CPU,平均每天有2.5个小时的时间花在compaction上. 显然,compaction和flush是重要的性能挑战,即使它们发生在面向用户的操作的关键路径之外.
+主要面向
+Background LSM-Tree:
+ Memory Component Disk Component Commit Log  User-facing Operation:
+ Get(k) Update(k, v) Delete(k)  Internal Operation:
+ Flushing Compaction  Movitation 通过实验将正常的LSM与去掉了Disk Component的LSM相比,发现有3x的吞吐损失. 实验确定了昂贵的 I/O 操作的三个主要来源,每个来源对应于LSM-Tree中三个组件中的一个,即
+ data-skew unawareness (memory component) premature and iterative compaction (disk component) duplicated writes (commit log)  data-skew unawareness  hot key被频繁更新,造成了commit log快速增长,但$C_m$变化不大. 在$C_m$达到最大容量之前,频繁的触发更新（为什么？）,在L0中打开和存储文件的固定成本不会因实际向其中写入数据而摊销 data-skew导致$C_d$的多层都会有key的冗余,存储了大量的过时数据  premature and iterative compaction Leveling compaction和Size-Tiered Compaction 每次compaciton选择L0中的一个,但L0层的SSTable的key之间有交叉,即使两个SSTable的key交叉范围很大,仍需要进行两次Compaction,data-skew更是会恶化这种情况.
+duplicated writes 当$C_m$刷新到$C_d$之后,需要删除掉其在Commit log中的部分.</description>
+    </item>
+    
     <item>
       <title>FloDB: Unlocking Memory in Persistent Key-Value Stores</title>
       <link>https://zhangyh.me/posts/paper/sep/flodb/</link>

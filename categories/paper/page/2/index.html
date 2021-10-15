@@ -77,6 +77,23 @@
 </header>
 <article class="post-entry tag-entry">
 <header class=entry-header>
+<h2>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
+使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子 Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
+读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中 victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
+降低了大概10X的写放大.
+Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直接从overlaped读，但这带来的随机io违背了我们的设计初衷。 另一种是直接在内存中缓存元数据，但这部分开销并不算小，并不划算 为了解决这个问题，我们提出了元数据聚合。 在一次compaction完成后，第i+1层被更新的元数据存储到victim中，以此避免下一次compaction时对metadata的访问呢。
+通过compaction过程中一次额外的写，减少AF倍的i+1层的随机读。
+Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer...</p>
+</section>
+<footer class=entry-footer>8-6&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/aug/lwc-tree/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
 <h2>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory
 </h2>
 </header>

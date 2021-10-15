@@ -77,6 +77,24 @@
 </header>
 <article class="post-entry tag-entry">
 <header class=entry-header>
+<h2>TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>Introduction 本文通过解决LSM-Tree的写放大问题,从而整体上提高其吞吐量. 在真是的生产环境中,作者观察到compaction最高可占据45%的CPU,平均每天有2.5个小时的时间花在compaction上. 显然,compaction和flush是重要的性能挑战,即使它们发生在面向用户的操作的关键路径之外.
+主要面向
+Background LSM-Tree:
+Memory Component Disk Component Commit Log User-facing Operation:
+Get(k) Update(k, v) Delete(k) Internal Operation:
+Flushing Compaction Movitation 通过实验将正常的LSM与去掉了Disk Component的LSM相比,发现有3x的吞吐损失. 实验确定了昂贵的 I/O 操作的三个主要来源,每个来源对应于LSM-Tree中三个组件中的一个,即
+data-skew unawareness (memory component) premature and iterative compaction (disk component) duplicated writes (commit log) data-skew unawareness hot key被频繁更新,造成了commit log快速增长,但$C_m$变化不大. 在$C_m$达到最大容量之前,频繁的触发更新（为什么？）,在L0中打开和存储文件的固定成本不会因实际向其中写入数据而摊销 data-skew导致$C_d$的多层都会有key的冗余,存储了大量的过时数据 premature and iterative compaction Leveling compaction和Size-Tiered Compaction 每次compaciton选择L0中的一个,但L0层的SSTable的key之间有交叉,即使两个SSTable的key交叉范围很大,仍需要进行两次Compaction,data-skew更是会恶化这种情况.
+duplicated writes 当$C_m$刷新到$C_d$之后,需要删除掉其在Commit log中的部分....</p>
+</section>
+<footer class=entry-footer>10-12&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores" href=https://zhangyh.me/posts/paper/oct/triad/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
 <h2>FloDB: Unlocking Memory in Persistent Key-Value Stores
 </h2>
 </header>
@@ -200,23 +218,6 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
 </section>
 <footer class=entry-footer>8-7&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Hashkv: Enabling efficient updates in KV storage via hashing" href=https://zhangyh.me/topics/paper/hashkv.html></a>
-</article>
-<article class="post-entry tag-entry">
-<header class=entry-header>
-<h2>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores
-</h2>
-</header>
-<section class=entry-content>
-<p>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
-使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子 Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
-读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中 victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
-降低了大概10X的写放大.
-Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直接从overlaped读，但这带来的随机io违背了我们的设计初衷。 另一种是直接在内存中缓存元数据，但这部分开销并不算小，并不划算 为了解决这个问题，我们提出了元数据聚合。 在一次compaction完成后，第i+1层被更新的元数据存储到victim中，以此避免下一次compaction时对metadata的访问呢。
-通过compaction过程中一次额外的写，减少AF倍的i+1层的随机读。
-Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer...</p>
-</section>
-<footer class=entry-footer>8-6&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/aug/lwc-tree/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>
