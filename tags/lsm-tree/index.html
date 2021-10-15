@@ -77,6 +77,49 @@
 </header>
 <article class="post-entry tag-entry">
 <header class=entry-header>
+<h2>FloDB: Unlocking Memory in Persistent Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>Shortcomings of current LSMs 线程的可扩展性 LevelDB允许一定程度的并发写，但内部是将写入操作写到了一个队列中，最后仍是顺序执行。 HyperLevelDB、RocksDB、cLSM做了一定程度的并行优化
+内存的可扩展性 内存中组件可以是有序跳表，也可以是无序哈希表，但二者都不适合应用到更大的内存中。 对于跳表而言，读写时间复杂度都是$O(logn)$，有序性一定程度优化了范围查询，并加速了flush过程。但一般来说，读取操作都要到达磁盘，因此，跳表对写入的负面影响大于对读取的正面影响。对于更大内存中更大的跳表，读写延迟往往会提高。 对于哈希表而言，读写时间复杂度都是$O(1)$，无序性增加了范围查询和flush过程的工作量。但哈希表需要更长的时间排序，size越大，所需时间越长，会阻塞上层的写入操作。
+FloDB Design 设计了两层的内存组件，上层是small、fast、unordered的Membuffer，下层是larger、ordered的Memtable。两层都是可并行的数据结构，数据流跟LSM类似，从最小的Membuffer，流向Memtable，直到磁盘上的SStable。
+Get 搜索顺序：Membuffer -> Memtable -> SStable
+Update Put和Delete操作和Update是相似的。 首先尝试在Membuffer更新，如果Membuffer满了，就直接在Memtable上完成更新。（假如说Membuffer或Memtable上有对应值的话，更新就是in-place的）
+替代的方案就是mulit-version更新，然而对比起来，in-place更新在skewed的工作负载上具有更好的表现。
+Scan 扫描Memtable和disk，同时允许Membuffer进行并行的update。 挑战1：Membuffer有对应的数据，因此扫描前先清空Membuffer到Memtable上。 挑战2：long-time的扫描导致Membuffer变满，允许writer和sanner在Memtable上并行。这个时候可能会导致不一致性，因此我们记录scan时的sequence number，扫描后的结果中如果有大于该值的entry，则重新扫描。
+FloDB Implementation 明确了四各方面:
+Membuffer和Memtable数据结构的选择 数据从Membuffer到Memtable移动的机制 新颖的多插入操作用于简化 Memtable 和 Membuffer 之间的数据流 面向用户的操作的实现 Memory Component Implementation Membuffer -> Hash Table Memtable -> Skiplist
+Interaction Between Levels 包括persisting和draining.
+Skiplist Multi-inserts 实验显示，多线程下hash table比skiplist块一到两个数量级。因此应该尽快地完成移动，使得update在hash table上进行。
+批量的插入多个kv对到skiplist中，而不是挨个插入。核心思想是我们能直接利用前一个kv对的pre指针，而不是重新找，有path-reuse的思想在里面。
+并行性。插入和insert、read并行。
+key的临近度决定了path-reuse的效果。</p>
+</section>
+<footer class=entry-footer>9-26&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to FloDB: Unlocking Memory in Persistent Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/flodb/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
+<h2>SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>Movitation 传统的merge policy Level Merge Policy和Tiered Merge Policy在读写放大方面各有优势. 前者相当于单层的Tiered,保证了单层数据的有序性,减少了读放大,但要维护这种有序性,就需要频繁的merge,因此造成了严重的写放大. 后者对有序性的要求并不严格,它只要求每个group的key range互不交叉,允许sstable之间的key交叉.
+工作负载的空间局部性 作者对ZippyDB(facebook)的工作负载分析发现,少部分的key被读写多次,大部分的key被读写的次数很少.
+Design 作者提出了疑问:
+How to resolve the read amplification problem induced by the tiering merge policy while maintaining its low write amplification?
+根据key-space的不同access pattern,有选择的采用Tiering和Leveling Merge policy. 通过追踪每层中的key-space的访问强度,来决定设置T的值为1还是configured threshold.
+Spatially Fragmented LSM-TREE (SFM) 每层通过随机的边界分为不同的key-space.边界的选取方式类似于PebblesDB. 如果一个栈的key-range被认为是读密集的,则设置T为1,否则,按照原有的配置设置.
+合并策略如上图
+读超过stack阈值的文件到内存 在内存中进行merge 按照下层的key边界进行切片 新SSTable被刷新到下层 添加到key对应的栈 B. Read Intensity Identification 如何判断读的强度呢? 统计每个段的读写次数.对于读操作,即使读取的key不存在,也是要计入读取次数的. 对于写操作,统计每次merge后的sstable中的kv对的数量. 通过对比每个stack的r/w和整体平均的r/w来判断其为hot还是cold. 根据每个stack的hot还是cold属性,来决定key-space的访问强度.
+Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元信息....</p>
+</section>
+<footer class=entry-footer>9-24&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/sfm/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
 <h2>LSM-based storage techniques: a survey
 </h2>
 </header>

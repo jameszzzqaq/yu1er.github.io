@@ -78,6 +78,20 @@
 </header>
 <article class=post-entry>
 <header class=entry-header>
+<h2>单调栈题集
+</h2>
+</header>
+<section class=entry-content>
+<p>单调栈 单调栈可以保证栈内元素线性有序,同时复杂度为$O(n)$.
+通常的trick会在首尾处添加两个哨兵元素.
+题目 84. 柱状图中最大的矩形 很经典的单调栈用法.
+class Solution { public: int largestRectangleArea(vector&lt;int>& heights) { vector&lt;int> nums(heights.size() + 2); copy(begin(heights), end(heights), begin(nums) + 1); int n = nums.size(); stack&lt;int> stk; stk.push(0); int ans = 0; for (int i = 1; i &lt; n; i++) { while (nums[i] &lt; nums[stk.top()]) { int h = nums[stk.top()]; stk.pop(); int w = i - stk.top() - 1; ans = max(ans, h * w); } stk....</p>
+</section>
+<footer class=entry-footer>10-15&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to 单调栈题集" href=https://zhangyh.me/posts/leetcode/monotone-stack/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>cpp问题清单
 </h2>
 </header>
@@ -87,7 +101,7 @@
 test函数是A的,test内部调用func实际上是this->func,func是个虚函数而且在B中被重写了,所以有动态绑定. 这里的this运行时类型是B,所以调用B的func,但是缺省参数实际上是静态绑定的,所以输出的val是A中的那个val....</p>
 </section>
 <footer class=entry-footer>10-10&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to cpp问题清单" href=https://zhangyh.me/posts/cpp/problem_list/></a>
+<a class=entry-link aria-label="post link to cpp问题清单" href=https://zhangyh.me/posts/cpp/problem-list/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -101,7 +115,31 @@ struct cmp { bool operator() (const pair&lt;int, int> &a, const pair&lt;int, int
 auto a = [](const pair&lt;int, int> & a, const pair&lt;int, int> &b){ return a.first == b....</p>
 </section>
 <footer class=entry-footer>10-7&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to priority_queue自定义排序" href=https://zhangyh.me/posts/cpp/priority_queue_custom_comparator/></a>
+<a class=entry-link aria-label="post link to priority_queue自定义排序" href=https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
+<h2>FloDB: Unlocking Memory in Persistent Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>Shortcomings of current LSMs 线程的可扩展性 LevelDB允许一定程度的并发写，但内部是将写入操作写到了一个队列中，最后仍是顺序执行。 HyperLevelDB、RocksDB、cLSM做了一定程度的并行优化
+内存的可扩展性 内存中组件可以是有序跳表，也可以是无序哈希表，但二者都不适合应用到更大的内存中。 对于跳表而言，读写时间复杂度都是$O(logn)$，有序性一定程度优化了范围查询，并加速了flush过程。但一般来说，读取操作都要到达磁盘，因此，跳表对写入的负面影响大于对读取的正面影响。对于更大内存中更大的跳表，读写延迟往往会提高。 对于哈希表而言，读写时间复杂度都是$O(1)$，无序性增加了范围查询和flush过程的工作量。但哈希表需要更长的时间排序，size越大，所需时间越长，会阻塞上层的写入操作。
+FloDB Design 设计了两层的内存组件，上层是small、fast、unordered的Membuffer，下层是larger、ordered的Memtable。两层都是可并行的数据结构，数据流跟LSM类似，从最小的Membuffer，流向Memtable，直到磁盘上的SStable。
+Get 搜索顺序：Membuffer -> Memtable -> SStable
+Update Put和Delete操作和Update是相似的。 首先尝试在Membuffer更新，如果Membuffer满了，就直接在Memtable上完成更新。（假如说Membuffer或Memtable上有对应值的话，更新就是in-place的）
+替代的方案就是mulit-version更新，然而对比起来，in-place更新在skewed的工作负载上具有更好的表现。
+Scan 扫描Memtable和disk，同时允许Membuffer进行并行的update。 挑战1：Membuffer有对应的数据，因此扫描前先清空Membuffer到Memtable上。 挑战2：long-time的扫描导致Membuffer变满，允许writer和sanner在Memtable上并行。这个时候可能会导致不一致性，因此我们记录scan时的sequence number，扫描后的结果中如果有大于该值的entry，则重新扫描。
+FloDB Implementation 明确了四各方面:
+Membuffer和Memtable数据结构的选择 数据从Membuffer到Memtable移动的机制 新颖的多插入操作用于简化 Memtable 和 Membuffer 之间的数据流 面向用户的操作的实现 Memory Component Implementation Membuffer -> Hash Table Memtable -> Skiplist
+Interaction Between Levels 包括persisting和draining.
+Skiplist Multi-inserts 实验显示，多线程下hash table比skiplist块一到两个数量级。因此应该尽快地完成移动，使得update在hash table上进行。
+批量的插入多个kv对到skiplist中，而不是挨个插入。核心思想是我们能直接利用前一个kv对的pre指针，而不是重新找，有path-reuse的思想在里面。
+并行性。插入和insert、read并行。
+key的临近度决定了path-reuse的效果。</p>
+</section>
+<footer class=entry-footer>9-26&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to FloDB: Unlocking Memory in Persistent Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/flodb/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -121,6 +159,20 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
 </section>
 <footer class=entry-footer>9-24&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/sfm/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
+<h2>SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>本文旨在解决LSM-Tree的长尾问题，长尾问题的根源主要是客户端操作和LSM-Tree内部操作的互相干扰。 客户端操作：write 内部操作: flush、compaction
+Experiment study of tail latency 实验一：对比RocksDB和RocksDB without flushing. RocksDB without flushing: 要flush的immutable memtable直接丢弃 实验二：Rate-limited RocksDB 实验三：RocksDB with increased Memtable 实验四：TRAID 实验五：PebblesDB 作者对目前最新的LSM-Tree数据库RocksDB、TRIAD、PebblesDB进行了实验并得出三点结论。
+长尾的主要原因是被写满的memtable阻塞了write。 有两个原因导致了这种情况：第一，磁盘上的L0-L1 compaction跟不上写入的速度，导致L0被写满。第二，意外的有大量的compaction在同时进行，占据了大量的IO，导致flush因为有限的带宽而变慢，使得memtable变满。 简单的限制内部操作带宽, 并不能解决flush带宽受限的问题，长远来看反而会加剧这种问题。这种方法能够推迟压缩，但增加了在未来某个时候同时发生compaction的可能性。 提高吞吐量的方法，例如选择性地启动压缩或仅在最高level执行压缩，在短期内避免了延迟峰值，但从长远来看会加剧问题，因为它们也会增加在稍后的某个时间点进行许多并发压缩的可能性。 推论： 由1得出推论：内部操作并不是完全平等的。更low-level的操作是关键的，因为未能及时完成它们可能会导致客户端操作停滞。 由2，3得出推论：必须进行长时间的测试，避免问题未被发现。 (因为写入的数据量不够的话，无法体现更底层的compaction操作对系统的影响。)
+SILK Design principles 有选择的分配带宽。 遇到峰值流量时，分配更多的带宽给low-level，减缓high-level的压缩。 在闲时，利用短暂的低负载时期来促进内部操作的处理 优先处理更low-level的操作 给内部操作指定优先级: flush > L0-L1 compaction > high-level compaction 抢占式compaction 允许更low-level的compaction抢占high-level的compaction Implementation 有选择的分配带宽 有优先次序和可抢占的内部操作 系统内部维护两个线程池：高优先级池用于flush,低优先级池用于compaction. Flush: 有专门的线程池，在mem被写满之前，提供稳定的一定量的带宽，以保证不断的写入。多个内存组件和多个线程可能保证较长的性能高峰。 L0-L1 compaction: 和high-level的compaction共用线程，该过程需要保证L0有足够的空间供flush。如果需要进行L0-L1的compaction，并且目前没有可用线程，那么就会抢占high-leve compaction的线程。 high-level compaction: 线程维护在低优先级线程池 </p>
+</section>
+<footer class=entry-footer>9-22&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores " href=https://zhangyh.me/posts/paper/sep/silk/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -145,63 +197,6 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
 </section>
 <footer class=entry-footer>9-19&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to biweekly-contest-61" href=https://zhangyh.me/posts/leetcode/biweekly-contest-61/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>The Google File System
-</h2>
-</header>
-<section class=entry-content>
-<p>1 Introduction 本文是《The Google File System》的学习笔记
-2 Design Overview 2.1 Assumptions GFS基于以下基本假设作为设计原则。
-廉价商用机器出故障是常态 主要存储大文件，通常大于100MB，没有针对小文件的优化 读操作：大规模的流式读、小规模的随机读 写操作：大规模的append写操作、小规模的随机写效率低 支持多个客户端并行 append 到同一个文件 持续的高带宽比低时延重要 2.2 Interface 未实现POSIX API 支持常见文件操作，包括create, delete, open, close, read, write. 包括 snapshot 和 record append 2.3 Architecture 集群通常包括一个 master、多个 chunkserver 和多个访问的 client 文件使用固定大小(64 MB)的 chunk 存储，使用globally unique、immutable的 64bit chunk handle表示 master 维护整个集群所有的 metadata ，通过 heartbeat 与 chunkserve 进行 instruct、state-collect client 以 lib 的形式嵌入到应用中，以供 application 调用 client 和 chunkserver 都不 cache file data，但 client 会 cache metadata 2....</p>
-</section>
-<footer class=entry-footer>8-28&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to The Google File System" href=https://zhangyh.me/posts/paper/aug/gfs/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>聊聊内存对齐
-</h2>
-</header>
-<section class=entry-content>
-<p>为什么需要内存对齐？ 首先需要从物理硬件上了解计算机如何进行内存访问的。
-Channel > DIMM > Rank > Chip > Bank > Coloum/Row > Cell
-如上图 CPU包括两个Channel 每个Channel包括两个DIMM 每个DIMM由Rank组成 Rank由8个内存颗粒chip组成 每个Chip包括8个Bank
-CPU读取内存时从8个chip中每个读取8bit字节，从而构成64bit column和row定位的一个单元格cell中有8个bit
-因此一次性最少读取64bit，这恰好也是cacheline的大小。 （cacheline是cache的基本单位，每个cache由若干cacheline组成）
-什么是内存对齐 从上面我们可以知道，一次性最少读取8B，这也是局部性原理的一种使用。
-内存对齐就是代码编译后在内存中的布局，当一个内存地址刚好能够整除8，就称为其内存地址是8字节对齐的。
-为什么需要内存对齐 对于go中定义的如下结构
-type Type1 struct { a int8 b int64 c int32 } 其内存布局是这样的： 通过unsafe.Sizeof()可以打印出该结构占用了24字节的内存。
-如果调整一下顺序：
-type Type2 struct { a int8 c int32 b int64 } 便可以节约一个字节的内存
-零大小字段 如果结构体或数组类型不包含大小大于零的字段或元素，那么它的大小就为0
-package main import ( "fmt" "unsafe" ) type M struct { m int64 x struct{} } type N struct { x struct{} n int64 } func main() { m, n := M{}, N{} fmt....</p>
-</section>
-<footer class=entry-footer>8-13&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to 聊聊内存对齐" href=https://zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>LSM-based storage techniques: a survey
-</h2>
-</header>
-<section class=entry-content>
-<p> paper原文：LSM-based storage techniques: a survey
-LSM-tree basics 对于索引结构通常有两种更新策略，即in-place update和out-of-place update。
-in-place通常使用B+树作为底层数据结构，通过随机写来更新数据项，带来的是读数据的优化，同时每个数据项只存有一份，因此节约了空间。
-out-place通常使用lsm tree作为底层数据结构，将随机写转化为顺序写，加快了写的速度，但同时降低了读数据的性能，另外，对同一个key，存有多个版本，带来了空间上的浪费。
-LevelDB是谷歌开源的kv数据库，它基于内存-磁盘的存储层次，实现了LSM Tree最基本的功能。 内存中有memtable，使用skiplist来按顺序存储kv对 磁盘中有分层的sstable，使用sorted-string table以文件的形式来存储。 sstable包括了data block、index block、footer block
-如今的lsm tree通常为了加快读速度，往往会具有bloom filter组件，该组件有两个操作：插入key和检查key是否存在。为磁盘中的每一level，维护一个bloom filter，从而提高读性能。需要注意，它是false positive的。 同时因为该结构比较小，往往把他缓存到内存当中。
-对于failure recovery，使用WAL保证内存中memtable的recovery，使用manifest保证merge过程中sstable的recovery。
-有两种常用的merge policy，如上图所示。 Leveling merge policy，要求每一层的SSTable之间不能overlap，merge的时候将第i层的SSTable和第i+1层overlape的所有SSTables进行merge，然后写入i+1层。也就是说通过leveling通过频繁的merge，使得每一层全部有序，牺牲部分写性能来换取读性能。
-Tiering merge policy，要求每一层的SSTable之间可以overlap，在sstable达到一定的数量或者size要求后，对该层所有的SSTable进行merge sort，然后直接flush进下一层。该策略通过减少merge操作，牺牲部分读性能换取了写性能。
-LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
-Write Amplification: out-of-place数据结构所具有的问题，降低了写性能和磁盘寿命。 Merge Operation: merge后会造成buffer cache miss，大数据量的merge会造成write stall Hardware: 针对large memory,multi-core, SSD/NVM, native storage的优化 Special Workloads: Auto-tuning: 不可能同时达到read,write,space同时最优，并且由于lsm tree拥有大量参数，手动调优也是困难的。 Secondary Indexing: lsm tree只支持简单的kv接口，二级索引也是一个方向。 </p>
-</section>
-<footer class=entry-footer>8-10&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to LSM-based storage techniques: a survey" href=https://zhangyh.me/posts/paper/aug/suvery-of-lsm/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>

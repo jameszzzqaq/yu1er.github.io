@@ -77,6 +77,20 @@
 </header>
 <article class="post-entry tag-entry">
 <header class=entry-header>
+<h2>单调栈题集
+</h2>
+</header>
+<section class=entry-content>
+<p>单调栈 单调栈可以保证栈内元素线性有序,同时复杂度为$O(n)$.
+通常的trick会在首尾处添加两个哨兵元素.
+题目 84. 柱状图中最大的矩形 很经典的单调栈用法.
+class Solution { public: int largestRectangleArea(vector&lt;int>& heights) { vector&lt;int> nums(heights.size() + 2); copy(begin(heights), end(heights), begin(nums) + 1); int n = nums.size(); stack&lt;int> stk; stk.push(0); int ans = 0; for (int i = 1; i &lt; n; i++) { while (nums[i] &lt; nums[stk.top()]) { int h = nums[stk.top()]; stk.pop(); int w = i - stk.top() - 1; ans = max(ans, h * w); } stk....</p>
+</section>
+<footer class=entry-footer>10-15&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to 单调栈题集" href=https://zhangyh.me/posts/leetcode/monotone-stack/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
 <h2>weekly-contest-259
 </h2>
 </header>

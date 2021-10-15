@@ -9,13 +9,25 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 10 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 15 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>单调栈题集</title>
+      <link>https://zhangyh.me/posts/leetcode/monotone-stack/</link>
+      <pubDate>Fri, 15 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/leetcode/monotone-stack/</guid>
+      <description>单调栈 单调栈可以保证栈内元素线性有序,同时复杂度为$O(n)$.
+通常的trick会在首尾处添加两个哨兵元素.
+题目 84. 柱状图中最大的矩形 很经典的单调栈用法.
+class Solution { public: int largestRectangleArea(vector&amp;lt;int&amp;gt;&amp;amp; heights) { vector&amp;lt;int&amp;gt; nums(heights.size() + 2); copy(begin(heights), end(heights), begin(nums) + 1); int n = nums.size(); stack&amp;lt;int&amp;gt; stk; stk.push(0); int ans = 0; for (int i = 1; i &amp;lt; n; i++) { while (nums[i] &amp;lt; nums[stk.top()]) { int h = nums[stk.top()]; stk.pop(); int w = i - stk.top() - 1; ans = max(ans, h * w); } stk.</description>
+    </item>
+    
     <item>
       <title>cpp问题清单</title>
-      <link>https://zhangyh.me/posts/cpp/problem_list/</link>
+      <link>https://zhangyh.me/posts/cpp/problem-list/</link>
       <pubDate>Sun, 10 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/cpp/problem_list/</guid>
+      <guid>https://zhangyh.me/posts/cpp/problem-list/</guid>
       <description>问题1 #include &amp;lt;iostream&amp;gt; class A { public: virtual void func(int val = 1) {std::cout &amp;lt;&amp;lt; &amp;#34;A-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl; } virtual void test(){func();} }; class B : public A { public: void func(int val = 0) {std::cout &amp;lt;&amp;lt; &amp;#34;B-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl;} }; int main () { B* b = new B; b-&amp;gt;test(); return 0; } 输出  B-&amp;gt;1
  解释 参考《Effective c++》条款37: 绝不重新定义继承而来的缺省默认值. 因为虚函数是动态绑定,因此b实际指向的就是b.而默认参数是静态绑定,是由编译器决定的.
  test函数是A的,test内部调用func实际上是this-&amp;gt;func,func是个虚函数而且在B中被重写了,所以有动态绑定. 这里的this运行时类型是B,所以调用B的func,但是缺省参数实际上是静态绑定的,所以输出的val是A中的那个val.</description>
@@ -23,14 +35,36 @@
     
     <item>
       <title>priority_queue自定义排序</title>
-      <link>https://zhangyh.me/posts/cpp/priority_queue_custom_comparator/</link>
+      <link>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</link>
       <pubDate>Thu, 07 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/cpp/priority_queue_custom_comparator/</guid>
+      <guid>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</guid>
       <description>给定一个pair&amp;lt;int, int&amp;gt;数组,通过自定义排序顺序决定优先队列中的顺序.
 vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt; nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.
 struct cmp { bool operator() (const pair&amp;lt;int, int&amp;gt; &amp;amp;a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b) { return a.first == b.first? a.second &amp;lt; b.second : a.first &amp;lt; b.first; } }; priority_queue&amp;lt;pair&amp;lt;int, int&amp;gt;, vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt;, cmp&amp;gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
 auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b){ return a.first == b.</description>
+    </item>
+    
+    <item>
+      <title>FloDB: Unlocking Memory in Persistent Key-Value Stores</title>
+      <link>https://zhangyh.me/posts/paper/sep/flodb/</link>
+      <pubDate>Sun, 26 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/paper/sep/flodb/</guid>
+      <description>Shortcomings of current LSMs   线程的可扩展性 LevelDB允许一定程度的并发写，但内部是将写入操作写到了一个队列中，最后仍是顺序执行。 HyperLevelDB、RocksDB、cLSM做了一定程度的并行优化
+  内存的可扩展性 内存中组件可以是有序跳表，也可以是无序哈希表，但二者都不适合应用到更大的内存中。 对于跳表而言，读写时间复杂度都是$O(logn)$，有序性一定程度优化了范围查询，并加速了flush过程。但一般来说，读取操作都要到达磁盘，因此，跳表对写入的负面影响大于对读取的正面影响。对于更大内存中更大的跳表，读写延迟往往会提高。 对于哈希表而言，读写时间复杂度都是$O(1)$，无序性增加了范围查询和flush过程的工作量。但哈希表需要更长的时间排序，size越大，所需时间越长，会阻塞上层的写入操作。
+  FloDB Design 设计了两层的内存组件，上层是small、fast、unordered的Membuffer，下层是larger、ordered的Memtable。两层都是可并行的数据结构，数据流跟LSM类似，从最小的Membuffer，流向Memtable，直到磁盘上的SStable。
+Get 搜索顺序：Membuffer -&amp;gt; Memtable -&amp;gt; SStable
+Update Put和Delete操作和Update是相似的。 首先尝试在Membuffer更新，如果Membuffer满了，就直接在Memtable上完成更新。（假如说Membuffer或Memtable上有对应值的话，更新就是in-place的）
+替代的方案就是mulit-version更新，然而对比起来，in-place更新在skewed的工作负载上具有更好的表现。
+Scan 扫描Memtable和disk，同时允许Membuffer进行并行的update。 挑战1：Membuffer有对应的数据，因此扫描前先清空Membuffer到Memtable上。 挑战2：long-time的扫描导致Membuffer变满，允许writer和sanner在Memtable上并行。这个时候可能会导致不一致性，因此我们记录scan时的sequence number，扫描后的结果中如果有大于该值的entry，则重新扫描。
+FloDB Implementation 明确了四各方面:
+ Membuffer和Memtable数据结构的选择 数据从Membuffer到Memtable移动的机制 新颖的多插入操作用于简化 Memtable 和 Membuffer 之间的数据流 面向用户的操作的实现  Memory Component Implementation Membuffer -&amp;gt; Hash Table Memtable -&amp;gt; Skiplist
+Interaction Between Levels 包括persisting和draining.
+Skiplist Multi-inserts 实验显示，多线程下hash table比skiplist块一到两个数量级。因此应该尽快地完成移动，使得update在hash table上进行。
+批量的插入多个kv对到skiplist中，而不是挨个插入。核心思想是我们能直接利用前一个kv对的pre指针，而不是重新找，有path-reuse的思想在里面。
+并行性。插入和insert、read并行。
+key的临近度决定了path-reuse的效果。</description>
     </item>
     
     <item>
@@ -48,6 +82,18 @@ Spatially Fragmented LSM-TREE (SFM) 每层通过随机的边界分为不同的ke
 合并策略如上图
  读超过stack阈值的文件到内存 在内存中进行merge 按照下层的key边界进行切片 新SSTable被刷新到下层 添加到key对应的栈  B. Read Intensity Identification 如何判断读的强度呢? 统计每个段的读写次数.对于读操作,即使读取的key不存在,也是要计入读取次数的. 对于写操作,统计每次merge后的sstable中的kv对的数量. 通过对比每个stack的r/w和整体平均的r/w来判断其为hot还是cold. 根据每个stack的hot还是cold属性,来决定key-space的访问强度.
 Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元信息.</description>
+    </item>
+    
+    <item>
+      <title>SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores </title>
+      <link>https://zhangyh.me/posts/paper/sep/silk/</link>
+      <pubDate>Wed, 22 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/paper/sep/silk/</guid>
+      <description>本文旨在解决LSM-Tree的长尾问题，长尾问题的根源主要是客户端操作和LSM-Tree内部操作的互相干扰。 客户端操作：write 内部操作: flush、compaction
+Experiment study of tail latency  实验一：对比RocksDB和RocksDB without flushing. RocksDB without flushing: 要flush的immutable memtable直接丢弃 实验二：Rate-limited RocksDB 实验三：RocksDB with increased Memtable 实验四：TRAID 实验五：PebblesDB  作者对目前最新的LSM-Tree数据库RocksDB、TRIAD、PebblesDB进行了实验并得出三点结论。
+ 长尾的主要原因是被写满的memtable阻塞了write。 有两个原因导致了这种情况：第一，磁盘上的L0-L1 compaction跟不上写入的速度，导致L0被写满。第二，意外的有大量的compaction在同时进行，占据了大量的IO，导致flush因为有限的带宽而变慢，使得memtable变满。 简单的限制内部操作带宽, 并不能解决flush带宽受限的问题，长远来看反而会加剧这种问题。这种方法能够推迟压缩，但增加了在未来某个时候同时发生compaction的可能性。 提高吞吐量的方法，例如选择性地启动压缩或仅在最高level执行压缩，在短期内避免了延迟峰值，但从长远来看会加剧问题，因为它们也会增加在稍后的某个时间点进行许多并发压缩的可能性。  推论： 由1得出推论：内部操作并不是完全平等的。更low-level的操作是关键的，因为未能及时完成它们可能会导致客户端操作停滞。 由2，3得出推论：必须进行长时间的测试，避免问题未被发现。 (因为写入的数据量不够的话，无法体现更底层的compaction操作对系统的影响。)
+SILK Design principles  有选择的分配带宽。 遇到峰值流量时，分配更多的带宽给low-level，减缓high-level的压缩。 在闲时，利用短暂的低负载时期来促进内部操作的处理 优先处理更low-level的操作 给内部操作指定优先级: flush &amp;gt; L0-L1 compaction &amp;gt; high-level compaction 抢占式compaction 允许更low-level的compaction抢占high-level的compaction  Implementation  有选择的分配带宽 有优先次序和可抢占的内部操作 系统内部维护两个线程池：高优先级池用于flush,低优先级池用于compaction.   Flush: 有专门的线程池，在mem被写满之前，提供稳定的一定量的带宽，以保证不断的写入。多个内存组件和多个线程可能保证较长的性能高峰。 L0-L1 compaction: 和high-level的compaction共用线程，该过程需要保证L0有足够的空间供flush。如果需要进行L0-L1的compaction，并且目前没有可用线程，那么就会抢占high-leve compaction的线程。 high-level compaction: 线程维护在低优先级线程池  </description>
     </item>
     
     <item>

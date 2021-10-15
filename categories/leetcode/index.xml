@@ -9,7 +9,19 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Mon, 20 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/leetcode/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 15 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/leetcode/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>单调栈题集</title>
+      <link>https://zhangyh.me/posts/leetcode/monotone-stack/</link>
+      <pubDate>Fri, 15 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/leetcode/monotone-stack/</guid>
+      <description>单调栈 单调栈可以保证栈内元素线性有序,同时复杂度为$O(n)$.
+通常的trick会在首尾处添加两个哨兵元素.
+题目 84. 柱状图中最大的矩形 很经典的单调栈用法.
+class Solution { public: int largestRectangleArea(vector&amp;lt;int&amp;gt;&amp;amp; heights) { vector&amp;lt;int&amp;gt; nums(heights.size() + 2); copy(begin(heights), end(heights), begin(nums) + 1); int n = nums.size(); stack&amp;lt;int&amp;gt; stk; stk.push(0); int ans = 0; for (int i = 1; i &amp;lt; n; i++) { while (nums[i] &amp;lt; nums[stk.top()]) { int h = nums[stk.top()]; stk.pop(); int w = i - stk.top() - 1; ans = max(ans, h * w); } stk.</description>
+    </item>
+    
     <item>
       <title>weekly-contest-259</title>
       <link>https://zhangyh.me/posts/leetcode/weekly-contest-259/</link>

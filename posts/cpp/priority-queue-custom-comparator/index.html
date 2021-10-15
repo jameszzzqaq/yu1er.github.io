@@ -10,7 +10,7 @@ vector<pair<int, int>> nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿
 struct cmp { bool operator() (const pair<int, int> &a, const pair<int, int> &b) { return a.first == b.first? a.second < b.second : a.first < b.first; } }; priority_queue<pair<int, int>, vector<pair<int, int>>, cmp> pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
 auto a = [](const pair<int, int> & a, const pair<int, int> &b){ return a.first == b.">
 <meta name=author content="yuler">
-<link rel=canonical href=https://zhangyh.me/posts/cpp/priority_queue_custom_comparator/>
+<link rel=canonical href=https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/>
 <meta name=google-site-verification content="G-JP3WQ36T5K">
 <meta name=yandex-verification content="XYZabc">
 <meta name=msvalidate.01 content="XYZabcsadf">
@@ -35,7 +35,7 @@ vector<pair<int, int>> nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿
 struct cmp { bool operator() (const pair<int, int> &a, const pair<int, int> &b) { return a.first == b.first? a.second < b.second : a.first < b.first; } }; priority_queue<pair<int, int>, vector<pair<int, int>>, cmp> pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
 auto a = [](const pair<int, int> & a, const pair<int, int> &b){ return a.first == b.">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://zhangyh.me/posts/cpp/priority_queue_custom_comparator/"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/"><meta property="og:image" content="https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2021-10-07T00:00:00+00:00">
 <meta property="article:modified_time" content="2021-10-07T00:00:00+00:00"><meta property="og:site_name" content="yuler's blog">
 <meta name=twitter:card content="summary_large_image">
@@ -45,8 +45,8 @@ auto a = [](const pair<int, int> & a, const pair<int, int> &b){ return a.first =
 vector<pair<int, int>> nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.
 struct cmp { bool operator() (const pair<int, int> &a, const pair<int, int> &b) { return a.first == b.first? a.second < b.second : a.first < b.first; } }; priority_queue<pair<int, int>, vector<pair<int, int>>, cmp> pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
 auto a = [](const pair<int, int> & a, const pair<int, int> &b){ return a.first == b.">
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"priority_queue自定义排序","item":"https://zhangyh.me/posts/cpp/priority_queue_custom_comparator/"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"priority_queue自定义排序","name":"priority_queue自定义排序","description":"给定一个pair\u0026lt;int, int\u0026gt;数组,通过自定义排序顺序决定优先队列中的顺序.\nvector\u0026lt;pair\u0026lt;int, int\u0026gt;\u0026gt; nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.\nstruct cmp { bool operator() (const pair\u0026lt;int, int\u0026gt; \u0026amp;a, const pair\u0026lt;int, int\u0026gt; \u0026amp;b) { return a.first == b.first? a.second \u0026lt; b.second : a.first \u0026lt; b.first; } }; priority_queue\u0026lt;pair\u0026lt;int, int\u0026gt;, vector\u0026lt;pair\u0026lt;int, int\u0026gt;\u0026gt;, cmp\u0026gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.\nauto a = [](const pair\u0026lt;int, int\u0026gt; \u0026amp; a, const pair\u0026lt;int, int\u0026gt; \u0026amp;b){ return a.first == b.","keywords":["tick"],"articleBody":"给定一个pair数组,通过自定义排序顺序决定优先队列中的顺序.\nvectorpairint, int nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.\nstruct cmp { bool operator() (const pairint, int \u0026a, const pairint, int \u0026b) { return a.first == b.first? a.second  b.second : a.first  b.first; } }; priority_queuepairint, int, vectorpairint, int, cmp pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.\nauto a = [](const pairint, int \u0026 a, const pairint, int \u0026b){ return a.first == b.first? a.second  b.second : a.first  b.first; }; priority_queuepairint, int, vectorpairint, int, decltype(a) pq(a); 自定义类 默认对于自定义类的比较,priority_queue直接使用其operator函数,因此如果需要比较,需要时先该运算符函数. 这种方法比较笨重,不适用自定义内置类的比较顺序.\nstruct node { int _a, _b; node(int a, int b) : _a{a}, _b{b}{}; bool operator(const node \u0026 r) const { return _a == r._a? _b  r._b: _a  r._a; } }; vectornode nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; priority_queuenode pq; ","wordCount":"136","inLanguage":"en","datePublished":"2021-10-07T00:00:00Z","dateModified":"2021-10-07T00:00:00Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/posts/cpp/priority_queue_custom_comparator/"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/icon/jiaran16.ico"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://zhangyh.me/posts/"},{"@type":"ListItem","position":2,"name":"priority_queue自定义排序","item":"https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"priority_queue自定义排序","name":"priority_queue自定义排序","description":"给定一个pair\u0026lt;int, int\u0026gt;数组,通过自定义排序顺序决定优先队列中的顺序.\nvector\u0026lt;pair\u0026lt;int, int\u0026gt;\u0026gt; nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.\nstruct cmp { bool operator() (const pair\u0026lt;int, int\u0026gt; \u0026amp;a, const pair\u0026lt;int, int\u0026gt; \u0026amp;b) { return a.first == b.first? a.second \u0026lt; b.second : a.first \u0026lt; b.first; } }; priority_queue\u0026lt;pair\u0026lt;int, int\u0026gt;, vector\u0026lt;pair\u0026lt;int, int\u0026gt;\u0026gt;, cmp\u0026gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.\nauto a = [](const pair\u0026lt;int, int\u0026gt; \u0026amp; a, const pair\u0026lt;int, int\u0026gt; \u0026amp;b){ return a.first == b.","keywords":["tick"],"articleBody":"给定一个pair数组,通过自定义排序顺序决定优先队列中的顺序.\nvectorpairint, int nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.\nstruct cmp { bool operator() (const pairint, int \u0026a, const pairint, int \u0026b) { return a.first == b.first? a.second  b.second : a.first  b.first; } }; priority_queuepairint, int, vectorpairint, int, cmp pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.\nauto a = [](const pairint, int \u0026 a, const pairint, int \u0026b){ return a.first == b.first? a.second  b.second : a.first  b.first; }; priority_queuepairint, int, vectorpairint, int, decltype(a) pq(a); 自定义类 默认对于自定义类的比较,priority_queue直接使用其operator函数,因此如果需要比较,需要时先该运算符函数. 这种方法比较笨重,不适用自定义内置类的比较顺序.\nstruct node { int _a, _b; node(int a, int b) : _a{a}, _b{b}{}; bool operator(const node \u0026 r) const { return _a == r._a? _b  r._b: _a  r._a; } }; vectornode nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; priority_queuenode pq; ","wordCount":"136","inLanguage":"en","datePublished":"2021-10-07T00:00:00Z","dateModified":"2021-10-07T00:00:00Z","author":{"@type":"Person","name":"yuler"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/"},"publisher":{"@type":"Organization","name":"yuler's blog","logo":{"@type":"ImageObject","url":"https://zhangyh.me/icon/jiaran16.ico"}}}</script>
 </head>
 <body id=top>
 <script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
@@ -90,7 +90,7 @@ auto a = [](const pair<int, int> & a, const pair<int, int> &b){ return a.first =
 <h1 class=post-title>
 priority_queue自定义排序
 </h1>
-<div class=post-meta>10-7&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/tree/main/content/posts/cpp/priority_queue_custom_comparator.md rel="noopener noreferrer" target=_blank>Edit</a>
+<div class=post-meta>10-7&nbsp;·&nbsp;yuler&nbsp;|&nbsp;<a href=https://github.com/yu1er/blog-src/tree/main/content/posts/cpp/priority-queue-custom-comparator.md rel="noopener noreferrer" target=_blank>Edit</a>
 </div>
 </header> <div class=toc>
 <details>
@@ -147,15 +147,15 @@ priority_queue<span style=color:#f92672>&lt;</span>node<span style=color:#f92672
 <li><a href=https://zhangyh.me/tags/tick/>tick</a></li>
 </ul>
 <nav class=paginav>
-<a class=prev href=https://zhangyh.me/posts/cpp/problem_list/>
+<a class=prev href=https://zhangyh.me/posts/cpp/problem-list/>
 <span class=title>« Prev Page</span>
 <br>
 <span>cpp问题清单</span>
 </a>
-<a class=next href=https://zhangyh.me/posts/paper/sep/sfm/>
+<a class=next href=https://zhangyh.me/posts/paper/sep/flodb/>
 <span class=title>Next Page »</span>
 <br>
-<span>SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores</span>
+<span>FloDB: Unlocking Memory in Persistent Key-Value Stores</span>
 </a>
 </nav>
 </footer>
