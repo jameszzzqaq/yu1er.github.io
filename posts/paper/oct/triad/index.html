@@ -187,9 +187,9 @@ TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Val
 因此，当将内存组件刷新到L0中的磁盘时，系统实际上是在重播它在填充commit log时已经执行的I/O</p>
 <h2 id=triad>TRIAD<a hidden class=anchor aria-hidden=true href=#triad>#</a></h2>
 <h3 id=triad-mem>TRIAD-MEM<a hidden class=anchor aria-hidden=true href=#triad-mem>#</a></h3>
-<p><img loading=lazy src=TRIAD-MEM-before.webp alt>
-<img loading=lazy src=TRIAD-MEM-after.webp alt>
-<img loading=lazy src=TRIAD-algorithm-1.webp alt>
+<p><img loading=lazy src=/img/TRIAD-MEM-before.webp alt>
+<img loading=lazy src=/img/TRIAD-MEM-after.webp alt>
+<img loading=lazy src=/img/TRIAD-algorithm-1.webp alt>
 </p>
 <p>利用工作负载的数据倾斜来减少compaction的频率, 只刷新<em>cold key</em>到磁盘,将<em>hot key</em>保留在内存中.
 通过<em>separateKey</em>算法选取Top-K个entry作为hot entry, 并将其放到新的$C_m$中.
@@ -197,7 +197,7 @@ TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Val
 在将K个hot entry写入$C_m$之前,需要先写入到新的CommitLog.
 实际上,当数据倾斜很严重的时候,往往CommitLog会被写满,而此时的$C_m$还没有满.因此还有一个优化就是,当CommitLog被写满并且$C_m &lt; FLUSH_TH$时,创建并写入新的CommitLog,而不进行Flush. (参考algorithm-1)</p>
 <h3 id=triad-disk>TRIAD-DISK<a hidden class=anchor aria-hidden=true href=#triad-disk>#</a></h3>
-<p><img loading=lazy src=TRIAD-DISK-overlap-ratio.webp alt>
+<p><img loading=lazy src=/img/TRIAD-DISK-overlap-ratio.webp alt>
 作用于L0的组件,核心想法是推迟compaction操作,知道L0层中的key有足够的重叠.
 通过公式$1 - (UniqueKeys(file_1, file_2, . . . file_n)) / sum(Keys(file_i))$计算重叠率,其中file包括第0层的所有文件以及和第一层有重叠key的文件.</p>
 <p>其中使用HLL来记录每个L0中文件的信息,在已实现的系统中Cassandra和RocksDB使用HLL来决定那些文件被compaction,在这里我们使用HLL来决定何时compaction(现在compaction还是推迟compaction)</p>
