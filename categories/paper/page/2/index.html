@@ -77,6 +77,27 @@
 </header>
 <article class="post-entry tag-entry">
 <header class=entry-header>
+<h2>Hashkv: Enabling efficient updates in KV storage via hashing
+</h2>
+</header>
+<section class=entry-content>
+<p>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
+最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读 Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.
+segment group 包括一个main segment和多个log segment.
+内存中全局的segment table存储每一个segment group接下来插入或更新的位置。
+为了方便GC，segment group存储了key/value size，key，value
+GC Collection GC以segment group为单元，当free log segment用尽的时候会触发。
+首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置 两个问题：
+如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。 Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。
+hot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()
+如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。
+我们称呼该过程为tagging，注意，tagging只发生在GC时。...</p>
+</section>
+<footer class=entry-footer>8-7&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Hashkv: Enabling efficient updates in KV storage via hashing" href=https://zhangyh.me/topics/paper/hashkv.html></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
 <h2>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores
 </h2>
 </header>

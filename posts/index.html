@@ -78,6 +78,41 @@
 </header>
 <article class=post-entry>
 <header class=entry-header>
+<h2>买卖股票系列
+</h2>
+</header>
+<section class=entry-content>
+<p>还真是炒股大师
+121. 买卖股票的最佳时机 122. 买卖股票的最佳时机 II 123. 买卖股票的最佳时机 III 188. 买卖股票的最佳时机 IV 309. 最佳买卖股票时机含冷冻期 714. 买卖股票的最佳时机含手续费 剑指 Offer 63. 股票的最大利润 121. 买卖股票的最佳时机 遍历过程中维护一个股票价格最小值和一个股票价格最大差值.
+class Solution { public: int maxProfit(vector&lt;int>& prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } }; 时间复杂度: $O(n)$ 空间复杂度: $O(1)$ 122....</p>
+</section>
+<footer class=entry-footer>10-19&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to 买卖股票系列" href=https://zhangyh.me/posts/leetcode/buy-and-sell-stock/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
+<h2>Reducing DRAM Footprint with NVM in Facebook
+</h2>
+</header>
+<section class=entry-content>
+<p>BACKGROUND RocksDB and MyRocks RocksDB是基于LSM的kv存储数据库,MyRocks在RocksDB基础上做了MySQL兼容
+LinkBench 数据来自于Facebook真实生产环境下知识图谱中的数据.用于访问数据库的操作包括点读取、范围查询（例如通向节点的边列表）、计数查询以及简单的创建、删除和更新操作。
+NVM NVM 是一种新的持久存储技术，有可能在数据中心和消费者用例中取代 DRAM. 既可作为字节寻址设备,也可以作为块设备.
+INTUITION: THE CHALLENGE OF REPLACING DRAM WITH NVM 按字节计算,NVM比DRAM廉价,但NVM比Flash快一个数量级,因此很有希望作为第二层的存储. 然而NVM作为DRAM的替代品还有一些挑战: 高延迟,低带宽,耐久性,中断延迟
+对于高延迟,可以用大容量NVM替代少容量DRAM作为性能补充(本实验用140G的NVM替换80G的内存),大容量的NVM可以容纳更多的cache,提高命中率. 对于低带宽,DRAM的带宽大于是NVM的35倍左右.我们使用NVM作为块设备,块大小为4kb,因此每次读数据只能以4kb的粒度去读.还有一种写数据的情况,少量的数据跨block存储,这会进一步消耗都带宽.因此只是kv存储的重要限制因素 对于耐久性,DRAM的耐磨损的,而NVM的写入次数是有限的.当NVM替换DRAM作为cache时,这种场景下,频繁的写入逐出会导致NVM的快速磨损.因此需要限制写入的次数. 对于中断延迟,由于相对于其他的块设备,NVM的延迟较低,中断的延迟就变得十分重要.(每次读延迟$10µs$,其中中断占了$2µs$.) 在这些基础上,设计了MyNVM.
+Design Satisfying NVM’s Read Bandwidth MyNVM默认块大小为16kb,但LinkBench中的数据通常是几十几百字节,因此每次读一个对象,就需要读出16kb的data block,多读了160x左右的数据
+从Fig.9可以看出需要两倍的带宽.
+Reduce Block Size 直观上来看,减少block size是一个很直接的解决方案. 然而从Fig.9中可以看出从16kb减小到4kb,带宽消耗甚至增加了一倍. 问题就在于data block size减小四倍,就导致了index block size增加了四倍, 从Fig.9就可以看出. 加载到DRAM中的index block占据更多的空间,就导致了DRAM cache命中率降低,
+改进方案就是,不再像之前的每个SSTable一个index block,而是使用多个index block,同时为index block创建一个top-level index block.
+每次读先查缓存到DRAM中的top-level index block获取对应的index block,然后再把该index block缓存到DRAM中,从而减小了带宽消耗,用额外一次的查询来减少带宽以及内存空间占用.
+然而目前带宽消耗还是太高.
+Aligning Blocks With Physical Pages 对于$L_1$以及更底层的数据,会进行压缩....</p>
+</section>
+<footer class=entry-footer>10-18&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Reducing DRAM Footprint with NVM in Facebook" href=https://zhangyh.me/posts/paper/oct/mynvm/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>单调栈题集
 </h2>
 </header>
@@ -177,32 +212,6 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
 </section>
 <footer class=entry-footer>9-24&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/sfm/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores
-</h2>
-</header>
-<section class=entry-content>
-<p>本文旨在解决LSM-Tree的长尾问题，长尾问题的根源主要是客户端操作和LSM-Tree内部操作的互相干扰。 客户端操作：write 内部操作: flush、compaction
-Experiment study of tail latency 实验一：对比RocksDB和RocksDB without flushing. RocksDB without flushing: 要flush的immutable memtable直接丢弃 实验二：Rate-limited RocksDB 实验三：RocksDB with increased Memtable 实验四：TRAID 实验五：PebblesDB 作者对目前最新的LSM-Tree数据库RocksDB、TRIAD、PebblesDB进行了实验并得出三点结论。
-长尾的主要原因是被写满的memtable阻塞了write。 有两个原因导致了这种情况：第一，磁盘上的L0-L1 compaction跟不上写入的速度，导致L0被写满。第二，意外的有大量的compaction在同时进行，占据了大量的IO，导致flush因为有限的带宽而变慢，使得memtable变满。 简单的限制内部操作带宽, 并不能解决flush带宽受限的问题，长远来看反而会加剧这种问题。这种方法能够推迟压缩，但增加了在未来某个时候同时发生compaction的可能性。 提高吞吐量的方法，例如选择性地启动压缩或仅在最高level执行压缩，在短期内避免了延迟峰值，但从长远来看会加剧问题，因为它们也会增加在稍后的某个时间点进行许多并发压缩的可能性。 推论： 由1得出推论：内部操作并不是完全平等的。更low-level的操作是关键的，因为未能及时完成它们可能会导致客户端操作停滞。 由2，3得出推论：必须进行长时间的测试，避免问题未被发现。 (因为写入的数据量不够的话，无法体现更底层的compaction操作对系统的影响。)
-SILK Design principles 有选择的分配带宽。 遇到峰值流量时，分配更多的带宽给low-level，减缓high-level的压缩。 在闲时，利用短暂的低负载时期来促进内部操作的处理 优先处理更low-level的操作 给内部操作指定优先级: flush > L0-L1 compaction > high-level compaction 抢占式compaction 允许更low-level的compaction抢占high-level的compaction Implementation 有选择的分配带宽 有优先次序和可抢占的内部操作 系统内部维护两个线程池：高优先级池用于flush,低优先级池用于compaction. Flush: 有专门的线程池，在mem被写满之前，提供稳定的一定量的带宽，以保证不断的写入。多个内存组件和多个线程可能保证较长的性能高峰。 L0-L1 compaction: 和high-level的compaction共用线程，该过程需要保证L0有足够的空间供flush。如果需要进行L0-L1的compaction，并且目前没有可用线程，那么就会抢占high-leve compaction的线程。 high-level compaction: 线程维护在低优先级线程池 </p>
-</section>
-<footer class=entry-footer>9-22&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores " href=https://zhangyh.me/posts/paper/sep/silk/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>weekly-contest-259
-</h2>
-</header>
-<section class=entry-content>
-<p>第259次周赛 A. 执行操作后的变量值 时间复杂度: $O(n)$ 空间复杂度: $O(1)$ class Solution { public: int finalValueAfterOperations(vector&lt;string>& operations) { int X = 0; for (auto & s: operations) { if (s[1] == '+') X++; else X--; } return X; } }; B. 数组美丽值求和 通过正反两次遍历记录每个值左边的最大值和右边的最小值.
-时间复杂度: $O(n)$ 空间复杂度: $O(n)$ class Solution { public: int sumOfBeauties(vector&lt;int>& nums) { int n = nums.size(); vector&lt;int> left(n, INT_MIN), right(n, INT_MAX); int ans = 0; left[0] = nums[0]; right[n - 1] = nums[n - 1]; for (int i = 1; i &lt; n; i++) left[i] = max(left[i-1], nums[i]); for (int i = n - 2; i >= 0; i--) right[i] = min(right[i + 1], nums[i]); for (int i = 1; i &lt; n - 1; i++) { if (left[i - 1] &lt; nums[i] && nums[i] &lt; right[i + 1]) ans +=2; else if (nums[i - 1] &lt; nums[i] && nums[i] &lt; nums[i + 1]) ans++; } return ans; } }; C....</p>
-</section>
-<footer class=entry-footer>9-20&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to weekly-contest-259" href=https://zhangyh.me/posts/leetcode/weekly-contest-259/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>

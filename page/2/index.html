@@ -76,6 +76,32 @@
 <main class=main>
 <article class=post-entry>
 <header class=entry-header>
+<h2>SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>本文旨在解决LSM-Tree的长尾问题，长尾问题的根源主要是客户端操作和LSM-Tree内部操作的互相干扰。 客户端操作：write 内部操作: flush、compaction
+Experiment study of tail latency 实验一：对比RocksDB和RocksDB without flushing. RocksDB without flushing: 要flush的immutable memtable直接丢弃 实验二：Rate-limited RocksDB 实验三：RocksDB with increased Memtable 实验四：TRAID 实验五：PebblesDB 作者对目前最新的LSM-Tree数据库RocksDB、TRIAD、PebblesDB进行了实验并得出三点结论。
+长尾的主要原因是被写满的memtable阻塞了write。 有两个原因导致了这种情况：第一，磁盘上的L0-L1 compaction跟不上写入的速度，导致L0被写满。第二，意外的有大量的compaction在同时进行，占据了大量的IO，导致flush因为有限的带宽而变慢，使得memtable变满。 简单的限制内部操作带宽, 并不能解决flush带宽受限的问题，长远来看反而会加剧这种问题。这种方法能够推迟压缩，但增加了在未来某个时候同时发生compaction的可能性。 提高吞吐量的方法，例如选择性地启动压缩或仅在最高level执行压缩，在短期内避免了延迟峰值，但从长远来看会加剧问题，因为它们也会增加在稍后的某个时间点进行许多并发压缩的可能性。 推论： 由1得出推论：内部操作并不是完全平等的。更low-level的操作是关键的，因为未能及时完成它们可能会导致客户端操作停滞。 由2，3得出推论：必须进行长时间的测试，避免问题未被发现。 (因为写入的数据量不够的话，无法体现更底层的compaction操作对系统的影响。)
+SILK Design principles 有选择的分配带宽。 遇到峰值流量时，分配更多的带宽给low-level，减缓high-level的压缩。 在闲时，利用短暂的低负载时期来促进内部操作的处理 优先处理更low-level的操作 给内部操作指定优先级: flush > L0-L1 compaction > high-level compaction 抢占式compaction 允许更low-level的compaction抢占high-level的compaction Implementation 有选择的分配带宽 有优先次序和可抢占的内部操作 系统内部维护两个线程池：高优先级池用于flush,低优先级池用于compaction. Flush: 有专门的线程池，在mem被写满之前，提供稳定的一定量的带宽，以保证不断的写入。多个内存组件和多个线程可能保证较长的性能高峰。 L0-L1 compaction: 和high-level的compaction共用线程，该过程需要保证L0有足够的空间供flush。如果需要进行L0-L1的compaction，并且目前没有可用线程，那么就会抢占high-leve compaction的线程。 high-level compaction: 线程维护在低优先级线程池 </p>
+</section>
+<footer class=entry-footer>9-22&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores " href=https://zhangyh.me/posts/paper/sep/silk/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
+<h2>weekly-contest-259
+</h2>
+</header>
+<section class=entry-content>
+<p>第259次周赛 A. 执行操作后的变量值 时间复杂度: $O(n)$ 空间复杂度: $O(1)$ class Solution { public: int finalValueAfterOperations(vector&lt;string>& operations) { int X = 0; for (auto & s: operations) { if (s[1] == '+') X++; else X--; } return X; } }; B. 数组美丽值求和 通过正反两次遍历记录每个值左边的最大值和右边的最小值.
+时间复杂度: $O(n)$ 空间复杂度: $O(n)$ class Solution { public: int sumOfBeauties(vector&lt;int>& nums) { int n = nums.size(); vector&lt;int> left(n, INT_MIN), right(n, INT_MAX); int ans = 0; left[0] = nums[0]; right[n - 1] = nums[n - 1]; for (int i = 1; i &lt; n; i++) left[i] = max(left[i-1], nums[i]); for (int i = n - 2; i >= 0; i--) right[i] = min(right[i + 1], nums[i]); for (int i = 1; i &lt; n - 1; i++) { if (left[i - 1] &lt; nums[i] && nums[i] &lt; right[i + 1]) ans +=2; else if (nums[i - 1] &lt; nums[i] && nums[i] &lt; nums[i + 1]) ans++; } return ans; } }; C....</p>
+</section>
+<footer class=entry-footer>9-20&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to weekly-contest-259" href=https://zhangyh.me/posts/leetcode/weekly-contest-259/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>biweekly-contest-61
 </h2>
 </header>
@@ -177,46 +203,6 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
 </section>
 <footer class=entry-footer>8-7&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Hashkv: Enabling efficient updates in KV storage via hashing" href=https://zhangyh.me/topics/paper/hashkv.html></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores
-</h2>
-</header>
-<section class=entry-content>
-<p>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
-使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子 Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
-读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中 victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
-降低了大概10X的写放大.
-Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直接从overlaped读，但这带来的随机io违背了我们的设计初衷。 另一种是直接在内存中缓存元数据，但这部分开销并不算小，并不划算 为了解决这个问题，我们提出了元数据聚合。 在一次compaction完成后，第i+1层被更新的元数据存储到victim中，以此避免下一次compaction时对metadata的访问呢。
-通过compaction过程中一次额外的写，减少AF倍的i+1层的随机读。
-Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer...</p>
-</section>
-<footer class=entry-footer>8-6&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/aug/lwc-tree/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory
-</h2>
-</header>
-<section class=entry-content>
-<p>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
-但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
-access size access method(read,write) pattern degree of concurrency 本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
-Background Optane DIMM是第一款商用NVDIMM 与SSD/HDD相比，它low latency、higher read bandwidth、byte-address 与DRAM相比，它higher density、persistent
-Optane Memory Optane DIMM使用和DRAM相同的插槽，和处理器的集成内存控制器（iMC)相连接。Intel Cascade Lake处理器是第一个支持Optane DIMM的处理器，有一个或两个processor die，每个die支持两个iMC，每个iMC支持三个channel，因此一个die可以支持6个Optane DIMM
-为了持久化，iMC维护一个asynchronous DRAM refresh(ADR)区域，写入这个区域内的数据都能保证其被持久化。ADR区域不保证处理器cache的持久化。
-iMC按照缓存行粒度(64byte)和Optane DIMM通信。
-Optane DIMM中
-3D-XPoint物理介质的访问粒度为256byte，因此会造成写放大，所以会在XPController中有controller负责将小于256B的操作变成256B的访问，同时内部有Buffer用来合并临近的访问。
-为了磨损均匀、坏块的管理，AIT用于进行内部地址转换。
-Operation Model Optane DIMM有两种模式Memory和App Direct
-Memory Model 该模式下直接将Optane DIMM作为普通的内存使用，将DRAM作为内存的Cache，DRAM是透明的，直接观察到的内存容量就是Optane DIMM的容量。 该模式可以解决一些内存数据库内存容量不足的问题。 App Direct Model 该模式将Optane DIMM作为持久化设备使用，直接通过CPU指令读写。文件系统和其他的管理层管理持久化内存的分配、回收和访问。 支持交错访问，最小的单位是4KB，保证一个page一定是从一个DIMM中读取出来的
-ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内存。一般用于写完就不管的情况，可以防止污染cache。 clflush: 把cache line刷回内存，并且让cache line失效。只能串行执行。 clflushopt: 功能同clflush，但是不同缓存行可以并发执行。 clwb: 除了写回后不让cache line失效，其他同clflushopt。 sfence：写屏障，在sfence指令前的写操作当必须在sfence指令后的写操作前完成...</p>
-</section>
-<footer class=entry-footer>8-5&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to An Empirical Guide to the Behavior and Use of Scalable Persistent Memory" href=https://zhangyh.me/posts/paper/aug/optane/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>

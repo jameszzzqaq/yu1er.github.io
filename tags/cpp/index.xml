@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>cpp on yuler&#39;s blog</title>
+    <link>https://zhangyh.me/tags/cpp/</link>
+    <description>Recent content in cpp on yuler&#39;s blog</description>
+    <image>
+      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Tue, 19 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/cpp/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>买卖股票系列</title>
+      <link>https://zhangyh.me/posts/leetcode/buy-and-sell-stock/</link>
+      <pubDate>Tue, 19 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/leetcode/buy-and-sell-stock/</guid>
+      <description>还真是炒股大师
+  121. 买卖股票的最佳时机 122. 买卖股票的最佳时机 II 123. 买卖股票的最佳时机 III 188. 买卖股票的最佳时机 IV 309. 最佳买卖股票时机含冷冻期 714. 买卖股票的最佳时机含手续费 剑指 Offer 63. 股票的最大利润   121. 买卖股票的最佳时机 遍历过程中维护一个股票价格最小值和一个股票价格最大差值.
+class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &amp;lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } };  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  122.</description>
+    </item>
+    
+  </channel>
+</rss>

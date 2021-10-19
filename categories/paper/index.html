@@ -77,6 +77,28 @@
 </header>
 <article class="post-entry tag-entry">
 <header class=entry-header>
+<h2>Reducing DRAM Footprint with NVM in Facebook
+</h2>
+</header>
+<section class=entry-content>
+<p>BACKGROUND RocksDB and MyRocks RocksDB是基于LSM的kv存储数据库,MyRocks在RocksDB基础上做了MySQL兼容
+LinkBench 数据来自于Facebook真实生产环境下知识图谱中的数据.用于访问数据库的操作包括点读取、范围查询（例如通向节点的边列表）、计数查询以及简单的创建、删除和更新操作。
+NVM NVM 是一种新的持久存储技术，有可能在数据中心和消费者用例中取代 DRAM. 既可作为字节寻址设备,也可以作为块设备.
+INTUITION: THE CHALLENGE OF REPLACING DRAM WITH NVM 按字节计算,NVM比DRAM廉价,但NVM比Flash快一个数量级,因此很有希望作为第二层的存储. 然而NVM作为DRAM的替代品还有一些挑战: 高延迟,低带宽,耐久性,中断延迟
+对于高延迟,可以用大容量NVM替代少容量DRAM作为性能补充(本实验用140G的NVM替换80G的内存),大容量的NVM可以容纳更多的cache,提高命中率. 对于低带宽,DRAM的带宽大于是NVM的35倍左右.我们使用NVM作为块设备,块大小为4kb,因此每次读数据只能以4kb的粒度去读.还有一种写数据的情况,少量的数据跨block存储,这会进一步消耗都带宽.因此只是kv存储的重要限制因素 对于耐久性,DRAM的耐磨损的,而NVM的写入次数是有限的.当NVM替换DRAM作为cache时,这种场景下,频繁的写入逐出会导致NVM的快速磨损.因此需要限制写入的次数. 对于中断延迟,由于相对于其他的块设备,NVM的延迟较低,中断的延迟就变得十分重要.(每次读延迟$10µs$,其中中断占了$2µs$.) 在这些基础上,设计了MyNVM.
+Design Satisfying NVM’s Read Bandwidth MyNVM默认块大小为16kb,但LinkBench中的数据通常是几十几百字节,因此每次读一个对象,就需要读出16kb的data block,多读了160x左右的数据
+从Fig.9可以看出需要两倍的带宽.
+Reduce Block Size 直观上来看,减少block size是一个很直接的解决方案. 然而从Fig.9中可以看出从16kb减小到4kb,带宽消耗甚至增加了一倍. 问题就在于data block size减小四倍,就导致了index block size增加了四倍, 从Fig.9就可以看出. 加载到DRAM中的index block占据更多的空间,就导致了DRAM cache命中率降低,
+改进方案就是,不再像之前的每个SSTable一个index block,而是使用多个index block,同时为index block创建一个top-level index block.
+每次读先查缓存到DRAM中的top-level index block获取对应的index block,然后再把该index block缓存到DRAM中,从而减小了带宽消耗,用额外一次的查询来减少带宽以及内存空间占用.
+然而目前带宽消耗还是太高.
+Aligning Blocks With Physical Pages 对于$L_1$以及更底层的数据,会进行压缩....</p>
+</section>
+<footer class=entry-footer>10-18&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Reducing DRAM Footprint with NVM in Facebook" href=https://zhangyh.me/posts/paper/oct/mynvm/></a>
+</article>
+<article class="post-entry tag-entry">
+<header class=entry-header>
 <h2>TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores
 </h2>
 </header>
@@ -197,27 +219,6 @@ Optimizing the LSM-tree Log 在写LSM-tree之前需要先写vlog，因为这里�
 </section>
 <footer class=entry-footer>8-10&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Wisckey: Separating keys from values in ssd-conscious storage" href=https://zhangyh.me/posts/paper/aug/wisckey/></a>
-</article>
-<article class="post-entry tag-entry">
-<header class=entry-header>
-<h2>Hashkv: Enabling efficient updates in KV storage via hashing
-</h2>
-</header>
-<section class=entry-content>
-<p>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
-最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读 Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.
-segment group 包括一个main segment和多个log segment.
-内存中全局的segment table存储每一个segment group接下来插入或更新的位置。
-为了方便GC，segment group存储了key/value size，key，value
-GC Collection GC以segment group为单元，当free log segment用尽的时候会触发。
-首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置 两个问题：
-如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。 Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。
-hot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()
-如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。
-我们称呼该过程为tagging，注意，tagging只发生在GC时。...</p>
-</section>
-<footer class=entry-footer>8-7&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Hashkv: Enabling efficient updates in KV storage via hashing" href=https://zhangyh.me/topics/paper/hashkv.html></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>
