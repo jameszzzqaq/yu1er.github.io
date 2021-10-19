@@ -16,9 +16,10 @@
       <pubDate>Tue, 19 Oct 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/posts/leetcode/buy-and-sell-stock/</guid>
-      <description>还真是炒股大师
-  121. 买卖股票的最佳时机 122. 买卖股票的最佳时机 II 123. 买卖股票的最佳时机 III 188. 买卖股票的最佳时机 IV 309. 最佳买卖股票时机含冷冻期 714. 买卖股票的最佳时机含手续费 剑指 Offer 63. 股票的最大利润   121. 买卖股票的最佳时机 遍历过程中维护一个股票价格最小值和一个股票价格最大差值.
-class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &amp;lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } };  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  122.</description>
+      <description>121. 买卖股票的最佳时机  121. 买卖股票的最佳时机
+ 遍历过程中维护一个股票价格最小值和一个股票价格最大差值.
+class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &amp;lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } };  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  122. 买卖股票的最佳时机 II  122. 买卖股票的最佳时机 II
+  贪心  class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int ans = 0; for (int i = 1; i &amp;lt; prices.</description>
     </item>
     
   </channel>
