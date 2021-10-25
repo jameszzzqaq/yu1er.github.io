@@ -82,10 +82,11 @@
 </h2>
 </header>
 <section class=entry-content>
-<p>$$ \varphi = 1+\frac{1} {1+\frac{1} {1+\frac{1} {1+\cdots} } } $$
+<p>Inline math: (\varphi = \dfrac{1+\sqrt5}{2}= 1.6180339887…)
+$$ \varphi = 1+\frac{1} {1+\frac{1} {1+\frac{1} {1+\cdots} } } $$
 121. 买卖股票的最佳时机 121. 买卖股票的最佳时机
 遍历过程中维护一个股票价格最小值和一个股票价格最大差值.
-class Solution { public: int maxProfit(vector&lt;int>& prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } }; 时间复杂度: $O(n)$ 空间复杂度: $O(1)$ 122. 买卖股票的最佳时机 II 122. 买卖股票的最佳时机 II...</p>
+class Solution { public: int maxProfit(vector&lt;int>& prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } }; 时间复杂度: $O(n)$ 空间复杂度: $O(1)$ 122....</p>
 </section>
 <footer class=entry-footer>10-19&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to 买卖股票系列" href=https://zhangyh.me/posts/leetcode/buy-and-sell-stock/></a>
