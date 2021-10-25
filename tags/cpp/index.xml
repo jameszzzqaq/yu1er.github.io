@@ -16,11 +16,10 @@
       <pubDate>Tue, 19 Oct 2021 00:00:00 +0000</pubDate>
       
       <guid>https://zhangyh.me/posts/leetcode/buy-and-sell-stock/</guid>
-      <description>Inline math: (\varphi = \dfrac{1+\sqrt5}{2}= 1.6180339887…)
-$$ \varphi = 1+\frac{1} {1+\frac{1} {1+\frac{1} {1+\cdots} } } $$
+      <description>$$ \varphi = 1+\frac{1} {1+\frac{1} {1+\frac{1} {1+\cdots} } } $$
 121. 买卖股票的最佳时机  121. 买卖股票的最佳时机
  遍历过程中维护一个股票价格最小值和一个股票价格最大差值.
-class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &amp;lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } };  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  122.</description>
+class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &amp;lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } };  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  122. 买卖股票的最佳时机 II  122. 买卖股票的最佳时机 II</description>
     </item>
     
   </channel>
