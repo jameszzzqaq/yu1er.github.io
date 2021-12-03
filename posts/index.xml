@@ -9,7 +9,16 @@
       <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 19 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 10 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ceph离线部署</title>
+      <link>https://zhangyh.me/posts/misc/ceph/ceph%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Wed, 10 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/misc/ceph/ceph%E6%90%AD%E5%BB%BA/</guid>
+      <description>准备 repo ceph源包制作和安装  安装工具包   机器要求能够连外网  yum -y install epel-release yum -y install yum-utils yum -y install createrepo 添加ceph octopus配置 (octopus版本为15.2.15) vim /etc/yum.repos.d/ceph.repo 内容如下：  [ceph] name=ceph baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 [ceph-noarch] name=cephnoarch baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/noarch/ gpgcheck=0 [ceph-source] name=cephsource baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 [ceph-radosgw] name=cephradosgw baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 制作repo  yum clean all yum repolist # 查看ceph-deploy版本 yum list all | grep ceph-deploy # 下载ceph包和依赖 mkdir local_repo # 以防万一把ssh、ntp、crontabs、python-setuptools也下载一下 # repotrack openssh openssh-clients openssh-server ntp ntpupdate crontabs python-setuptools -p /root/local_repo repotrack ceph-deploy-2.</description>
+    </item>
+    
     <item>
       <title>买卖股票系列</title>
       <link>https://zhangyh.me/posts/leetcode/buy-and-sell-stock/</link>
@@ -24,10 +33,10 @@ class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices
     
     <item>
       <title>Reducing DRAM Footprint with NVM in Facebook</title>
-      <link>https://zhangyh.me/posts/paper/oct/mynvm/</link>
+      <link>https://zhangyh.me/posts/paper/21-10/mynvm/</link>
       <pubDate>Mon, 18 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/oct/mynvm/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-10/mynvm/</guid>
       <description>BACKGROUND RocksDB and MyRocks RocksDB是基于LSM的kv存储数据库,MyRocks在RocksDB基础上做了MySQL兼容
 LinkBench 数据来自于Facebook真实生产环境下知识图谱中的数据.用于访问数据库的操作包括点读取、范围查询（例如通向节点的边列表）、计数查询以及简单的创建、删除和更新操作。
 NVM NVM 是一种新的持久存储技术，有可能在数据中心和消费者用例中取代 DRAM. 既可作为字节寻址设备,也可以作为块设备.
@@ -56,10 +65,10 @@ class Solution { public: int largestRectangleArea(vector&amp;lt;int&amp;gt;&amp;
     
     <item>
       <title>TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/oct/triad/</link>
+      <link>https://zhangyh.me/posts/paper/21-10/triad/</link>
       <pubDate>Tue, 12 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/oct/triad/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-10/triad/</guid>
       <description>Introduction 本文通过解决LSM-Tree的写放大问题,从而整体上提高其吞吐量. 在真是的生产环境中,作者观察到compaction最高可占据45%的CPU,平均每天有2.5个小时的时间花在compaction上. 显然,compaction和flush是重要的性能挑战,即使它们发生在面向用户的操作的关键路径之外.
 主要面向
 Background LSM-Tree:
@@ -95,10 +104,10 @@ auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;in
     
     <item>
       <title>FloDB: Unlocking Memory in Persistent Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/sep/flodb/</link>
+      <link>https://zhangyh.me/posts/paper/21-9/flodb/</link>
       <pubDate>Sun, 26 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/sep/flodb/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-9/flodb/</guid>
       <description>Shortcomings of current LSMs   线程的可扩展性 LevelDB允许一定程度的并发写，但内部是将写入操作写到了一个队列中，最后仍是顺序执行。 HyperLevelDB、RocksDB、cLSM做了一定程度的并行优化
   内存的可扩展性 内存中组件可以是有序跳表，也可以是无序哈希表，但二者都不适合应用到更大的内存中。 对于跳表而言，读写时间复杂度都是$O(logn)$，有序性一定程度优化了范围查询，并加速了flush过程。但一般来说，读取操作都要到达磁盘，因此，跳表对写入的负面影响大于对读取的正面影响。对于更大内存中更大的跳表，读写延迟往往会提高。 对于哈希表而言，读写时间复杂度都是$O(1)$，无序性增加了范围查询和flush过程的工作量。但哈希表需要更长的时间排序，size越大，所需时间越长，会阻塞上层的写入操作。
   FloDB Design 设计了两层的内存组件，上层是small、fast、unordered的Membuffer，下层是larger、ordered的Memtable。两层都是可并行的数据结构，数据流跟LSM类似，从最小的Membuffer，流向Memtable，直到磁盘上的SStable。
@@ -117,10 +126,10 @@ key的临近度决定了path-reuse的效果。</description>
     
     <item>
       <title>SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/sep/sfm/</link>
+      <link>https://zhangyh.me/posts/paper/21-9/sfm/</link>
       <pubDate>Fri, 24 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/sep/sfm/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-9/sfm/</guid>
       <description>Movitation  传统的merge policy  Level Merge Policy和Tiered Merge Policy在读写放大方面各有优势. 前者相当于单层的Tiered,保证了单层数据的有序性,减少了读放大,但要维护这种有序性,就需要频繁的merge,因此造成了严重的写放大. 后者对有序性的要求并不严格,它只要求每个group的key range互不交叉,允许sstable之间的key交叉.
 工作负载的空间局部性  作者对ZippyDB(facebook)的工作负载分析发现,少部分的key被读写多次,大部分的key被读写的次数很少.
 Design 作者提出了疑问:
@@ -134,10 +143,10 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
     
     <item>
       <title>SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores </title>
-      <link>https://zhangyh.me/posts/paper/sep/silk/</link>
+      <link>https://zhangyh.me/posts/paper/21-9/silk/</link>
       <pubDate>Wed, 22 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/sep/silk/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-9/silk/</guid>
       <description>本文旨在解决LSM-Tree的长尾问题，长尾问题的根源主要是客户端操作和LSM-Tree内部操作的互相干扰。 客户端操作：write 内部操作: flush、compaction
 Experiment study of tail latency  实验一：对比RocksDB和RocksDB without flushing. RocksDB without flushing: 要flush的immutable memtable直接丢弃 实验二：Rate-limited RocksDB 实验三：RocksDB with increased Memtable 实验四：TRAID 实验五：PebblesDB  作者对目前最新的LSM-Tree数据库RocksDB、TRIAD、PebblesDB进行了实验并得出三点结论。
  长尾的主要原因是被写满的memtable阻塞了write。 有两个原因导致了这种情况：第一，磁盘上的L0-L1 compaction跟不上写入的速度，导致L0被写满。第二，意外的有大量的compaction在同时进行，占据了大量的IO，导致flush因为有限的带宽而变慢，使得memtable变满。 简单的限制内部操作带宽, 并不能解决flush带宽受限的问题，长远来看反而会加剧这种问题。这种方法能够推迟压缩，但增加了在未来某个时候同时发生compaction的可能性。 提高吞吐量的方法，例如选择性地启动压缩或仅在最高level执行压缩，在短期内避免了延迟峰值，但从长远来看会加剧问题，因为它们也会增加在稍后的某个时间点进行许多并发压缩的可能性。  推论： 由1得出推论：内部操作并不是完全平等的。更low-level的操作是关键的，因为未能及时完成它们可能会导致客户端操作停滞。 由2，3得出推论：必须进行长时间的测试，避免问题未被发现。 (因为写入的数据量不够的话，无法体现更底层的compaction操作对系统的影响。)
@@ -166,10 +175,10 @@ SILK Design principles  有选择的分配带宽。 遇到峰值流量时，分�
     
     <item>
       <title>The Google File System</title>
-      <link>https://zhangyh.me/posts/paper/aug/gfs/</link>
+      <link>https://zhangyh.me/posts/paper/21-8/gfs/</link>
       <pubDate>Sat, 28 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/aug/gfs/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-8/gfs/</guid>
       <description>1 Introduction 本文是《The Google File System》的学习笔记
 2 Design Overview 2.1 Assumptions GFS基于以下基本假设作为设计原则。
  廉价商用机器出故障是常态 主要存储大文件，通常大于100MB，没有针对小文件的优化 读操作：大规模的流式读、小规模的随机读 写操作：大规模的append写操作、小规模的随机写效率低 支持多个客户端并行 append 到同一个文件 持续的高带宽比低时延重要  2.2 Interface  未实现POSIX API 支持常见文件操作，包括create, delete, open, close, read, write. 包括 snapshot 和 record append  2.3 Architecture  集群通常包括一个 master、多个 chunkserver 和多个访问的 client 文件使用固定大小(64 MB)的 chunk 存储，使用globally unique、immutable的 64bit chunk handle表示 master 维护整个集群所有的 metadata ，通过 heartbeat 与 chunkserve 进行 instruct、state-collect client 以 lib 的形式嵌入到应用中，以供 application 调用 client 和 chunkserver 都不 cache file data，但 client 会 cache metadata  2.</description>
@@ -198,10 +207,10 @@ package main import ( &amp;#34;fmt&amp;#34; &amp;#34;unsafe&amp;#34; ) type M st
     
     <item>
       <title>LSM-based storage techniques: a survey</title>
-      <link>https://zhangyh.me/posts/paper/aug/suvery-of-lsm/</link>
+      <link>https://zhangyh.me/posts/paper/21-8/suvery-of-lsm/</link>
       <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/aug/suvery-of-lsm/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-8/suvery-of-lsm/</guid>
       <description> paper原文：LSM-based storage techniques: a survey
  LSM-tree basics 对于索引结构通常有两种更新策略，即in-place update和out-of-place update。
 in-place通常使用B+树作为底层数据结构，通过随机写来更新数据项，带来的是读数据的优化，同时每个数据项只存有一份，因此节约了空间。
@@ -217,10 +226,10 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
     
     <item>
       <title>Wisckey: Separating keys from values in ssd-conscious storage</title>
-      <link>https://zhangyh.me/posts/paper/aug/wisckey/</link>
+      <link>https://zhangyh.me/posts/paper/21-8/wisckey/</link>
       <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/aug/wisckey/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-8/wisckey/</guid>
       <description>WiscKey Design Goals  Low写放大 Low读放大 SSD优化 Feature-rich API (scan、snapshot) Realistic k-v size (value的size通常比key的大很多)  K-V Separation  LSM tree的主要性能成本在于Compaction，但它维护了key的有序性，对于加速读也是十分有必要的。 Compaction只需要对key排序，因此考虑将k-v分开存储。只把value的地址和key放在一起。  LSM tree的size将大大变小，减少了写放大。 读操作虽然需要一次额外的寻址操作，但更小的LSM tree加快了检索同时更容易缓存到大内存中。    Challenge   Parallel Range Query 在levelDB中，范围查询通过iterator的顺序读实现，但是现在由于和key一同存储的只有value的地址，范围查询变为了随机io。 我们在读取所有的地址后，写入一个队列，通过多线程并发读取，来加快范围查询的性能。
   Garbage Collection 由于把所有的数据都存到了vLog里，最朴素的垃圾回收的方法当然是扫描一遍LSM-tree，但开销太大了，只适用于离线环境。 WiscKey在vlog中存储(ksize, vsize, key, value)，并维护head和tail指针。   数据在head处添加 垃圾回收线程从tail处扫描，每次扫描一定量的数据（几MB），然后在LSM-tree中查找，如果kv对有效的话，则再把它添加到head处。 因此，只有tail和head之间的数据是有效的。
 Crash Consistency  Optimizations  Value-Log Write Buffer  对于写密集的数据集，频繁的大量的小size的value写入，会导致较大的系统开销。 因此考虑在内存中维护Buffer。 当读数据的时候，先到vlog write buffer中查找，如果没有，再查vlog。 crash-consistency的维护类似于levelDB，使用WAL。
@@ -248,10 +257,10 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
     
     <item>
       <title>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/aug/lwc-tree/</link>
+      <link>https://zhangyh.me/posts/paper/21-8/lwc-tree/</link>
       <pubDate>Fri, 06 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/aug/lwc-tree/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-8/lwc-tree/</guid>
       <description>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
  使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子  Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
  读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中  victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
@@ -263,10 +272,10 @@ Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata �
     
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://zhangyh.me/posts/paper/aug/optane/</link>
+      <link>https://zhangyh.me/posts/paper/21-8/optane/</link>
       <pubDate>Thu, 05 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/aug/optane/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-8/optane/</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
@@ -299,10 +308,10 @@ Insert Latency insert latency来源有三个方面：
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://zhangyh.me/posts/paper/aug/zen/</link>
+      <link>https://zhangyh.me/posts/paper/21-8/zen/</link>
       <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/aug/zen/</guid>
+      <guid>https://zhangyh.me/posts/paper/21-8/zen/</guid>
       <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成 其中可能同时存在某个数据的多个版本 (tupleId, Tx-CTS)唯一确定一个tuple
  LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除  Met-Cache NVM heap在DRAM中的缓存
  Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。  Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple
@@ -453,6 +462,15 @@ AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) c
  比较软的货币所属文明：小乘佛教 不鼓励生产，不鼓励消费
 贬值很厉害的货币所属文明：罗马天主教、东正教和伊斯兰教 不鼓励生产，鼓励消费
 人均智商 宗教严肃度  海外投资的汇率风险 中国企业和资本出海需要重点防范：目标国的汇率风险 (结合上面所讲的因素进行思考)</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://zhangyh.me/posts/paper/21-11/rum-tree/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://zhangyh.me/posts/paper/21-11/rum-tree/</guid>
+      <description></description>
     </item>
     
   </channel>

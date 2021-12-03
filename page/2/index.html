@@ -19,7 +19,7 @@
 <link rel=mask-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
-<meta name=generator content="Hugo 0.88.1">
+<meta name=generator content="Hugo 0.89.4">
 <link rel=alternate type=application/rss+xml href=https://zhangyh.me/index.xml>
 <link rel=alternate type=application/json href=https://zhangyh.me/index.json>
 <noscript>
@@ -76,6 +76,25 @@
 <main class=main>
 <article class=post-entry>
 <header class=entry-header>
+<h2>SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores
+</h2>
+</header>
+<section class=entry-content>
+<p>Movitation 传统的merge policy Level Merge Policy和Tiered Merge Policy在读写放大方面各有优势. 前者相当于单层的Tiered,保证了单层数据的有序性,减少了读放大,但要维护这种有序性,就需要频繁的merge,因此造成了严重的写放大. 后者对有序性的要求并不严格,它只要求每个group的key range互不交叉,允许sstable之间的key交叉.
+工作负载的空间局部性 作者对ZippyDB(facebook)的工作负载分析发现,少部分的key被读写多次,大部分的key被读写的次数很少.
+Design 作者提出了疑问:
+How to resolve the read amplification problem induced by the tiering merge policy while maintaining its low write amplification?
+根据key-space的不同access pattern,有选择的采用Tiering和Leveling Merge policy. 通过追踪每层中的key-space的访问强度,来决定设置T的值为1还是configured threshold.
+Spatially Fragmented LSM-TREE (SFM) 每层通过随机的边界分为不同的key-space.边界的选取方式类似于PebblesDB. 如果一个栈的key-range被认为是读密集的,则设置T为1,否则,按照原有的配置设置.
+合并策略如上图
+读超过stack阈值的文件到内存 在内存中进行merge 按照下层的key边界进行切片 新SSTable被刷新到下层 添加到key对应的栈 B. Read Intensity Identification 如何判断读的强度呢? 统计每个段的读写次数.对于读操作,即使读取的key不存在,也是要计入读取次数的. 对于写操作,统计每次merge后的sstable中的kv对的数量. 通过对比每个stack的r/w和整体平均的r/w来判断其为hot还是cold. 根据每个stack的hot还是cold属性,来决定key-space的访问强度.
+Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元信息....</p>
+</section>
+<footer class=entry-footer>9-24&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores" href=https://zhangyh.me/posts/paper/21-9/sfm/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores
 </h2>
 </header>
@@ -86,7 +105,7 @@ Experiment study of tail latency 实验一：对比RocksDB和RocksDB without flu
 SILK Design principles 有选择的分配带宽。 遇到峰值流量时，分配更多的带宽给low-level，减缓high-level的压缩。 在闲时，利用短暂的低负载时期来促进内部操作的处理 优先处理更low-level的操作 给内部操作指定优先级: flush > L0-L1 compaction > high-level compaction 抢占式compaction 允许更low-level的compaction抢占high-level的compaction Implementation 有选择的分配带宽 有优先次序和可抢占的内部操作 系统内部维护两个线程池：高优先级池用于flush,低优先级池用于compaction. Flush: 有专门的线程池，在mem被写满之前，提供稳定的一定量的带宽，以保证不断的写入。多个内存组件和多个线程可能保证较长的性能高峰。 L0-L1 compaction: 和high-level的compaction共用线程，该过程需要保证L0有足够的空间供flush。如果需要进行L0-L1的compaction，并且目前没有可用线程，那么就会抢占high-leve compaction的线程。 high-level compaction: 线程维护在低优先级线程池 </p>
 </section>
 <footer class=entry-footer>9-22&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores " href=https://zhangyh.me/posts/paper/sep/silk/></a>
+<a class=entry-link aria-label="post link to SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores " href=https://zhangyh.me/posts/paper/21-9/silk/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -123,7 +142,7 @@ SILK Design principles 有选择的分配带宽。 遇到峰值流量时，分�
 廉价商用机器出故障是常态 主要存储大文件，通常大于100MB，没有针对小文件的优化 读操作：大规模的流式读、小规模的随机读 写操作：大规模的append写操作、小规模的随机写效率低 支持多个客户端并行 append 到同一个文件 持续的高带宽比低时延重要 2.2 Interface 未实现POSIX API 支持常见文件操作，包括create, delete, open, close, read, write. 包括 snapshot 和 record append 2.3 Architecture 集群通常包括一个 master、多个 chunkserver 和多个访问的 client 文件使用固定大小(64 MB)的 chunk 存储，使用globally unique、immutable的 64bit chunk handle表示 master 维护整个集群所有的 metadata ，通过 heartbeat 与 chunkserve 进行 instruct、state-collect client 以 lib 的形式嵌入到应用中，以供 application 调用 client 和 chunkserver 都不 cache file data，但 client 会 cache metadata 2....</p>
 </section>
 <footer class=entry-footer>8-28&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to The Google File System" href=https://zhangyh.me/posts/paper/aug/gfs/></a>
+<a class=entry-link aria-label="post link to The Google File System" href=https://zhangyh.me/posts/paper/21-8/gfs/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -167,7 +186,7 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
 Write Amplification: out-of-place数据结构所具有的问题，降低了写性能和磁盘寿命。 Merge Operation: merge后会造成buffer cache miss，大数据量的merge会造成write stall Hardware: 针对large memory,multi-core, SSD/NVM, native storage的优化 Special Workloads: Auto-tuning: 不可能同时达到read,write,space同时最优，并且由于lsm tree拥有大量参数，手动调优也是困难的。 Secondary Indexing: lsm tree只支持简单的kv接口，二级索引也是一个方向。 </p>
 </section>
 <footer class=entry-footer>8-10&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to LSM-based storage techniques: a survey" href=https://zhangyh.me/posts/paper/aug/suvery-of-lsm/></a>
+<a class=entry-link aria-label="post link to LSM-based storage techniques: a survey" href=https://zhangyh.me/posts/paper/21-8/suvery-of-lsm/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -181,28 +200,7 @@ Crash Consistency Optimizations Value-Log Write Buffer 对于写密集的数据�
 Optimizing the LSM-tree Log 在写LSM-tree之前需要先写vlog，因为这里我们加了vlog write buffer，所以我们直接用vlog的日志作为WAL。</p>
 </section>
 <footer class=entry-footer>8-10&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Wisckey: Separating keys from values in ssd-conscious storage" href=https://zhangyh.me/posts/paper/aug/wisckey/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>Hashkv: Enabling efficient updates in KV storage via hashing
-</h2>
-</header>
-<section class=entry-content>
-<p>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
-最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读 Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.
-segment group 包括一个main segment和多个log segment.
-内存中全局的segment table存储每一个segment group接下来插入或更新的位置。
-为了方便GC，segment group存储了key/value size，key，value
-GC Collection GC以segment group为单元，当free log segment用尽的时候会触发。
-首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置 两个问题：
-如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。 Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。
-hot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()
-如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。
-我们称呼该过程为tagging，注意，tagging只发生在GC时。...</p>
-</section>
-<footer class=entry-footer>8-7&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Hashkv: Enabling efficient updates in KV storage via hashing" href=https://zhangyh.me/topics/paper/hashkv.html></a>
+<a class=entry-link aria-label="post link to Wisckey: Separating keys from values in ssd-conscious storage" href=https://zhangyh.me/posts/paper/21-8/wisckey/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>

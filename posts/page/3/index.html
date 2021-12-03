@@ -19,7 +19,7 @@
 <link rel=mask-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
-<meta name=generator content="Hugo 0.88.1">
+<meta name=generator content="Hugo 0.89.4">
 <link rel=alternate type=application/rss+xml href=https://zhangyh.me/posts/index.xml>
 <noscript>
 <style>#theme-toggle,.top-link{display:none}</style>
@@ -78,6 +78,27 @@
 </header>
 <article class=post-entry>
 <header class=entry-header>
+<h2>Hashkv: Enabling efficient updates in KV storage via hashing
+</h2>
+</header>
+<section class=entry-content>
+<p>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
+最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读 Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.
+segment group 包括一个main segment和多个log segment.
+内存中全局的segment table存储每一个segment group接下来插入或更新的位置。
+为了方便GC，segment group存储了key/value size，key，value
+GC Collection GC以segment group为单元，当free log segment用尽的时候会触发。
+首先选择候选的segment group，并识别valid KV 然后将valid KV写新的main segment和log segment 再释放之前未使用的log segment 最后更新LSM-Tree中value的最新位置 两个问题：
+如何选择候选的segment group? 根据更新的kv数量，快速选择 如何快速验证KV时valid的 从尾部第一次读到的key，它对应的kv一定是最新的。 Hotness Awareness 在对segment group进行GC后，决定其中数据项为hot还是code。
+hot数据仍然写回segment group. code数据写到另外一个区域，旨在segment group中保留其metadata()
+如何判断冷热？ 在最后插入后，又更新过一次的即为热数据。
+我们称呼该过程为tagging，注意，tagging只发生在GC时。...</p>
+</section>
+<footer class=entry-footer>8-7&nbsp;·&nbsp;yuler</footer>
+<a class=entry-link aria-label="post link to Hashkv: Enabling efficient updates in KV storage via hashing" href=https://zhangyh.me/topics/paper/hashkv.html></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores
 </h2>
 </header>
@@ -91,7 +112,7 @@ Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直�
 Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer...</p>
 </section>
 <footer class=entry-footer>8-6&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/aug/lwc-tree/></a>
+<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/21-8/lwc-tree/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -114,7 +135,7 @@ Memory Model 该模式下直接将Optane DIMM作为普通的内存使用，将DR
 ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内存。一般用于写完就不管的情况，可以防止污染cache。 clflush: 把cache line刷回内存，并且让cache line失效。只能串行执行。 clflushopt: 功能同clflush，但是不同缓存行可以并发执行。 clwb: 除了写回后不让cache line失效，其他同clflushopt。 sfence：写屏障，在sfence指令前的写操作当必须在sfence指令后的写操作前完成...</p>
 </section>
 <footer class=entry-footer>8-5&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to An Empirical Guide to the Behavior and Use of Scalable Persistent Memory" href=https://zhangyh.me/posts/paper/aug/optane/></a>
+<a class=entry-link aria-label="post link to An Empirical Guide to the Behavior and Use of Scalable Persistent Memory" href=https://zhangyh.me/posts/paper/21-8/optane/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -145,7 +166,7 @@ Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty 
 Transaction-Private Data 线程私有 用于事务并发访问 存储相应数据...</p>
 </section>
 <footer class=entry-footer>8-3&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Zen: a high-throughput log-free OLTP engine for non-volatile main memory" href=https://zhangyh.me/posts/paper/aug/zen/></a>
+<a class=entry-link aria-label="post link to Zen: a high-throughput log-free OLTP engine for non-volatile main memory" href=https://zhangyh.me/posts/paper/21-8/zen/></a>
 </article>
 <article class=post-entry>
 <header class=entry-header>
@@ -186,23 +207,6 @@ package main import ( "fmt" ) type Student struct { name string age int } func m
 </section>
 <footer class=entry-footer>7-11&nbsp;·&nbsp;yuler</footer>
 <a class=entry-link aria-label="post link to Go | make和new" href=https://zhangyh.me/posts/golang/go-make%E5%92%8Cnew/></a>
-</article>
-<article class=post-entry>
-<header class=entry-header>
-<h2>理解io多路复用
-</h2>
-</header>
-<section class=entry-content>
-<p>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。
-为什么需要io多路复用模型? 当我们开启一个socket的时候，需要对发起的连接进行响应。
-阻塞io 阻塞io流程如图 如果使用阻塞io，我们可能会有下面类似的代码框架。
-listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务器地址绑定 listend(listenfd) // 转换为监听套接字 while(1) { connfd = accept(listenfd) // 阻塞建立连接 new thread func(){ int n = read(connfd, buf) // 阻塞读数据 do_something() // 业务代码 close(connfd) //关闭连接套接字 } } 在accept()建立起连接后，我们会使用多线程来接手连接套接字connfd，阻塞的读取客户端发送来的内容。
-每个连接都要开启一个线程来阻塞读取数据，但大多数线程都处于阻塞状态，造成了严重的线程浪费 非阻塞io 非阻塞io流程如图
-如果使用非阻塞io，我们可能会有下面类似的代码框架
-while(1) { connfd = accept(listenfd); // 阻塞建立连接 append(fds, connfd) for fd in fds { fcntl(connfd, F_SETFL, O_NONBLOCK); int n = read(connfd, buffer); if n !...</p>
-</section>
-<footer class=entry-footer>7-3&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to 理解io多路复用" href=https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/></a>
 </article>
 <footer class=page-footer>
 <nav class=pagination>

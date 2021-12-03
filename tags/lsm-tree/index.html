@@ -19,7 +19,7 @@
 <link rel=mask-icon href=https://zhangyh.me/%3Clink%20/%20abs%20url%3E>
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
-<meta name=generator content="Hugo 0.88.1">
+<meta name=generator content="Hugo 0.89.4">
 <link rel=alternate type=application/rss+xml href=https://zhangyh.me/tags/lsm-tree/index.xml>
 <noscript>
 <style>#theme-toggle,.top-link{display:none}</style>
@@ -95,7 +95,7 @@ Reduce Block Size 直观上来看,减少block size是一个很直接的解决方
 Aligning Blocks With Physical Pages 对于$L_1$以及更底层的数据,会进行压缩....</p>
 </section>
 <footer class=entry-footer>10-18&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Reducing DRAM Footprint with NVM in Facebook" href=https://zhangyh.me/posts/paper/oct/mynvm/></a>
+<a class=entry-link aria-label="post link to Reducing DRAM Footprint with NVM in Facebook" href=https://zhangyh.me/posts/paper/21-10/mynvm/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -113,7 +113,7 @@ data-skew unawareness (memory component) premature and iterative compaction (dis
 duplicated writes 当$C_m$刷新到$C_d$之后,需要删除掉其在Commit log中的部分....</p>
 </section>
 <footer class=entry-footer>10-12&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores" href=https://zhangyh.me/posts/paper/oct/triad/></a>
+<a class=entry-link aria-label="post link to TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores" href=https://zhangyh.me/posts/paper/21-10/triad/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -137,7 +137,7 @@ Skiplist Multi-inserts 实验显示，多线程下hash table比skiplist块一到
 key的临近度决定了path-reuse的效果。</p>
 </section>
 <footer class=entry-footer>9-26&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to FloDB: Unlocking Memory in Persistent Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/flodb/></a>
+<a class=entry-link aria-label="post link to FloDB: Unlocking Memory in Persistent Key-Value Stores" href=https://zhangyh.me/posts/paper/21-9/flodb/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -156,7 +156,7 @@ Spatially Fragmented LSM-TREE (SFM) 每层通过随机的边界分为不同的ke
 Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元信息....</p>
 </section>
 <footer class=entry-footer>9-24&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores" href=https://zhangyh.me/posts/paper/sep/sfm/></a>
+<a class=entry-link aria-label="post link to SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores" href=https://zhangyh.me/posts/paper/21-9/sfm/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -177,7 +177,7 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
 Write Amplification: out-of-place数据结构所具有的问题，降低了写性能和磁盘寿命。 Merge Operation: merge后会造成buffer cache miss，大数据量的merge会造成write stall Hardware: 针对large memory,multi-core, SSD/NVM, native storage的优化 Special Workloads: Auto-tuning: 不可能同时达到read,write,space同时最优，并且由于lsm tree拥有大量参数，手动调优也是困难的。 Secondary Indexing: lsm tree只支持简单的kv接口，二级索引也是一个方向。 </p>
 </section>
 <footer class=entry-footer>8-10&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to LSM-based storage techniques: a survey" href=https://zhangyh.me/posts/paper/aug/suvery-of-lsm/></a>
+<a class=entry-link aria-label="post link to LSM-based storage techniques: a survey" href=https://zhangyh.me/posts/paper/21-8/suvery-of-lsm/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -191,7 +191,7 @@ Crash Consistency Optimizations Value-Log Write Buffer 对于写密集的数据�
 Optimizing the LSM-tree Log 在写LSM-tree之前需要先写vlog，因为这里我们加了vlog write buffer，所以我们直接用vlog的日志作为WAL。</p>
 </section>
 <footer class=entry-footer>8-10&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to Wisckey: Separating keys from values in ssd-conscious storage" href=https://zhangyh.me/posts/paper/aug/wisckey/></a>
+<a class=entry-link aria-label="post link to Wisckey: Separating keys from values in ssd-conscious storage" href=https://zhangyh.me/posts/paper/21-8/wisckey/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
@@ -208,7 +208,7 @@ Metadata Aggregation overlaped的元数据如何获取。 直觉的方法是直�
 Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata 每次compaction过程中append进来的数据作为一个segment,segment之间的key是overlap的,会导致查找性能的下降 MetadaBlock包括了bloom filter blocks,overlaped metada_index block, metada_index block,index block footer...</p>
 </section>
 <footer class=entry-footer>8-6&nbsp;·&nbsp;yuler</footer>
-<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/aug/lwc-tree/></a>
+<a class=entry-link aria-label="post link to A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores" href=https://zhangyh.me/posts/paper/21-8/lwc-tree/></a>
 </article>
 <article class="post-entry tag-entry">
 <header class=entry-header>
