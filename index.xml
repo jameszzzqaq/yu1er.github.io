@@ -464,15 +464,6 @@ AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) c
 人均智商 宗教严肃度  海外投资的汇率风险 中国企业和资本出海需要重点防范：目标国的汇率风险 (结合上面所讲的因素进行思考)</description>
     </item>
     
-    <item>
-      <title></title>
-      <link>https://zhangyh.me/posts/paper/21-11/rum-tree/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://zhangyh.me/posts/paper/21-11/rum-tree/</guid>
-      <description></description>
-    </item>
-    
     
     
   </channel>
