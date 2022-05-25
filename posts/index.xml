@@ -2,41 +2,40 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Posts on yuler&#39;s blog</title>
-    <link>https://zhangyh.me/posts/</link>
+    <link>https://blog.zhangyh.me/posts/</link>
     <description>Recent content in Posts on yuler&#39;s blog</description>
     <image>
-      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 10 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 10 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.zhangyh.me/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>ceph离线部署</title>
-      <link>https://zhangyh.me/posts/misc/ceph/ceph%E6%90%AD%E5%BB%BA/</link>
+      <link>https://blog.zhangyh.me/posts/misc/ceph/ceph%E6%90%AD%E5%BB%BA/</link>
       <pubDate>Wed, 10 Nov 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/misc/ceph/ceph%E6%90%AD%E5%BB%BA/</guid>
-      <description>准备 repo ceph源包制作和安装  安装工具包   机器要求能够连外网  yum -y install epel-release yum -y install yum-utils yum -y install createrepo 添加ceph octopus配置 (octopus版本为15.2.15) vim /etc/yum.repos.d/ceph.repo 内容如下：  [ceph] name=ceph baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 [ceph-noarch] name=cephnoarch baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/noarch/ gpgcheck=0 [ceph-source] name=cephsource baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 [ceph-radosgw] name=cephradosgw baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 制作repo  yum clean all yum repolist # 查看ceph-deploy版本 yum list all | grep ceph-deploy # 下载ceph包和依赖 mkdir local_repo # 以防万一把ssh、ntp、crontabs、python-setuptools也下载一下 # repotrack openssh openssh-clients openssh-server ntp ntpupdate crontabs python-setuptools -p /root/local_repo repotrack ceph-deploy-2.</description>
+      <guid>https://blog.zhangyh.me/posts/misc/ceph/ceph%E6%90%AD%E5%BB%BA/</guid>
+      <description>准备 repo ceph源包制作和安装  安装工具包   机器要求能够连外网  yum -y install epel-release yum -y install yum-utils yum -y install createrepo 添加ceph octopus配置 (octopus版本为15.2.15) vim /etc/yum.repos.d/ceph.repo 内容如下：  [ceph] name=ceph baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 [ceph-noarch] name=cephnoarch baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/noarch/ gpgcheck=0 [ceph-source] name=cephsource baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 [ceph-radosgw] name=cephradosgw baseurl=http://mirrors.aliyun.com/ceph/rpm-15.2.15/el7/x86_64/ gpgcheck=0 制作repo  yum clean all yum repolist  # 查看ceph-deploy版本 yum list all | grep ceph-deploy  # 下载ceph包和依赖 mkdir local_repo  # 以防万一把ssh、ntp、crontabs、python-setuptools也下载一下 # repotrack openssh openssh-clients openssh-server ntp ntpupdate crontabs python-setuptools -p /root/local_repo repotrack ceph-deploy-2.</description>
     </item>
     
     <item>
       <title>买卖股票系列</title>
-      <link>https://zhangyh.me/posts/leetcode/buy-and-sell-stock/</link>
+      <link>https://blog.zhangyh.me/posts/leetcode/buy-and-sell-stock/</link>
       <pubDate>Tue, 19 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/leetcode/buy-and-sell-stock/</guid>
+      <guid>https://blog.zhangyh.me/posts/leetcode/buy-and-sell-stock/</guid>
       <description>121. 买卖股票的最佳时机  121. 买卖股票的最佳时机
  遍历过程中维护一个股票价格最小值和一个股票价格最大差值.
-class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int floor = prices[0]; int ans = 0; for (int i = 1; i &amp;lt; prices.size(); i++) { ans = max(ans, prices[i] - floor); floor = min(floor, prices[i]); } return ans; } };  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  122. 买卖股票的最佳时机 II  122. 买卖股票的最佳时机 II
-  贪心  class Solution { public: int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) { int ans = 0; for (int i = 1; i &amp;lt; prices.</description>
+class Solution { public:  int maxProfit(vector&amp;lt;int&amp;gt;&amp;amp; prices) {  int floor = prices[0];  int ans = 0;  for (int i = 1; i &amp;lt; prices.size(); i++) {  ans = max(ans, prices[i] - floor);  floor = min(floor, prices[i]);  }  return ans;  } };  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  122. 买卖股票的最佳时机 II  122. 买卖股票的最佳时机 II</description>
     </item>
     
     <item>
       <title>Reducing DRAM Footprint with NVM in Facebook</title>
-      <link>https://zhangyh.me/posts/paper/21-10/mynvm/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-10/mynvm/</link>
       <pubDate>Mon, 18 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-10/mynvm/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-10/mynvm/</guid>
       <description>BACKGROUND RocksDB and MyRocks RocksDB是基于LSM的kv存储数据库,MyRocks在RocksDB基础上做了MySQL兼容
 LinkBench 数据来自于Facebook真实生产环境下知识图谱中的数据.用于访问数据库的操作包括点读取、范围查询（例如通向节点的边列表）、计数查询以及简单的创建、删除和更新操作。
 NVM NVM 是一种新的持久存储技术，有可能在数据中心和消费者用例中取代 DRAM. 既可作为字节寻址设备,也可以作为块设备.
@@ -53,22 +52,22 @@ Aligning Blocks With Physical Pages 对于$L_1$以及更底层的数据,会进�
     
     <item>
       <title>单调栈题集</title>
-      <link>https://zhangyh.me/posts/leetcode/monotone-stack/</link>
+      <link>https://blog.zhangyh.me/posts/leetcode/monotone-stack/</link>
       <pubDate>Fri, 15 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/leetcode/monotone-stack/</guid>
+      <guid>https://blog.zhangyh.me/posts/leetcode/monotone-stack/</guid>
       <description>单调栈 单调栈可以保证栈内元素线性有序,同时复杂度为$O(n)$.
 通常的trick会在首尾处添加两个哨兵元素.
 题目 84. 柱状图中最大的矩形 很经典的单调栈用法.
-class Solution { public: int largestRectangleArea(vector&amp;lt;int&amp;gt;&amp;amp; heights) { vector&amp;lt;int&amp;gt; nums(heights.size() + 2); copy(begin(heights), end(heights), begin(nums) + 1); int n = nums.size(); stack&amp;lt;int&amp;gt; stk; stk.push(0); int ans = 0; for (int i = 1; i &amp;lt; n; i++) { while (nums[i] &amp;lt; nums[stk.top()]) { int h = nums[stk.top()]; stk.pop(); int w = i - stk.top() - 1; ans = max(ans, h * w); } stk.</description>
+class Solution { public:  int largestRectangleArea(vector&amp;lt;int&amp;gt;&amp;amp; heights) {  vector&amp;lt;int&amp;gt; nums(heights.size() + 2);  copy(begin(heights), end(heights), begin(nums) + 1);  int n = nums.size();   stack&amp;lt;int&amp;gt; stk;  stk.push(0);   int ans = 0;  for (int i = 1; i &amp;lt; n; i++) {  while (nums[i] &amp;lt; nums[stk.top()]) {  int h = nums[stk.top()];  stk.pop();  int w = i - stk.</description>
     </item>
     
     <item>
       <title>TRIAD: Creating Synergies Between Memory, Disk and Log in Log Structured Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/21-10/triad/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-10/triad/</link>
       <pubDate>Tue, 12 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-10/triad/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-10/triad/</guid>
       <description>Introduction 本文通过解决LSM-Tree的写放大问题,从而整体上提高其吞吐量. 在真是的生产环境中,作者观察到compaction最高可占据45%的CPU,平均每天有2.5个小时的时间花在compaction上. 显然,compaction和flush是重要的性能挑战,即使它们发生在面向用户的操作的关键路径之外.
 主要面向
 Background LSM-Tree:
@@ -81,33 +80,31 @@ duplicated writes 当$C_m$刷新到$C_d$之后,需要删除掉其在Commit log�
     
     <item>
       <title>cpp问题清单</title>
-      <link>https://zhangyh.me/posts/cpp/problem-list/</link>
+      <link>https://blog.zhangyh.me/posts/cpp/problem-list/</link>
       <pubDate>Sun, 10 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/cpp/problem-list/</guid>
-      <description>问题1 #include &amp;lt;iostream&amp;gt; class A { public: virtual void func(int val = 1) {std::cout &amp;lt;&amp;lt; &amp;#34;A-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl; } virtual void test(){func();} }; class B : public A { public: void func(int val = 0) {std::cout &amp;lt;&amp;lt; &amp;#34;B-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl;} }; int main () { B* b = new B; b-&amp;gt;test(); return 0; } 输出  B-&amp;gt;1
- 解释 参考《Effective c++》条款37: 绝不重新定义继承而来的缺省默认值. 因为虚函数是动态绑定,因此b实际指向的就是b.而默认参数是静态绑定,是由编译器决定的.
- test函数是A的,test内部调用func实际上是this-&amp;gt;func,func是个虚函数而且在B中被重写了,所以有动态绑定. 这里的this运行时类型是B,所以调用B的func,但是缺省参数实际上是静态绑定的,所以输出的val是A中的那个val.</description>
+      <guid>https://blog.zhangyh.me/posts/cpp/problem-list/</guid>
+      <description>问题1 #include &amp;lt;iostream&amp;gt; class A { public:  virtual void func(int val = 1) {std::cout &amp;lt;&amp;lt; &amp;#34;A-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl; }  virtual void test(){func();} };  class B : public A { public:  void func(int val = 0) {std::cout &amp;lt;&amp;lt; &amp;#34;B-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl;} };   int main () {  B* b = new B;  b-&amp;gt;test();  return 0; } 输出  B-&amp;gt;1</description>
     </item>
     
     <item>
       <title>priority_queue自定义排序</title>
-      <link>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</link>
+      <link>https://blog.zhangyh.me/posts/cpp/priority-queue-custom-comparator/</link>
       <pubDate>Thu, 07 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</guid>
+      <guid>https://blog.zhangyh.me/posts/cpp/priority-queue-custom-comparator/</guid>
       <description>给定一个pair&amp;lt;int, int&amp;gt;数组,通过自定义排序顺序决定优先队列中的顺序.
 vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt; nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.
-struct cmp { bool operator() (const pair&amp;lt;int, int&amp;gt; &amp;amp;a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b) { return a.first == b.first? a.second &amp;lt; b.second : a.first &amp;lt; b.first; } }; priority_queue&amp;lt;pair&amp;lt;int, int&amp;gt;, vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt;, cmp&amp;gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
-auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b){ return a.first == b.</description>
+struct cmp {  bool operator() (const pair&amp;lt;int, int&amp;gt; &amp;amp;a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b) {  return a.first == b.first? a.second &amp;lt; b.second : a.first &amp;lt; b.first;  } }; priority_queue&amp;lt;pair&amp;lt;int, int&amp;gt;, vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt;, cmp&amp;gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
+auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b){  return a.</description>
     </item>
     
     <item>
       <title>FloDB: Unlocking Memory in Persistent Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/21-9/flodb/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-9/flodb/</link>
       <pubDate>Sun, 26 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-9/flodb/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-9/flodb/</guid>
       <description>Shortcomings of current LSMs   线程的可扩展性 LevelDB允许一定程度的并发写，但内部是将写入操作写到了一个队列中，最后仍是顺序执行。 HyperLevelDB、RocksDB、cLSM做了一定程度的并行优化
   内存的可扩展性 内存中组件可以是有序跳表，也可以是无序哈希表，但二者都不适合应用到更大的内存中。 对于跳表而言，读写时间复杂度都是$O(logn)$，有序性一定程度优化了范围查询，并加速了flush过程。但一般来说，读取操作都要到达磁盘，因此，跳表对写入的负面影响大于对读取的正面影响。对于更大内存中更大的跳表，读写延迟往往会提高。 对于哈希表而言，读写时间复杂度都是$O(1)$，无序性增加了范围查询和flush过程的工作量。但哈希表需要更长的时间排序，size越大，所需时间越长，会阻塞上层的写入操作。
   FloDB Design 设计了两层的内存组件，上层是small、fast、unordered的Membuffer，下层是larger、ordered的Memtable。两层都是可并行的数据结构，数据流跟LSM类似，从最小的Membuffer，流向Memtable，直到磁盘上的SStable。
@@ -126,10 +123,10 @@ key的临近度决定了path-reuse的效果。</description>
     
     <item>
       <title>SFM: Mitigating Read/Write Amplification Problem of LSM-Tree-Based Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/21-9/sfm/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-9/sfm/</link>
       <pubDate>Fri, 24 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-9/sfm/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-9/sfm/</guid>
       <description>Movitation  传统的merge policy  Level Merge Policy和Tiered Merge Policy在读写放大方面各有优势. 前者相当于单层的Tiered,保证了单层数据的有序性,减少了读放大,但要维护这种有序性,就需要频繁的merge,因此造成了严重的写放大. 后者对有序性的要求并不严格,它只要求每个group的key range互不交叉,允许sstable之间的key交叉.
 工作负载的空间局部性  作者对ZippyDB(facebook)的工作负载分析发现,少部分的key被读写多次,大部分的key被读写的次数很少.
 Design 作者提出了疑问:
@@ -143,10 +140,10 @@ Metadata Managment 通过StackMetadata的数据结构来管理每个stack的元�
     
     <item>
       <title>SILK: Preventing Latency Spikes in Log-Structured Merge Key-Value Stores </title>
-      <link>https://zhangyh.me/posts/paper/21-9/silk/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-9/silk/</link>
       <pubDate>Wed, 22 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-9/silk/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-9/silk/</guid>
       <description>本文旨在解决LSM-Tree的长尾问题，长尾问题的根源主要是客户端操作和LSM-Tree内部操作的互相干扰。 客户端操作：write 内部操作: flush、compaction
 Experiment study of tail latency  实验一：对比RocksDB和RocksDB without flushing. RocksDB without flushing: 要flush的immutable memtable直接丢弃 实验二：Rate-limited RocksDB 实验三：RocksDB with increased Memtable 实验四：TRAID 实验五：PebblesDB  作者对目前最新的LSM-Tree数据库RocksDB、TRIAD、PebblesDB进行了实验并得出三点结论。
  长尾的主要原因是被写满的memtable阻塞了write。 有两个原因导致了这种情况：第一，磁盘上的L0-L1 compaction跟不上写入的速度，导致L0被写满。第二，意外的有大量的compaction在同时进行，占据了大量的IO，导致flush因为有限的带宽而变慢，使得memtable变满。 简单的限制内部操作带宽, 并不能解决flush带宽受限的问题，长远来看反而会加剧这种问题。这种方法能够推迟压缩，但增加了在未来某个时候同时发生compaction的可能性。 提高吞吐量的方法，例如选择性地启动压缩或仅在最高level执行压缩，在短期内避免了延迟峰值，但从长远来看会加剧问题，因为它们也会增加在稍后的某个时间点进行许多并发压缩的可能性。  推论： 由1得出推论：内部操作并不是完全平等的。更low-level的操作是关键的，因为未能及时完成它们可能会导致客户端操作停滞。 由2，3得出推论：必须进行长时间的测试，避免问题未被发现。 (因为写入的数据量不够的话，无法体现更底层的compaction操作对系统的影响。)
@@ -155,30 +152,30 @@ SILK Design principles  有选择的分配带宽。 遇到峰值流量时，分�
     
     <item>
       <title>weekly-contest-259</title>
-      <link>https://zhangyh.me/posts/leetcode/weekly-contest-259/</link>
+      <link>https://blog.zhangyh.me/posts/leetcode/weekly-contest-259/</link>
       <pubDate>Mon, 20 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/leetcode/weekly-contest-259/</guid>
-      <description>第259次周赛 A. 执行操作后的变量值  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  class Solution { public: int finalValueAfterOperations(vector&amp;lt;string&amp;gt;&amp;amp; operations) { int X = 0; for (auto &amp;amp; s: operations) { if (s[1] == &amp;#39;+&amp;#39;) X++; else X--; } return X; } }; B. 数组美丽值求和 通过正反两次遍历记录每个值左边的最大值和右边的最小值.
- 时间复杂度: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: int sumOfBeauties(vector&amp;lt;int&amp;gt;&amp;amp; nums) { int n = nums.size(); vector&amp;lt;int&amp;gt; left(n, INT_MIN), right(n, INT_MAX); int ans = 0; left[0] = nums[0]; right[n - 1] = nums[n - 1]; for (int i = 1; i &amp;lt; n; i++) left[i] = max(left[i-1], nums[i]); for (int i = n - 2; i &amp;gt;= 0; i--) right[i] = min(right[i + 1], nums[i]); for (int i = 1; i &amp;lt; n - 1; i++) { if (left[i - 1] &amp;lt; nums[i] &amp;amp;&amp;amp; nums[i] &amp;lt; right[i + 1]) ans +=2; else if (nums[i - 1] &amp;lt; nums[i] &amp;amp;&amp;amp; nums[i] &amp;lt; nums[i + 1]) ans++; } return ans; } }; C.</description>
+      <guid>https://blog.zhangyh.me/posts/leetcode/weekly-contest-259/</guid>
+      <description>第259次周赛 A. 执行操作后的变量值  时间复杂度: $O(n)$ 空间复杂度: $O(1)$  class Solution { public:  int finalValueAfterOperations(vector&amp;lt;string&amp;gt;&amp;amp; operations) {  int X = 0;  for (auto &amp;amp; s: operations) {  if (s[1] == &amp;#39;+&amp;#39;) X++;  else X--;  }  return X;  } }; B. 数组美丽值求和 通过正反两次遍历记录每个值左边的最大值和右边的最小值.
+ 时间复杂度: $O(n)$ 空间复杂度: $O(n)$  class Solution { public:  int sumOfBeauties(vector&amp;lt;int&amp;gt;&amp;amp; nums) {  int n = nums.size();  vector&amp;lt;int&amp;gt; left(n, INT_MIN), right(n, INT_MAX);  int ans = 0;  left[0] = nums[0]; right[n - 1] = nums[n - 1];  for (int i = 1; i &amp;lt; n; i++) left[i] = max(left[i-1], nums[i]);  for (int i = n - 2; i &amp;gt;= 0; i--) right[i] = min(right[i + 1], nums[i]);  for (int i = 1; i &amp;lt; n - 1; i++) {  if (left[i - 1] &amp;lt; nums[i] &amp;amp;&amp;amp; nums[i] &amp;lt; right[i + 1]) ans +=2;  else if (nums[i - 1] &amp;lt; nums[i] &amp;amp;&amp;amp; nums[i] &amp;lt; nums[i + 1]) ans++;  }  return ans;  } }; C.</description>
     </item>
     
     <item>
       <title>biweekly-contest-61</title>
-      <link>https://zhangyh.me/posts/leetcode/biweekly-contest-61/</link>
+      <link>https://blog.zhangyh.me/posts/leetcode/biweekly-contest-61/</link>
       <pubDate>Sun, 19 Sep 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/leetcode/biweekly-contest-61/</guid>
-      <description>第61次双周赛 A: 差的绝对值为 K 的数对数目  时间复杂度:$O(n)$ 空间复杂度:$O(n)$  class Solution { public: int countKDifference(vector&amp;lt;int&amp;gt;&amp;amp; nums, int k) { map&amp;lt;int, int&amp;gt; m; int ans; for (auto &amp;amp;&amp;amp; x : nums) { ans += (m[x + k] + m[x - k]); m[x]++; } return ans; } }; B: 从双倍数组中还原原数组 两个关键点: 1. 元素个数一定为偶数 2. 结果数组元素个数一定是原数组二分之一
- 时间复杂度: 排序: $O(nlgn)$ 遍历: $O(n)$ 空间复杂度: $O(n)$  class Solution { public: vector&amp;lt;int&amp;gt; findOriginalArray(vector&amp;lt;int&amp;gt;&amp;amp; changed) { auto n = changed.</description>
+      <guid>https://blog.zhangyh.me/posts/leetcode/biweekly-contest-61/</guid>
+      <description>第61次双周赛 A: 差的绝对值为 K 的数对数目  时间复杂度:$O(n)$ 空间复杂度:$O(n)$  class Solution { public:  int countKDifference(vector&amp;lt;int&amp;gt;&amp;amp; nums, int k) {  map&amp;lt;int, int&amp;gt; m;  int ans;  for (auto &amp;amp;&amp;amp; x : nums) {  ans += (m[x + k] + m[x - k]);  m[x]++;  }  return ans;  } }; B: 从双倍数组中还原原数组 两个关键点: 1. 元素个数一定为偶数 2. 结果数组元素个数一定是原数组二分之一
+ 时间复杂度: 排序: $O(nlgn)$ 遍历: $O(n)$ 空间复杂度: $O(n)$  class Solution { public:  vector&amp;lt;int&amp;gt; findOriginalArray(vector&amp;lt;int&amp;gt;&amp;amp; changed) {  auto n = changed.</description>
     </item>
     
     <item>
       <title>The Google File System</title>
-      <link>https://zhangyh.me/posts/paper/21-8/gfs/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/gfs/</link>
       <pubDate>Sat, 28 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/gfs/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/gfs/</guid>
       <description>1 Introduction 本文是《The Google File System》的学习笔记
 2 Design Overview 2.1 Assumptions GFS基于以下基本假设作为设计原则。
  廉价商用机器出故障是常态 主要存储大文件，通常大于100MB，没有针对小文件的优化 读操作：大规模的流式读、小规模的随机读 写操作：大规模的append写操作、小规模的随机写效率低 支持多个客户端并行 append 到同一个文件 持续的高带宽比低时延重要  2.2 Interface  未实现POSIX API 支持常见文件操作，包括create, delete, open, close, read, write. 包括 snapshot 和 record append  2.3 Architecture  集群通常包括一个 master、多个 chunkserver 和多个访问的 client 文件使用固定大小(64 MB)的 chunk 存储，使用globally unique、immutable的 64bit chunk handle表示 master 维护整个集群所有的 metadata ，通过 heartbeat 与 chunkserve 进行 instruct、state-collect client 以 lib 的形式嵌入到应用中，以供 application 调用 client 和 chunkserver 都不 cache file data，但 client 会 cache metadata  2.</description>
@@ -186,10 +183,10 @@ SILK Design principles  有选择的分配带宽。 遇到峰值流量时，分�
     
     <item>
       <title>聊聊内存对齐</title>
-      <link>https://zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/</link>
+      <link>https://blog.zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/</link>
       <pubDate>Fri, 13 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/</guid>
+      <guid>https://blog.zhangyh.me/posts/misc/%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/</guid>
       <description>为什么需要内存对齐？ 首先需要从物理硬件上了解计算机如何进行内存访问的。
  Channel &amp;gt; DIMM &amp;gt; Rank &amp;gt; Chip &amp;gt; Bank &amp;gt; Coloum/Row &amp;gt; Cell
  如上图 CPU包括两个Channel 每个Channel包括两个DIMM 每个DIMM由Rank组成 Rank由8个内存颗粒chip组成 每个Chip包括8个Bank
@@ -198,19 +195,19 @@ CPU读取内存时从8个chip中每个读取8bit字节，从而构成64bit colum
 什么是内存对齐 从上面我们可以知道，一次性最少读取8B，这也是局部性原理的一种使用。
 内存对齐就是代码编译后在内存中的布局，当一个内存地址刚好能够整除8，就称为其内存地址是8字节对齐的。
 为什么需要内存对齐 对于go中定义的如下结构
-type Type1 struct { a int8 b int64 c int32 } 其内存布局是这样的： 通过unsafe.Sizeof()可以打印出该结构占用了24字节的内存。
+type Type1 struct {  a int8  b int64  c int32 } 其内存布局是这样的： 通过unsafe.Sizeof()可以打印出该结构占用了24字节的内存。
 如果调整一下顺序：
-type Type2 struct { a int8 c int32 b int64 } 便可以节约一个字节的内存
+type Type2 struct {  a int8  c int32  b int64 } 便可以节约一个字节的内存
 零大小字段 如果结构体或数组类型不包含大小大于零的字段或元素，那么它的大小就为0
-package main import ( &amp;#34;fmt&amp;#34; &amp;#34;unsafe&amp;#34; ) type M struct { m int64 x struct{} } type N struct { x struct{} n int64 } func main() { m, n := M{}, N{} fmt.</description>
+package main  import ( 	&amp;#34;fmt&amp;#34; 	&amp;#34;unsafe&amp;#34; )  type M struct { 	m int64 	x struct{} }  type N struct { 	x struct{} 	n int64 }  func main() { 	m, n := M{}, N{} 	fmt.</description>
     </item>
     
     <item>
       <title>LSM-based storage techniques: a survey</title>
-      <link>https://zhangyh.me/posts/paper/21-8/suvery-of-lsm/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/suvery-of-lsm/</link>
       <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/suvery-of-lsm/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/suvery-of-lsm/</guid>
       <description> paper原文：LSM-based storage techniques: a survey
  LSM-tree basics 对于索引结构通常有两种更新策略，即in-place update和out-of-place update。
 in-place通常使用B+树作为底层数据结构，通过随机写来更新数据项，带来的是读数据的优化，同时每个数据项只存有一份，因此节约了空间。
@@ -226,10 +223,10 @@ LSM-tree improvement 文章将对LSM-tree的优化分为以下几个方面：
     
     <item>
       <title>Wisckey: Separating keys from values in ssd-conscious storage</title>
-      <link>https://zhangyh.me/posts/paper/21-8/wisckey/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/wisckey/</link>
       <pubDate>Tue, 10 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/wisckey/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/wisckey/</guid>
       <description>WiscKey Design Goals  Low写放大 Low读放大 SSD优化 Feature-rich API (scan、snapshot) Realistic k-v size (value的size通常比key的大很多)  K-V Separation  LSM tree的主要性能成本在于Compaction，但它维护了key的有序性，对于加速读也是十分有必要的。 Compaction只需要对key排序，因此考虑将k-v分开存储。只把value的地址和key放在一起。  LSM tree的size将大大变小，减少了写放大。 读操作虽然需要一次额外的寻址操作，但更小的LSM tree加快了检索同时更容易缓存到大内存中。    Challenge   Parallel Range Query 在levelDB中，范围查询通过iterator的顺序读实现，但是现在由于和key一同存储的只有value的地址，范围查询变为了随机io。 我们在读取所有的地址后，写入一个队列，通过多线程并发读取，来加快范围查询的性能。
   Garbage Collection 由于把所有的数据都存到了vLog里，最朴素的垃圾回收的方法当然是扫描一遍LSM-tree，但开销太大了，只适用于离线环境。 WiscKey在vlog中存储(ksize, vsize, key, value)，并维护head和tail指针。   数据在head处添加 垃圾回收线程从tail处扫描，每次扫描一定量的数据（几MB），然后在LSM-tree中查找，如果kv对有效的话，则再把它添加到head处。 因此，只有tail和head之间的数据是有效的。
 Crash Consistency  Optimizations  Value-Log Write Buffer  对于写密集的数据集，频繁的大量的小size的value写入，会导致较大的系统开销。 因此考虑在内存中维护Buffer。 当读数据的时候，先到vlog write buffer中查找，如果没有，再查vlog。 crash-consistency的维护类似于levelDB，使用WAL。
@@ -238,10 +235,10 @@ Optimizing the LSM-tree Log  在写LSM-tree之前需要先写vlog，因为这里
     
     <item>
       <title>Hashkv: Enabling efficient updates in KV storage via hashing</title>
-      <link>https://zhangyh.me/topics/paper/hashkv.html</link>
+      <link>https://blog.zhangyh.me/topics/paper/hashkv.html</link>
       <pubDate>Sat, 07 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/hashkv.html</guid>
+      <guid>https://blog.zhangyh.me/topics/paper/hashkv.html</guid>
       <description>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
  最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读  Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.
 segment group 包括一个main segment和多个log segment.
@@ -257,10 +254,10 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
     
     <item>
       <title>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores</title>
-      <link>https://zhangyh.me/posts/paper/21-8/lwc-tree/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/lwc-tree/</link>
       <pubDate>Fri, 06 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/lwc-tree/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/lwc-tree/</guid>
       <description>A Light-weight Compaction Tree to Reduce I/O Amplification toward Efficient Key-Value Stores Introduction 一般情况下的LSM Tree写放大能达到50X倍 缓解写放大的方法可能有以下几种：
  使用更大的内存buffer 利用设备的特性 逐步散列 KV 项 减少level层级 减少每层的空间放大因子  Design light-weight compaction 也是借鉴了wisckey中提到的，merge and sort过程只是面向key的，不需要value的参与 在对Level i 和 Level i+1进行compaction时，我们把第i层的候选的sstable成为victim，把与victim有overlap的i+1层的sstable成为overlaped. (注意该论文为sstable设计了另外一种存储格式，成为DTable) 因此整个lightweight compaction过程为:
  读取victim到内存中，victim包括了overlaped的metadata 然后根据metadata，将victim分为几个segment 再根据key range将segment追加到对应的DTable中  victim一层的写放大被消除了，随之带来的问题就是DTable的读，虽然每一层的DTable之间是无overlap且有序的，但是DTable内的key值并不是完全有序的。
@@ -272,10 +269,10 @@ Data structure of DTable 每个DTable维护下层的overlaped Dtables metadata �
     
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://zhangyh.me/posts/paper/21-8/optane/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/optane/</link>
       <pubDate>Thu, 05 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/optane/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/optane/</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
@@ -293,10 +290,10 @@ ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内
     
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
-      <link>https://zhangyh.me/topics/paper/novelsm.html</link>
+      <link>https://blog.zhangyh.me/topics/paper/novelsm.html</link>
       <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/novelsm.html</guid>
+      <guid>https://blog.zhangyh.me/topics/paper/novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
  对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
  未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍 因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大
@@ -308,10 +305,10 @@ Insert Latency insert latency来源有三个方面：
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://zhangyh.me/posts/paper/21-8/zen/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/zen/</link>
       <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/zen/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/zen/</guid>
       <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成 其中可能同时存在某个数据的多个版本 (tupleId, Tx-CTS)唯一确定一个tuple
  LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除  Met-Cache NVM heap在DRAM中的缓存
  Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。  Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple
@@ -320,133 +317,132 @@ Transaction-Private Data 线程私有 用于事务并发访问 存储相应数�
     
     <item>
       <title>Go | 内存分配</title>
-      <link>https://zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</link>
+      <link>https://blog.zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</link>
       <pubDate>Sat, 17 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/go-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</guid>
       <description>Go | 内存分配 设计原理 Go的内存分配参考了TCMalloc的核心思想。
  每一个线程都可以获得一个用于无锁分配小对象的缓存，这样可以让并行程序分配小对象（&amp;lt;=32KB）非常高效。 TCMalloc 管理的堆由一组页组成，一组连续的页面被表示为 span。当分配的对象大于 32KB，将使用页堆（Page Heap）进行内存分配。  相关struct mspan mspan是Go语言内存管理的基本单元。
-type mspan struct { next *mspan // 链表指针 	prev *mspan // 链表指针  startAddr uintptr // span 起始地址 	npages uintptr // page的数量  spanclass spanClass // size class and noscan (uint8) 	state mSpanStateBox // span状态 	limit uintptr // end of data in span } 这里只列出了关心的主要字段。
+type mspan struct { 	next *mspan // 链表指针 	prev *mspan // 链表指针  	startAddr uintptr // span 起始地址 	npages uintptr // page的数量  	spanclass spanClass // size class and noscan (uint8) 	state mSpanStateBox // span状态 	limit uintptr // end of data in span } 这里只列出了关心的主要字段。
  mspan使用 next和prev指针构成双向链表 startAddr确定了mspan所在内存的地址，npages确定了内存地址范围 每个mspan都管理这npages数量的page（注意这里的page不是操作系统的page，它是操作系统page的整数倍） state为mspan的状态，不细说。  spanClass 这是mspan中一个很核心的字段，spanClass是跨度类，它决定了mspan中管理的存储对象的大小和个数。</description>
     </item>
     
     <item>
       <title>Go | context</title>
-      <link>https://zhangyh.me/posts/golang/go-context/</link>
+      <link>https://blog.zhangyh.me/posts/golang/go-context/</link>
       <pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/go-context/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/go-context/</guid>
       <description>Go | context 什么是context context 主要用来在goroutine之间传递上下文信息，包括：取消信号、超时时间、截止时间、k-v 等。
 可以通过以下个函数创建实现对应的功能:
- context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { ctx := context.WithValue(context.Background(), &amp;#34;key&amp;#34;, &amp;#34;value&amp;#34;) go handleChainA1(ctx) go handleChainA2(ctx) time.Sleep(2 * time.Second) } func handleChainA1(ctx context.Context) { log.Println(&amp;#34;handleChainA1&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) go handleChainB(context.WithValue(ctx, &amp;#34;key2&amp;#34;, &amp;#34;value2&amp;#34;)) } func handleChainA2(ctx context.Context) { log.Println(&amp;#34;handleChainA2&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) } func handleChainB(ctx context.Context) { log.Println(&amp;#34;handleChainB&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) log.Println(&amp;#34;handleChainB&amp;#34;, ctx.Value(&amp;#34;key2&amp;#34;)) } func main() { Test1()	}  注意值的流向只能从上到下，上层context是获取不到下层传入的值的 传入的context不能为nil，可以传context.</description>
+ context.WithCancel(): 创建带有取消函数的context，上层goroutine调用cancelFunc函数，向下层传递取消信号 context.WithTimeout(): 创建带有超时的context，同时创建计时器，超时的时候调用context的cancelFunc；当然也可以主动调用cacelFunc context.WithDeadline(): 和带超时的context类似，实际底层WithTimeout就调用了WithDeadline； return WithDeadline(parent, time.Now().Add(timeout)) context.WithValue(): 创建带值的context  使用场景 1. 链路传值 func Test1() { 	ctx := context.WithValue(context.Background(), &amp;#34;key&amp;#34;, &amp;#34;value&amp;#34;) 	go handleChainA1(ctx) 	go handleChainA2(ctx)  	time.Sleep(2 * time.Second) }  func handleChainA1(ctx context.Context) { 	log.Println(&amp;#34;handleChainA1&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) 	go handleChainB(context.WithValue(ctx, &amp;#34;key2&amp;#34;, &amp;#34;value2&amp;#34;)) }  func handleChainA2(ctx context.Context) { 	log.Println(&amp;#34;handleChainA2&amp;#34;, ctx.Value(&amp;#34;key&amp;#34;)) }  func handleChainB(ctx context.</description>
     </item>
     
     <item>
       <title>Go | make和new</title>
-      <link>https://zhangyh.me/posts/golang/go-make%E5%92%8Cnew/</link>
+      <link>https://blog.zhangyh.me/posts/golang/go-make%E5%92%8Cnew/</link>
       <pubDate>Sun, 11 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/go-make%E5%92%8Cnew/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/go-make%E5%92%8Cnew/</guid>
       <description>区别    方法 作用对象 返回值     new 值类型和用户定义类型 指向对象的指针   make 内置引用类型slice, map, channel 引用类型本身     值类型: 引用类型：
  new new用于为值类型或用户自定义的类型分配内存，并初始化零值，返回零值指针。
-package main import ( &amp;#34;fmt&amp;#34; ) type Student struct { name string age int } func main() { var i *int // *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference 	fmt.Println(i) // fmt.Println(*i)  num := new(int) fmt.</description>
+package main  import ( 	&amp;#34;fmt&amp;#34; )  type Student struct { 	name string 	age int }  func main() { 	var i *int 	// *i = 10 // panic: runtime error: invalid memory address or nil pointer dereference 	fmt.</description>
     </item>
     
     <item>
       <title>理解io多路复用</title>
-      <link>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</link>
+      <link>https://blog.zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</link>
       <pubDate>Sat, 03 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</guid>
+      <guid>https://blog.zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</guid>
       <description>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。
 为什么需要io多路复用模型? 当我们开启一个socket的时候，需要对发起的连接进行响应。
 阻塞io 阻塞io流程如图 如果使用阻塞io，我们可能会有下面类似的代码框架。
-listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务器地址绑定 listend(listenfd) // 转换为监听套接字  while(1) { connfd = accept(listenfd) // 阻塞建立连接  new thread func(){ int n = read(connfd, buf) // 阻塞读数据  do_something() // 业务代码  close(connfd) //关闭连接套接字  } } 在accept()建立起连接后，我们会使用多线程来接手连接套接字connfd，阻塞的读取客户端发送来的内容。
+listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务器地址绑定 listend(listenfd) // 转换为监听套接字  while(1) {  connfd = accept(listenfd) // 阻塞建立连接  new thread func(){  int n = read(connfd, buf) // 阻塞读数据  do_something() // 业务代码  close(connfd) //关闭连接套接字  } } 在accept()建立起连接后，我们会使用多线程来接手连接套接字connfd，阻塞的读取客户端发送来的内容。
  每个连接都要开启一个线程来阻塞读取数据，但大多数线程都处于阻塞状态，造成了严重的线程浪费  非阻塞io 非阻塞io流程如图
 如果使用非阻塞io，我们可能会有下面类似的代码框架
-while(1) { connfd = accept(listenfd); // 阻塞建立连接  append(fds, connfd) for fd in fds { fcntl(connfd, F_SETFL, O_NONBLOCK); int n = read(connfd, buffer); if n !</description>
+while(1) {  connfd = accept(listenfd); // 阻塞建立连接  append(fds, connfd)  for fd in fds {  fcntl(connfd, F_SETFL, O_NONBLOCK);  int n = read(connfd, buffer);  if n !</description>
     </item>
     
     <item>
       <title>Go调度 | 3. goroutine的创建和执行</title>
-      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/</link>
+      <link>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/</link>
       <pubDate>Thu, 01 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A63-goroutine%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E6%89%A7%E8%A1%8C/</guid>
       <description>【go调度】3. goroutine的创建和执行 参考上篇文章对文章对程序启动过程的分析，这里仍旧沿着上次分析的思路来分析main gorotine的创建和调度过程。
-go程序的启动 TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0 .... // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL	runtime·osinit(SB) // 初始化schedule  CALL	runtime·schedinit(SB) MOVQ	$runtime·mainPC(SB), AX	// entry  PUSHQ	AX PUSHQ	$0	// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL	runtime·newproc(SB) POPQ	AX POPQ	AX // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL	runtime·mstart(SB) // mstart是不会返回的，如果返回，终止程序  CALL	runtime·abort(SB)	// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine
-func newproc(siz int32, fn *funcval) { argp := add(unsafe.</description>
+go程序的启动  TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0   ....   // 初始化系统核心, 获取CPU的核数并放在global变量ncpu中  CALL	runtime·osinit(SB)   // 初始化schedule  CALL	runtime·schedinit(SB)   MOVQ	$runtime·mainPC(SB), AX	// entry  PUSHQ	AX  PUSHQ	$0	// arg size  // 创建新的goroutine来执行程序(main()函数)  CALL	runtime·newproc(SB)  POPQ	AX  POPQ	AX   // 主线程进入调度循环，运行刚刚创建的 goroutine  CALL	runtime·mstart(SB)   // mstart是不会返回的，如果返回，终止程序  CALL	runtime·abort(SB)	// mstart should never return  RET main goroutine newproc() 该函数创建出main goroutine</description>
     </item>
     
     <item>
       <title>Go调度 | 4. 调度策略</title>
-      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/</link>
+      <link>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/</link>
       <pubDate>Thu, 01 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A64-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5/</guid>
       <description>【go调度】4. 调度策略 前文分析了scheduler的初始化以及goroutine创建和执行，略过了调度策略的内容。
 有关调度策略的部分主要位于调度函数schedule()中，本文将具体分析。
-schedule() func schedule() { _g_ := getg() top: var gp *g .... // 全局队列  if gp == nil { // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 &amp;amp;&amp;amp; sched.runqsize &amp;gt; 0 { lock(&amp;amp;sched.lock) gp = globrunqget(_g_.m.p.ptr(), 1) unlock(&amp;amp;sched.lock) } } // 本地队列  if gp == nil { // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.m.p.ptr()) } // 本地和全局都没有获取到goroutine，就需要从其他的p本地队列中偷取  // 如果偷取不到当前线程会block，知道返回可用的goroutine  if gp == nil { gp, inheritTime = findrunnable() // blocks until work is available  } .</description>
+schedule() func schedule() { 	_g_ := getg()  top:  	var gp *g  ....   // 全局队列  if gp == nil {  // 为了公平起见，每调度61次，就去全局队列优先获取goroutine  // 避免两个本地队列中的goroutine循环调度,导致全局队列中的goroutine得不到运行  if _g_.m.p.ptr().schedtick%61 == 0 &amp;amp;&amp;amp; sched.runqsize &amp;gt; 0 {  lock(&amp;amp;sched.lock)  gp = globrunqget(_g_.m.p.ptr(), 1)  unlock(&amp;amp;sched.lock)  }  }   // 本地队列  if gp == nil {  // 从本地队列优先获取goroutine  gp, inheritTime = runqget(_g_.</description>
     </item>
     
     <item>
       <title>GMP源码分析</title>
-      <link>https://zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/</link>
+      <link>https://blog.zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/</link>
       <pubDate>Wed, 30 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/gmp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/</guid>
       <description>准备写一个有关go schedule系列的文章，目前已经有很多这方面的内容，但为了记录学习过程和未来复习，我还是决定亲自输出写东西。 该系列预期包括以下内容：
- GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 &amp;ndash; 全局队列，局部队列，working-stealing 何时调度 &amp;ndash;被动，主动，抢占式  创建go routine start=&amp;gt;start: 开始op1=&amp;gt;operation: 获取go func()的func和argsop2=&amp;gt;operation: 切换至g0，使用g0创建对应的Gop3=&amp;gt;operation: gfget(p) 从当前的P获取空闲G;op4=&amp;gt;operation: 参数复制到G,清除堆,pc:func,sp:goexit1op5=&amp;gt;operation: runqput(p,newg,true); 将G加入P的runnable数组;end=&amp;gt;end: 结束start-&amp;gt;op1op1-&amp;gt;op2op2-&amp;gt;op3op3-&amp;gt;op4op4-&amp;gt;op5op5-&amp;gt;end创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  </description>
+ GMP模型 scheduler的初始化 main goroutine和非main goroutine的启动和结束 如何调度 &amp;ndash; 全局队列，局部队列，working-stealing 何时调度 &amp;ndash;被动，主动，抢占式  创建go routine start=&amp;gt;start: 开始op1=&amp;gt;operation: 获取go func()的func和argsop2=&amp;gt;operation: 切换至g0，使用g0创建对应的Gop3=&amp;gt;operation: gfget(p) 从当前的P获取空闲G;op4=&amp;gt;operation: 参数复制到G,清除堆,pc:func,sp:goexit1op5=&amp;gt;operation: runqput(p,newg,true); 将G加入P的runnable数组;end=&amp;gt;end: 结束start-&amp;gt;op1op1-&amp;gt;op2op2-&amp;gt;op3op3-&amp;gt;op4op4-&amp;gt;op5op5-&amp;gt;end 创建P References  Go 语言调度器与 Goroutine 实现原理 | Go 语言设计与实现 golang 源码学习之GMP (goroutine) - 简书 go/runtime2.go at master · golang/go [译]Go 调度器: M, P 和 G | 鸟窝 Golang调度器源码分析 Golang的协程调度器原理及GMP设计思想？ · Golang修养之路 · 看云 Golang源码探索(二) 协程的实现原理 - q303248153 - 博客园  </description>
     </item>
     
     <item>
       <title>Go调度 | 1. GMP模型</title>
-      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/</link>
+      <link>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/</link>
       <pubDate>Wed, 30 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A61-gmp%E6%A8%A1%E5%9E%8B/</guid>
       <description>本节深入先从宏观上介绍GMP模型，然后再通过源码进行深入了解。
 线程和协程 协程是用户态的线程，他的管理和调度都是在用户态进行的，协程与线程相比有以下的优势：
  内存占用 线程内存占用约为4MB，且大小固定。协程内存占用约为2KB，并且是弹性可拓展的。 线程的内存分配往往一方面会造成内存的浪费，另一方面也会有栈溢出的风险。 创建和切换 线程的创建和切换都需要在内核态进行，并且线程切换时有很多寄存器需要进行现场保护。 而协程的创建和切换都是用户态的，并且线程保护的内容相对较少  GMP模型  G: goroutine协程,即我们定义的 go func(){} P: processor处理器，是一种抽象的、用于G执行的局部资源 M: machine，也即thread，对应实际的内核线程
  GMP结构 这部分主要从源码层面分析GMP的结构
 G结构 我们暂时忽略一些对我们分析没有影响的字段。
-type g struct { stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr stackguard1 uintptr // 用于栈空间的动态变化  m *m // 与当前g绑定的m  sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个  // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting  // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态</description>
+type g struct { 	stack stack // goroutine 使用的栈[stack.lo, stack.hi] 	stackguard0 uintptr 	stackguard1 uintptr // 用于栈空间的动态变化  	m *m // 与当前g绑定的m  	sched gobuf // goroutine的运行线程，主要为寄存器信息 	param unsafe.Pointer // warkup 唤醒时传递的参数 	atomicstatus uint32 // goroutine的状态 	goid int64 // goroutine id 	schedlink guintptr // 指向全局goroutine队列中的的下一个   // go阻塞的时间和原因 	waitsince int64 // approx time when the g become blocked 	waitreason waitReason // if status==Gwaiting   // 抢占调度相关 	preempt bool // preemption signal, duplicates stackguard0 = stackpreempt 	preemptStop bool // transition to _Gpreempted on preemption; otherwise, just deschedule 	preemptShrink bool // shrink stack at synchronous safe point } 其中atomicstatus存储了goroutine的状态，这里列举一些重要的状态</description>
     </item>
     
     <item>
       <title>Go调度 | 2. scheduler初始化</title>
-      <link>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/</link>
+      <link>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/</link>
       <pubDate>Wed, 30 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/go%E8%B0%83%E5%BA%A62-scheduler%E5%88%9D%E5%A7%8B%E5%8C%96/</guid>
       <description>上篇文章结尾告诉我们了几个重要的全局变量，本篇文章会用到
 allm *m // 所有的m构成的一个链表，包括下面的m0 allp []*p // 保存所有的p，len(allp) == gomaxprocs  ncpu int32 // 系统中cpu核的数量，程序启动时由runtime代码初始化 gomaxprocs int32 // p的最大值，默认等于ncpu，但可以通过GOMAXPROCS修改  m0 m // 代表进程的主线程 g0 g // m0的g0，也就是m0.g0 = &amp;amp;g0 go程序的启动 当我们运行一个main()函数来启动整个go程序的时候，他的启动流程是什么，这里我们从源码方面仔细分析下整个流程。
 对于linux下的程序来说，入口文件在runtime/rt0_linux_amd64.s，
  具体我们是如何判断入口文件的，可以参考这篇文章，文章简单易懂
- TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8 JMP	_rt0_amd64(SB) 跳转到runtime/asm_amd64.s文件的_rt0_amd64(SB)函数
-// 操作系统内核传递过来的参数argc和argv数组的地址分别放在DI和SI寄存器中 // 然后跳转到 rt0_go 去执行 TEXT _rt0_amd64(SB),NOSPLIT,$-8 MOVQ	0(SP), DI	// argc 	LEAQ	8(SP), SI	// argv 	JMP	runtime·rt0_go(SB) 跳转到runtime·rt0_go函数，我们保留该函数的主要流程
-TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0 // 拷贝argc和argv到指定位置  MOVQ	DI, AX	// argc  MOVQ	SI, BX	// argv  SUBQ	$(4*8+7), SP	// 2args 2auto  ANDQ	$~15, SP MOVQ	AX, 16(SP) MOVQ	BX, 24(SP) // 为g0分配栈空间，g0的栈一般相对较大  // 之后会专门写一篇分析g0的文章  MOVQ	$runtime·g0(SB), DI LEAQ	(-64*1024+104)(SP), BX MOVQ	BX, g_stackguard0(DI) MOVQ	BX, g_stackguard1(DI) MOVQ	BX, (g_stack+stack_lo)(DI) MOVQ	SP, (g_stack+stack_hi)(DI) // .</description>
+ TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8 	JMP	_rt0_amd64(SB) 跳转到runtime/asm_amd64.s文件的_rt0_amd64(SB)函数
+// 操作系统内核传递过来的参数argc和argv数组的地址分别放在DI和SI寄存器中 // 然后跳转到 rt0_go 去执行 TEXT _rt0_amd64(SB),NOSPLIT,$-8 	MOVQ	0(SP), DI	// argc 	LEAQ	8(SP), SI	// argv 	JMP	runtime·rt0_go(SB) 跳转到runtime·rt0_go函数，我们保留该函数的主要流程
+TEXT runtime·rt0_go&amp;lt;ABIInternal&amp;gt;(SB),NOSPLIT,$0  // 拷贝argc和argv到指定位置  MOVQ	DI, AX	// argc  MOVQ	SI, BX	// argv  SUBQ	$(4*8+7), SP	// 2args 2auto  ANDQ	$~15, SP  MOVQ	AX, 16(SP)  MOVQ	BX, 24(SP)   // 为g0分配栈空间，g0的栈一般相对较大  // 之后会专门写一篇分析g0的文章  MOVQ	$runtime·g0(SB), DI  LEAQ	(-64*1024+104)(SP), BX  MOVQ	BX, g_stackguard0(DI)  MOVQ	BX, g_stackguard1(DI)  MOVQ	BX, (g_stack+stack_lo)(DI)  MOVQ	SP, (g_stack+stack_hi)(DI)   // .</description>
     </item>
     
     <item>
       <title>Go | SliceTricks</title>
-      <link>https://zhangyh.me/posts/golang/slicetricks/</link>
+      <link>https://blog.zhangyh.me/posts/golang/slicetricks/</link>
       <pubDate>Tue, 29 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/golang/slicetricks/</guid>
+      <guid>https://blog.zhangyh.me/posts/golang/slicetricks/</guid>
       <description>【译】SliceTricks  原文链接: https://github.com/golang/go/wiki/SliceTricks
  go官方给出了许多slice操作的tricks，这里记录一下，并在最后给出examples
-AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) copy(b, a) // 正常拷贝的one-line实现，但实际上边速度要慢一点 b = append(make([]int, 0, len(a)), a...) // 如果拷贝后还需要添加更多的元素，可以使用这种方式 // 但通常来说上面的方式更快 append([]int(nil), a...) // or append(a[:0:0], a...) Cut a = append(a[:i], a[j:]...) Delete a = append(a[:i], a[i:]...) Delete without preserving order a[i] = a[len(a) - 1] a = a[:len(a) - 1] [admonition color=&amp;ldquo;red&amp;rdquo;]如果数组类型为指针，或者时带有指针的结构体,那么上述的操作很可能会导致内存泄露的发生:一些元素仍然被a引用，但没有被垃圾回收器回收。可以使用以下的方式避免内存泄漏[/admonition]
+AppendVector a = append(a, b...) Copy // 正常拷贝 b := make([]int, len(a)) copy(b, a)  // 正常拷贝的one-line实现，但实际上边速度要慢一点 b = append(make([]int, 0, len(a)), a...)  // 如果拷贝后还需要添加更多的元素，可以使用这种方式 // 但通常来说上面的方式更快 append([]int(nil), a...) // or append(a[:0:0], a...) Cut a = append(a[:i], a[j:]...) Delete a = append(a[:i], a[i:]...) Delete without preserving order a[i] = a[len(a) - 1] a = a[:len(a) - 1] [admonition color=&amp;ldquo;red&amp;rdquo;]如果数组类型为指针，或者时带有指针的结构体,那么上述的操作很可能会导致内存泄露的发生:一些元素仍然被a引用，但没有被垃圾回收器回收。可以使用以下的方式避免内存泄漏[/admonition]
  Cut
- copy(a[i:], a[j:]) for k, n := len(a)-j+i, len(a); k &amp;lt; n; k++ { a[k] = nil // or the zero value of T } a = a[:len(a)-j+i]  Delete</description>
+ copy(a[i:], a[j:]) for k, n := len(a)-j+i, len(a); k &amp;lt; n; k++ { 	a[k] = nil // or the zero value of T } a = a[:len(a)-j+i]  Delete</description>
     </item>
     
     <item>
       <title>人民币汇率与人民币国际化—翟东升</title>
-      <link>https://zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/</link>
+      <link>https://blog.zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/</link>
       <pubDate>Sun, 27 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/</guid>
+      <guid>https://blog.zhangyh.me/posts/thinking/%E4%BA%BA%E6%B0%91%E5%B8%81%E6%B1%87%E7%8E%87%E4%B8%8E%E4%BA%BA%E6%B0%91%E5%B8%81%E5%9B%BD%E9%99%85%E5%8C%96/</guid>
       <description>《人民币汇率与人民币国际化》-翟东升 总结翟东升老师的《人民币汇率与人民币国际化》基础课所讲的内容和知识点
 1. 对人民币汇率的错误预测 看空人民币的五个错误理由 看空人民的观点错在哪 人民币是强势货币 2. 汇率的影响因素  短期看市场情绪，中期看政府调控，长期看市场
  影响长期汇率的直接因素 长期来看影响汇率最直接最有效的因素就是一个国家可贸易品的价格水平。可贸易品的加权平均价决定了汇率。

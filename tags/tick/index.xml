@@ -2,24 +2,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>tick on yuler&#39;s blog</title>
-    <link>https://zhangyh.me/tags/tick/</link>
+    <link>https://blog.zhangyh.me/tags/tick/</link>
     <description>Recent content in tick on yuler&#39;s blog</description>
     <image>
-      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 07 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/tick/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 07 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.zhangyh.me/tags/tick/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>priority_queue自定义排序</title>
-      <link>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</link>
+      <link>https://blog.zhangyh.me/posts/cpp/priority-queue-custom-comparator/</link>
       <pubDate>Thu, 07 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</guid>
+      <guid>https://blog.zhangyh.me/posts/cpp/priority-queue-custom-comparator/</guid>
       <description>给定一个pair&amp;lt;int, int&amp;gt;数组,通过自定义排序顺序决定优先队列中的顺序.
 vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt; nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.
-struct cmp { bool operator() (const pair&amp;lt;int, int&amp;gt; &amp;amp;a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b) { return a.first == b.first? a.second &amp;lt; b.second : a.first &amp;lt; b.first; } }; priority_queue&amp;lt;pair&amp;lt;int, int&amp;gt;, vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt;, cmp&amp;gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
-auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b){ return a.first == b.</description>
+struct cmp {  bool operator() (const pair&amp;lt;int, int&amp;gt; &amp;amp;a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b) {  return a.first == b.first? a.second &amp;lt; b.second : a.first &amp;lt; b.first;  } }; priority_queue&amp;lt;pair&amp;lt;int, int&amp;gt;, vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt;, cmp&amp;gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
+auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b){  return a.</description>
     </item>
     
   </channel>

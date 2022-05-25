@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>NVM on yuler&#39;s blog</title>
-    <link>https://zhangyh.me/tags/nvm/</link>
+    <link>https://blog.zhangyh.me/tags/nvm/</link>
     <description>Recent content in NVM on yuler&#39;s blog</description>
     <image>
-      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Mon, 18 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/nvm/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 18 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.zhangyh.me/tags/nvm/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Reducing DRAM Footprint with NVM in Facebook</title>
-      <link>https://zhangyh.me/posts/paper/21-10/mynvm/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-10/mynvm/</link>
       <pubDate>Mon, 18 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-10/mynvm/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-10/mynvm/</guid>
       <description>BACKGROUND RocksDB and MyRocks RocksDB是基于LSM的kv存储数据库,MyRocks在RocksDB基础上做了MySQL兼容
 LinkBench 数据来自于Facebook真实生产环境下知识图谱中的数据.用于访问数据库的操作包括点读取、范围查询（例如通向节点的边列表）、计数查询以及简单的创建、删除和更新操作。
 NVM NVM 是一种新的持久存储技术，有可能在数据中心和消费者用例中取代 DRAM. 既可作为字节寻址设备,也可以作为块设备.
@@ -32,10 +32,10 @@ Aligning Blocks With Physical Pages 对于$L_1$以及更底层的数据,会进�
     
     <item>
       <title>Hashkv: Enabling efficient updates in KV storage via hashing</title>
-      <link>https://zhangyh.me/topics/paper/hashkv.html</link>
+      <link>https://blog.zhangyh.me/topics/paper/hashkv.html</link>
       <pubDate>Sat, 07 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/hashkv.html</guid>
+      <guid>https://blog.zhangyh.me/topics/paper/hashkv.html</guid>
       <description>Hashkv: Enabling efficient updates in KV storage via hashing Introduction kv分离的Wisckey在vLog的GC上有着以下的问题：
  最新写入的数据被从tail迁移到head处，带来了写放大。 每次GC，对于每一项都需要去查询LSM-Tree，去验证是否还有效，造成大量随机读  Design Storage Management 固定大小的空间单元main segment和log segment。 默认分别为64MB和1MB.
 segment group 包括一个main segment和多个log segment.
@@ -51,10 +51,10 @@ hot数据仍然写回segment group. code数据写到另外一个区域，旨在s
     
     <item>
       <title>An Empirical Guide to the Behavior and Use of Scalable Persistent Memory</title>
-      <link>https://zhangyh.me/posts/paper/21-8/optane/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/optane/</link>
       <pubDate>Thu, 05 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/optane/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/optane/</guid>
       <description>Introduction 过去的很多研究都是基于仿真模拟的NVM，他们基于——NVM表现和DRAM类似，只不过性能相对较低——这样的假设完成了研究。
 但实验发现，Optane DIMM的性能与DRAM相比，更依赖于
  access size access method(read,write) pattern degree of concurrency  本文通过经过实验证明了之前的很多仿真方法都是不可靠的。
@@ -72,10 +72,10 @@ ISA Support store: 绕过store buffer ntstore: 绕过CPU cache，直接写到内
     
     <item>
       <title>Redesigning LSMs for nonvolatile memory with NoveLSM</title>
-      <link>https://zhangyh.me/topics/paper/novelsm.html</link>
+      <link>https://blog.zhangyh.me/topics/paper/novelsm.html</link>
       <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/topics/paper/novelsm.html</guid>
+      <guid>https://blog.zhangyh.me/topics/paper/novelsm.html</guid>
       <description>Introduction 和目前的存储技术（例如flash、硬盘）相比， NVM有着以下的没有被LSM考虑的优点：
  对于持久存储的随机访问的高性能 in-place update的低成本 (具体是?) 低时延、高带宽为application-level的并行化提供了机会  作者认为探索redesign适用于NVM的LSM是有意义的，而不是design a new data structure。 基于以下考量：
  未来几年NVM和SSD共存，形成异质存储，而不是完全取代。redesign LSM可以在利用NVM的优点的前提下，同时不失去ssd和硬盘最优化的优势。 redesign lsm能为现有的应用提供向后兼容 保证批量写入NVM同样重要（NVM写延迟为DRAM的5-10倍）  Motivation 单纯的硬件NVM的读写是SSD的100倍左右，但在LevelDB在NVM和SSD上的差异只有4-7倍 因此可以说目前的LSM没有充分利用NVM的硬件优势，软件开销较大
@@ -87,10 +87,10 @@ Insert Latency insert latency来源有三个方面：
     
     <item>
       <title>Zen: a high-throughput log-free OLTP engine for non-volatile main memory</title>
-      <link>https://zhangyh.me/posts/paper/21-8/zen/</link>
+      <link>https://blog.zhangyh.me/posts/paper/21-8/zen/</link>
       <pubDate>Tue, 03 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/paper/21-8/zen/</guid>
+      <guid>https://blog.zhangyh.me/posts/paper/21-8/zen/</guid>
       <description>Design Overview  Hybrid Table(HTable)  tuple heap in NVM Met-Cache in DRAM per-thread NVM-tuple managers.   Metadata in NVM Transaction and Indices in DRAM  NVM heap 所有的tuple持久化到NVM中的tuple heap，它由大小为2MB的pages组成 其中可能同时存在某个数据的多个版本 (tupleId, Tx-CTS)唯一确定一个tuple
  LP: 在commited transaction中最后一个被持久化的tuple，将该标记记为1 Tx-CTS: 每个事务在线程内都有唯一ID，单调递增。 Deleted: 被删除  Met-Cache NVM heap在DRAM中的缓存
  Clock bit: 用于Clock置换策略 Active bit: 事务正在使用该tuple Dirty bit: 被修改，当事务中途被absort，根据dirty位重新到NVM Heap获取tuple Copy bit: tuple被复制 CC-Meta：用于DRAM中的并发控制时，存储对应的信息。Zen中的并发控制完全实现在DRAM中，支持多种并发控制策略。  Indices in DRAM 在DRAM维护索引。crash后会重建。索引指向Met-Cache或者NVM heap中的tuple

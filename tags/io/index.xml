@@ -2,27 +2,27 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>IO on yuler&#39;s blog</title>
-    <link>https://zhangyh.me/tags/io/</link>
+    <link>https://blog.zhangyh.me/tags/io/</link>
     <description>Recent content in IO on yuler&#39;s blog</description>
     <image>
-      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 03 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/tags/io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 03 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.zhangyh.me/tags/io/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>理解io多路复用</title>
-      <link>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</link>
+      <link>https://blog.zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</link>
       <pubDate>Sat, 03 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</guid>
+      <guid>https://blog.zhangyh.me/posts/misc/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</guid>
       <description>之前对io多路复用有诸多疑惑，看了很多文章还是不甚了解——它是什么，它要解决什么问题。最近刚好需要分析golang网络轮询器，趁此机会，把io多路复用的相关内容都总结记录一下。
 为什么需要io多路复用模型? 当我们开启一个socket的时候，需要对发起的连接进行响应。
 阻塞io 阻塞io流程如图 如果使用阻塞io，我们可能会有下面类似的代码框架。
-listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务器地址绑定 listend(listenfd) // 转换为监听套接字  while(1) { connfd = accept(listenfd) // 阻塞建立连接  new thread func(){ int n = read(connfd, buf) // 阻塞读数据  do_something() // 业务代码  close(connfd) //关闭连接套接字  } } 在accept()建立起连接后，我们会使用多线程来接手连接套接字connfd，阻塞的读取客户端发送来的内容。
+listenfd = socket() // 创建socket bind(listenfd, addr) // 将socketfd和服务器地址绑定 listend(listenfd) // 转换为监听套接字  while(1) {  connfd = accept(listenfd) // 阻塞建立连接  new thread func(){  int n = read(connfd, buf) // 阻塞读数据  do_something() // 业务代码  close(connfd) //关闭连接套接字  } } 在accept()建立起连接后，我们会使用多线程来接手连接套接字connfd，阻塞的读取客户端发送来的内容。
  每个连接都要开启一个线程来阻塞读取数据，但大多数线程都处于阻塞状态，造成了严重的线程浪费  非阻塞io 非阻塞io流程如图
 如果使用非阻塞io，我们可能会有下面类似的代码框架
-while(1) { connfd = accept(listenfd); // 阻塞建立连接  append(fds, connfd) for fd in fds { fcntl(connfd, F_SETFL, O_NONBLOCK); int n = read(connfd, buffer); if n !</description>
+while(1) {  connfd = accept(listenfd); // 阻塞建立连接  append(fds, connfd)  for fd in fds {  fcntl(connfd, F_SETFL, O_NONBLOCK);  int n = read(connfd, buffer);  if n !</description>
     </item>
     
   </channel>

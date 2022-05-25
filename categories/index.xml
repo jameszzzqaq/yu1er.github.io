@@ -2,65 +2,65 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Categories on yuler&#39;s blog</title>
-    <link>https://zhangyh.me/categories/</link>
+    <link>https://blog.zhangyh.me/categories/</link>
     <description>Recent content in Categories on yuler&#39;s blog</description>
     <image>
-      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 10 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 10 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.zhangyh.me/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Misc</title>
-      <link>https://zhangyh.me/categories/misc/</link>
+      <link>https://blog.zhangyh.me/categories/misc/</link>
       <pubDate>Wed, 10 Nov 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/categories/misc/</guid>
+      <guid>https://blog.zhangyh.me/categories/misc/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Leetcode</title>
-      <link>https://zhangyh.me/categories/leetcode/</link>
+      <link>https://blog.zhangyh.me/categories/leetcode/</link>
       <pubDate>Tue, 19 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/categories/leetcode/</guid>
+      <guid>https://blog.zhangyh.me/categories/leetcode/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Paper</title>
-      <link>https://zhangyh.me/categories/paper/</link>
+      <link>https://blog.zhangyh.me/categories/paper/</link>
       <pubDate>Mon, 18 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/categories/paper/</guid>
+      <guid>https://blog.zhangyh.me/categories/paper/</guid>
       <description></description>
     </item>
     
     <item>
       <title>cpp</title>
-      <link>https://zhangyh.me/categories/cpp/</link>
+      <link>https://blog.zhangyh.me/categories/cpp/</link>
       <pubDate>Sun, 10 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/categories/cpp/</guid>
+      <guid>https://blog.zhangyh.me/categories/cpp/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Golang</title>
-      <link>https://zhangyh.me/categories/golang/</link>
+      <link>https://blog.zhangyh.me/categories/golang/</link>
       <pubDate>Sat, 17 Jul 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/categories/golang/</guid>
+      <guid>https://blog.zhangyh.me/categories/golang/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Thinking</title>
-      <link>https://zhangyh.me/categories/thinking/</link>
+      <link>https://blog.zhangyh.me/categories/thinking/</link>
       <pubDate>Sun, 27 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/categories/thinking/</guid>
+      <guid>https://blog.zhangyh.me/categories/thinking/</guid>
       <description></description>
     </item>
     

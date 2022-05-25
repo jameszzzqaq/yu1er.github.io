@@ -2,35 +2,33 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>cpp on yuler&#39;s blog</title>
-    <link>https://zhangyh.me/categories/cpp/</link>
+    <link>https://blog.zhangyh.me/categories/cpp/</link>
     <description>Recent content in cpp on yuler&#39;s blog</description>
     <image>
-      <url>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>https://zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://blog.zhangyh.me/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 10 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangyh.me/categories/cpp/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 10 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.zhangyh.me/categories/cpp/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>cpp问题清单</title>
-      <link>https://zhangyh.me/posts/cpp/problem-list/</link>
+      <link>https://blog.zhangyh.me/posts/cpp/problem-list/</link>
       <pubDate>Sun, 10 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/cpp/problem-list/</guid>
-      <description>问题1 #include &amp;lt;iostream&amp;gt; class A { public: virtual void func(int val = 1) {std::cout &amp;lt;&amp;lt; &amp;#34;A-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl; } virtual void test(){func();} }; class B : public A { public: void func(int val = 0) {std::cout &amp;lt;&amp;lt; &amp;#34;B-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl;} }; int main () { B* b = new B; b-&amp;gt;test(); return 0; } 输出  B-&amp;gt;1
- 解释 参考《Effective c++》条款37: 绝不重新定义继承而来的缺省默认值. 因为虚函数是动态绑定,因此b实际指向的就是b.而默认参数是静态绑定,是由编译器决定的.
- test函数是A的,test内部调用func实际上是this-&amp;gt;func,func是个虚函数而且在B中被重写了,所以有动态绑定. 这里的this运行时类型是B,所以调用B的func,但是缺省参数实际上是静态绑定的,所以输出的val是A中的那个val.</description>
+      <guid>https://blog.zhangyh.me/posts/cpp/problem-list/</guid>
+      <description>问题1 #include &amp;lt;iostream&amp;gt; class A { public:  virtual void func(int val = 1) {std::cout &amp;lt;&amp;lt; &amp;#34;A-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl; }  virtual void test(){func();} };  class B : public A { public:  void func(int val = 0) {std::cout &amp;lt;&amp;lt; &amp;#34;B-&amp;gt;&amp;#34; &amp;lt;&amp;lt; val &amp;lt;&amp;lt; std::endl;} };   int main () {  B* b = new B;  b-&amp;gt;test();  return 0; } 输出  B-&amp;gt;1</description>
     </item>
     
     <item>
       <title>priority_queue自定义排序</title>
-      <link>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</link>
+      <link>https://blog.zhangyh.me/posts/cpp/priority-queue-custom-comparator/</link>
       <pubDate>Thu, 07 Oct 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://zhangyh.me/posts/cpp/priority-queue-custom-comparator/</guid>
+      <guid>https://blog.zhangyh.me/posts/cpp/priority-queue-custom-comparator/</guid>
       <description>给定一个pair&amp;lt;int, int&amp;gt;数组,通过自定义排序顺序决定优先队列中的顺序.
 vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt; nums{{4, 1}, {8, 2}, {1, 9}, {8, 1}, {8, 4}, {3, 7}}; 仿函数 (推荐) 仿函数的出现就是为了解决函数指针在作为函数参数向函数传递时的局限性问题. 通过重写类的operator(),使该类具有函数的功能.
-struct cmp { bool operator() (const pair&amp;lt;int, int&amp;gt; &amp;amp;a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b) { return a.first == b.first? a.second &amp;lt; b.second : a.first &amp;lt; b.first; } }; priority_queue&amp;lt;pair&amp;lt;int, int&amp;gt;, vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt;, cmp&amp;gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
-auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b){ return a.first == b.</description>
+struct cmp {  bool operator() (const pair&amp;lt;int, int&amp;gt; &amp;amp;a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b) {  return a.first == b.first? a.second &amp;lt; b.second : a.first &amp;lt; b.first;  } }; priority_queue&amp;lt;pair&amp;lt;int, int&amp;gt;, vector&amp;lt;pair&amp;lt;int, int&amp;gt;&amp;gt;, cmp&amp;gt; pq; lambda 通过c++11新特性的lambda和delctype,可以避免重新定义类. 但需要注意,lambda函数需要通过构造函数的参数传递.
+auto a = [](const pair&amp;lt;int, int&amp;gt; &amp;amp; a, const pair&amp;lt;int, int&amp;gt; &amp;amp;b){  return a.</description>
     </item>
     
   </channel>
